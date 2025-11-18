@@ -53,12 +53,21 @@ export default function CRM() {
     return phone; // Return original if doesn't match expected patterns
   };
 
-  // Get the last correspondence date (mock data for demo)
+  // Get the last correspondence date (stable mock data for demo)
   const getLastCorrespondenceDate = (contactId: string) => {
-    // In a real app, this would be fetched from the database
-    // For demo purposes, generate a recent date
+    // Create a consistent date based on contactId to avoid random changes on re-render
+    // In a real app, this would be fetched from the database (last_message.created_at)
+    const hash = contactId.split('').reduce((a, b) => {
+      return ((a << 5) - a + b.charCodeAt(0)) | 0; // Simple string hash
+    }, 0);
+
+    // Generate a consistent date within the last 30 days based on contact ID
+    const daysAgo = Math.abs(hash) % 30;
     const date = new Date();
-    date.setDate(date.getDate() - Math.floor(Math.random() * 30) + 1); // Random recent date
+    date.setDate(date.getDate() - daysAgo);
+    date.setHours(Math.abs(hash) % 24); // Add some hour variation
+    date.setMinutes(Math.abs(hash) % 60); // Add minute variation
+
     return date;
   };
 
