@@ -28,7 +28,14 @@ export default function MCP() {
   const [showNewServer, setShowNewServer] = useState(false);
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
+  const [editingServer, setEditingServer] = useState<any>(null);
+  const [showEditServer, setShowEditServer] = useState(false);
   const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    endpoint_url: '',
+  });
+  const [editFormData, setEditFormData] = useState({
     name: '',
     description: '',
     endpoint_url: '',
@@ -115,6 +122,15 @@ export default function MCP() {
             return (
               <div
                 key={server.id}
+                onClick={() => {
+                  setEditingServer(server);
+                  setEditFormData({
+                    name: server.name,
+                    description: server.description || '',
+                    endpoint_url: server.endpoint_url || '',
+                  });
+                  setShowEditServer(true);
+                }}
                 className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition cursor-pointer"
               >
                 <div className="flex items-start justify-between mb-4">
@@ -268,6 +284,145 @@ export default function MCP() {
                   className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {creating ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Add Server'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {showEditServer && editingServer && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-4xl w-full p-6 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">Edit MCP Server</h2>
+              <button
+                onClick={() => {
+                  setShowEditServer(false);
+                  setEditingServer(null);
+                }}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <h3 className="font-medium text-blue-900 mb-2">{editingServer.name}</h3>
+              <p className="text-sm text-blue-700">Configure server settings, endpoints, and connection details.</p>
+            </div>
+
+            <form className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Server Name
+                </label>
+                <input
+                  type="text"
+                  value={editFormData.name}
+                  onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none"
+                  placeholder="Server name"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Description
+                </label>
+                <textarea
+                  value={editFormData.description}
+                  onChange={(e) => setEditFormData({ ...editFormData, description: e.target.value })}
+                  rows={3}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none resize-none"
+                  placeholder="Describe what this server provides..."
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Endpoint URL
+                </label>
+                <input
+                  type="url"
+                  value={editFormData.endpoint_url}
+                  onChange={(e) => setEditFormData({ ...editFormData, endpoint_url: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none"
+                  placeholder="https://api.example.com/mcp"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  API endpoint for the MCP server connection
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  Server Configuration
+                </label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm text-gray-600 mb-1">Timeout (seconds)</label>
+                    <input
+                      type="number"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none"
+                      placeholder="30"
+                      min="5"
+                      max="300"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-gray-600 mb-1">Max Retries</label>
+                    <input
+                      type="number"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none"
+                      placeholder="3"
+                      min="0"
+                      max="10"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  Authentication
+                </label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm text-gray-600 mb-1">API Key</label>
+                    <input
+                      type="password"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none"
+                      placeholder="Authentication key"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-gray-600 mb-1">Bearer Token</label>
+                    <input
+                      type="password"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none"
+                      placeholder="Bearer token"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowEditServer(false);
+                    setEditingServer(null);
+                  }}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition flex items-center justify-center gap-2"
+                >
+                  Save Changes
                 </button>
               </div>
             </form>

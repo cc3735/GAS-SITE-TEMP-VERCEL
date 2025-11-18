@@ -24,8 +24,7 @@ const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: Home },
   { name: 'Projects', href: '/projects', icon: FolderKanban },
   { name: 'CRM', href: '/crm', icon: Users },
-  { name: 'Marketing', href: '/marketing', icon: Mail },
-  { name: 'Social Media', href: '/social', icon: Share2 },
+  { name: 'Marketing & Social', href: '/marketing-social', icon: Mail },
   { name: 'AI Agents', href: '/agents', icon: Bot },
   { name: 'MCP Servers', href: '/mcp', icon: Server },
   { name: 'Analytics', href: '/analytics', icon: BarChart3 },
@@ -54,7 +53,7 @@ export default function DashboardLayout() {
         </button>
         <div className="flex items-center gap-2">
           <Sparkles className="w-6 h-6 text-blue-600" />
-          <span className="font-bold text-gray-900">AI OS</span>
+          <span className="font-bold text-gray-900">GAS OS</span>
         </div>
       </div>
 
@@ -69,7 +68,7 @@ export default function DashboardLayout() {
               <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg flex items-center justify-center">
                 <Sparkles className="w-5 h-5 text-white" />
               </div>
-              <span className="text-xl font-bold text-gray-900">AI OS</span>
+              <span className="text-xl font-bold text-gray-900">GAS OS</span>
             </div>
 
             <div className="relative">

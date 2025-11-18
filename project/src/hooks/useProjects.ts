@@ -1,98 +1,145 @@
-import { useEffect, useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { useOrganization } from '../contexts/OrganizationContext';
 
-interface Project {
+export interface Project {
   id: string;
+  organization_id: string;
   name: string;
   description: string | null;
-  color: string;
-  icon: string;
   status: string;
+  estimated_completion: string | null;
+  tools_used: string[] | null;
+  proposed_tech: string[] | null;
+  project_details: any | null;
+  cost_to_operate: number | null;
+  gas_fee: number | null;
+  budget: number | null;
   start_date: string | null;
   end_date: string | null;
+  priority: string;
+  assigned_to: string | null;
+  created_by: string;
   created_at: string;
+  updated_at: string;
 }
 
 export function useProjects() {
-  const { currentOrganization } = useOrganization();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { currentOrganization } = useOrganization();
 
-  useEffect(() => {
-    if (!currentOrganization) return;
+  const fetchProjects = useCallback(async () => {
+    // Temporary mock data until database is properly set up
+    if (!currentOrganization) {
+      setProjects([]);
+      setLoading(false);
+      return;
+    }
 
-    fetchProjects();
-
-    const subscription = supabase
-      .channel('projects_changes')
-      .on(
-        'postgres_changes',
+    setLoading(true);
+    setTimeout(() => {
+      setProjects([
         {
-          event: '*',
-          schema: 'public',
-          table: 'projects',
-          filter: `organization_id=eq.${currentOrganization.id}`,
-        },
-        () => {
-          fetchProjects();
+          id: 'demo-1',
+          organization_id: currentOrganization.id,
+          name: 'Website Redesign',
+          description: 'Complete overhaul of company website',
+          status: 'planning',
+          estimated_completion: '1-3-months',
+          tools_used: ['React', 'Next.js'],
+          proposed_tech: ['Tailwind CSS'],
+          project_details: 'Modern, responsive website with improved UX',
+          cost_to_operate: 2500.00,
+          gas_fee: 150.00,
+          budget: 10000.00,
+          priority: 'high',
+          created_by: 'demo-user',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          start_date: null,
+          end_date: null,
+          assigned_to: null
         }
-      )
-      .subscribe();
-
-    return () => {
-      subscription.unsubscribe();
-    };
+      ]);
+      setLoading(false);
+      setError(null);
+    }, 500);
   }, [currentOrganization]);
 
-  const fetchProjects = async () => {
-    if (!currentOrganization) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('projects')
-        .select('*')
-        .eq('organization_id', currentOrganization.id)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setProjects(data || []);
-    } catch (error) {
-      console.error('Error fetching projects:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  useEffect(() => {
+    fetchProjects();
+  }, [fetchProjects]);
 
   const createProject = async (projectData: {
     name: string;
     description?: string;
-    color?: string;
-    icon?: string;
+    estimated_completion?: string;
+    tools_used?: string[];
+    proposed_tech?: string[];
+    project_details?: any;
+    cost_to_operate?: number;
+    gas_fee?: number;
+    budget?: number;
+    start_date?: string;
+    end_date?: string;
+    priority?: string;
+    assigned_to?: string;
   }) => {
-    if (!currentOrganization) return null;
-
-    try {
-      const { data, error } = await supabase
-        .from('projects')
-        .insert({
-          organization_id: currentOrganization.id,
-          name: projectData.name,
-          description: projectData.description || null,
-          color: projectData.color || '#3B82F6',
-          icon: projectData.icon || 'FolderOpen',
-          status: 'active',
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
-    } catch (error) {
-      console.error('Error creating project:', error);
-      throw error;
+    // Mock successful creation
+    if (!currentOrganization) {
+      throw new Error('No organization selected');
     }
+
+    const newProject = {
+      id: `project-${Date.now()}`,
+      organization_id: currentOrganization.id,
+      name: projectData.name,
+      description: projectData.description || null,
+      status: 'planning',
+      estimated_completion: projectData.estimated_completion || null,
+      tools_used: projectData.tools_used || null,
+      proposed_tech: projectData.proposed_tech || null,
+      project_details: projectData.project_details || null,
+      cost_to_operate: projectData.cost_to_operate || null,
+      gas_fee: projectData.gas_fee || null,
+      budget: projectData.budget || null,
+      priority: projectData.priority || 'medium',
+      assigned_to: null,
+      created_by: 'demo-user',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      start_date: null,
+      end_date: null
+    };
+
+    setProjects(prev => [newProject, ...prev]);
+
+    return newProject;
   };
 
-  return { projects, loading, createProject, refetch: fetchProjects };
+  const updateProject = async (projectId: string, updates: Partial<Project>) => {
+    // Mock update
+    const updatedProject = { ...projects.find(p => p.id === projectId), ...updates } as Project;
+    setProjects(prev => prev.map(project =>
+      project.id === projectId ? updatedProject : project
+    ));
+    return updatedProject;
+  };
+
+  const deleteProject = async (projectId: string) => {
+    // Mock delete
+    setProjects(prev => prev.filter(project => project.id !== projectId));
+  };
+
+  return {
+    projects,
+    loading,
+    error,
+    createProject,
+    updateProject,
+    deleteProject,
+    refetch: fetchProjects,
+  };
 }

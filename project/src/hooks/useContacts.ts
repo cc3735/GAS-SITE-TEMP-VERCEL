@@ -11,10 +11,14 @@ interface Contact {
   phone: string | null;
   title: string | null;
   company_id: string | null;
+  company_name: string | null;
+  date_of_birth: string | null;
+  notes: string | null;
   lead_status: string;
   lead_score: number;
   tags: string[] | null;
   created_at: string;
+  updated_at: string;
 }
 
 export function useContacts() {
@@ -74,6 +78,9 @@ export function useContacts() {
     email?: string;
     phone?: string;
     title?: string;
+    company_name?: string;
+    date_of_birth?: string;
+    notes?: string;
   }) => {
     if (!currentOrganization || !user) return null;
 
@@ -87,6 +94,9 @@ export function useContacts() {
           email: contactData.email || null,
           phone: contactData.phone || null,
           title: contactData.title || null,
+          company_name: contactData.company_name || null,
+          date_of_birth: contactData.date_of_birth || null,
+          notes: contactData.notes || null,
           lead_status: 'new',
           lead_score: 0,
           created_by: user.id,
@@ -102,5 +112,36 @@ export function useContacts() {
     }
   };
 
-  return { contacts, loading, createContact, refetch: fetchContacts };
+  const updateContact = async (
+    contactId: string,
+    contactData: Partial<{
+      first_name: string;
+      last_name: string | null;
+      email: string | null;
+      phone: string | null;
+      title: string | null;
+      company_name: string | null;
+      date_of_birth: string | null;
+      notes: string | null;
+      lead_status: string;
+      tags: string[] | null;
+    }>
+  ) => {
+    try {
+      const { data, error } = await supabase
+        .from('contacts')
+        .update(contactData)
+        .eq('id', contactId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error updating contact:', error);
+      throw error;
+    }
+  };
+
+  return { contacts, loading, createContact, updateContact, refetch: fetchContacts };
 }

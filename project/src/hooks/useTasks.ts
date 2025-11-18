@@ -1,109 +1,92 @@
-import { useEffect, useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { useOrganization } from '../contexts/OrganizationContext';
-import { useAuth } from '../contexts/AuthContext';
 
-interface Task {
+export interface Task {
   id: string;
   project_id: string;
-  list_id: string | null;
   name: string;
   description: string | null;
   status: string;
   priority: string;
   due_date: string | null;
-  position: number;
-  assigned_to: string[] | null;
-  tags: string[] | null;
+  assigned_to: string | null;
+  created_by: string;
   created_at: string;
+  updated_at: string;
 }
 
-export function useTasks(projectId: string | null) {
-  const { currentOrganization } = useOrganization();
-  const { user } = useAuth();
+export function useTasks(projectId?: string) {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!currentOrganization || !projectId) {
+  const fetchTasks = useCallback(async () => {
+    if (!projectId) {
       setTasks([]);
       setLoading(false);
       return;
     }
 
-    fetchTasks();
-
-    const subscription = supabase
-      .channel('tasks_changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'tasks',
-          filter: `project_id=eq.${projectId}`,
-        },
-        () => {
-          fetchTasks();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [currentOrganization, projectId]);
-
-  const fetchTasks = async () => {
-    if (!currentOrganization || !projectId) return;
-
     try {
+      setLoading(true);
       const { data, error } = await supabase
         .from('tasks')
         .select('*')
-        .eq('organization_id', currentOrganization.id)
         .eq('project_id', projectId)
-        .order('position', { ascending: true });
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
       setTasks(data || []);
-    } catch (error) {
-      console.error('Error fetching tasks:', error);
+      setError(null);
+    } catch (err) {
+      console.error('Error fetching tasks:', err);
+      setError(err instanceof Error ? err.message : 'Failed to fetch tasks');
+      setTasks([]);
     } finally {
       setLoading(false);
     }
-  };
+  }, [projectId]);
+
+  useEffect(() => {
+    fetchTasks();
+  }, [fetchTasks]);
 
   const createTask = async (taskData: {
     name: string;
     description?: string;
-    status?: string;
     priority?: string;
-    list_id?: string;
+    due_date?: string;
+    assigned_to?: string;
   }) => {
-    if (!currentOrganization || !projectId || !user) return null;
+    if (!projectId) {
+      throw new Error('No project selected');
+    }
 
     try {
       const { data, error } = await supabase
         .from('tasks')
         .insert({
-          organization_id: currentOrganization.id,
           project_id: projectId,
           name: taskData.name,
           description: taskData.description || null,
-          status: taskData.status || 'todo',
+          status: 'todo',
           priority: taskData.priority || 'medium',
-          list_id: taskData.list_id || null,
-          created_by: user.id,
+          due_date: taskData.due_date || null,
+          assigned_to: taskData.assigned_to || null,
+          created_by: (await supabase.auth.getUser()).data.user?.id || '',
         })
         .select()
         .single();
 
       if (error) throw error;
+
+      // Refresh tasks list
+      await fetchTasks();
       return data;
-    } catch (error) {
-      console.error('Error creating task:', error);
-      throw error;
+    } catch (err) {
+      console.error('Error creating task:', err);
+      throw err;
     }
   };
 
@@ -117,10 +100,16 @@ export function useTasks(projectId: string | null) {
         .single();
 
       if (error) throw error;
+
+      // Update local state
+      setTasks(prev => prev.map(task =>
+        task.id === taskId ? { ...task, ...updates } : task
+      ));
+
       return data;
-    } catch (error) {
-      console.error('Error updating task:', error);
-      throw error;
+    } catch (err) {
+      console.error('Error updating task:', err);
+      throw err;
     }
   };
 
@@ -132,11 +121,22 @@ export function useTasks(projectId: string | null) {
         .eq('id', taskId);
 
       if (error) throw error;
-    } catch (error) {
-      console.error('Error deleting task:', error);
-      throw error;
+
+      // Update local state
+      setTasks(prev => prev.filter(task => task.id !== taskId));
+    } catch (err) {
+      console.error('Error deleting task:', err);
+      throw err;
     }
   };
 
-  return { tasks, loading, createTask, updateTask, deleteTask, refetch: fetchTasks };
+  return {
+    tasks,
+    loading,
+    error,
+    createTask,
+    updateTask,
+    deleteTask,
+    refetch: fetchTasks,
+  };
 }

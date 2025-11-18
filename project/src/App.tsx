@@ -3,13 +3,12 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { OrganizationProvider, useOrganization } from './contexts/OrganizationContext';
 import Login from './pages/Login';
 import AuthCallback from './pages/AuthCallback';
-import OrganizationSetup from './pages/OrganizationSetup';
+
 import DashboardLayout from './components/DashboardLayout';
 import Dashboard from './pages/Dashboard';
 import Projects from './pages/Projects';
 import CRM from './pages/CRM';
-import Marketing from './pages/Marketing';
-import Social from './pages/Social';
+import MarketingSocial from './pages/MarketingSocial';
 import Agents from './pages/Agents';
 import MCP from './pages/MCP';
 import Analytics from './pages/Analytics';
@@ -65,28 +64,20 @@ function App() {
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
-            <Route
-              path="/setup"
-              element={
-                <ProtectedRoute>
-                  <OrganizationSetup />
-                </ProtectedRoute>
-              }
-            />
+
             <Route
               path="/"
               element={
-                <OrganizationRoute>
+                <ProtectedRoute>
                   <DashboardLayout />
-                </OrganizationRoute>
+                </ProtectedRoute>
               }
             >
               <Route index element={<Navigate to="/dashboard" replace />} />
               <Route path="dashboard" element={<Dashboard />} />
               <Route path="projects" element={<Projects />} />
               <Route path="crm" element={<CRM />} />
-              <Route path="marketing" element={<Marketing />} />
-              <Route path="social" element={<Social />} />
+              <Route path="marketing-social" element={<MarketingSocial />} />
               <Route path="agents" element={<Agents />} />
               <Route path="mcp" element={<MCP />} />
               <Route path="analytics" element={<Analytics />} />

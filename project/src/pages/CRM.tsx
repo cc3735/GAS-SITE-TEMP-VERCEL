@@ -1,19 +1,35 @@
 import { useState } from 'react';
 import { useContacts } from '../hooks/useContacts';
-import { Users, Plus, Search, Mail, Phone, Building2, X, Loader2, Filter } from 'lucide-react';
+import { Users, Plus, Search, Mail, Phone, Building2, X, Loader2, Filter, Edit2, Calendar } from 'lucide-react';
 
 export default function CRM() {
-  const { contacts, loading, createContact } = useContacts();
+  const { contacts, loading, createContact, updateContact } = useContacts();
   const [showNewContact, setShowNewContact] = useState(false);
+  const [editingContact, setEditingContact] = useState<any>(null);
+  const [showEditContact, setShowEditContact] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [creating, setCreating] = useState(false);
+  const [updating, setUpdating] = useState(false);
   const [formData, setFormData] = useState({
     first_name: '',
     last_name: '',
     email: '',
     phone: '',
     title: '',
+    company_name: '',
+    date_of_birth: '',
+    notes: '',
+  });
+  const [editFormData, setEditFormData] = useState({
+    first_name: '',
+    last_name: '',
+    email: '',
+    phone: '',
+    title: '',
+    company_name: '',
+    date_of_birth: '',
+    notes: '',
   });
 
   const handleCreateContact = async (e: React.FormEvent) => {
@@ -29,12 +45,40 @@ export default function CRM() {
         email: '',
         phone: '',
         title: '',
+        company_name: '',
+        date_of_birth: '',
+        notes: '',
       });
       setShowNewContact(false);
     } catch (error) {
       console.error('Failed to create contact:', error);
     } finally {
       setCreating(false);
+    }
+  };
+
+  const handleUpdateContact = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingContact || !editFormData.first_name.trim()) return;
+
+    setUpdating(true);
+    try {
+      await updateContact(editingContact.id, {
+        first_name: editFormData.first_name,
+        last_name: editFormData.last_name,
+        email: editFormData.email,
+        phone: editFormData.phone,
+        title: editFormData.title,
+        company_name: editFormData.company_name,
+        date_of_birth: editFormData.date_of_birth,
+        notes: editFormData.notes,
+      });
+      setShowEditContact(false);
+      setEditingContact(null);
+    } catch (error) {
+      console.error('Failed to update contact:', error);
+    } finally {
+      setUpdating(false);
     }
   };
 
@@ -138,7 +182,21 @@ export default function CRM() {
             filteredContacts.map((contact) => (
               <div
                 key={contact.id}
-                className="p-4 hover:bg-gray-50 transition cursor-pointer flex items-center gap-4"
+                onClick={() => {
+                  setEditingContact(contact);
+                  setEditFormData({
+                    first_name: contact.first_name,
+                    last_name: contact.last_name || '',
+                    email: contact.email || '',
+                    phone: contact.phone || '',
+                    title: contact.title || '',
+                    company_name: contact.company_name || '',
+                    date_of_birth: contact.date_of_birth || '',
+                    notes: contact.notes || '',
+                  });
+                  setShowEditContact(true);
+                }}
+                className="p-4 hover:bg-gray-50 transition cursor-pointer flex items-center gap-4 group"
               >
                 <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-blue-700 rounded-full flex items-center justify-center text-white font-semibold text-lg">
                   {contact.first_name.charAt(0)}
@@ -155,11 +213,20 @@ export default function CRM() {
                       {contact.lead_status}
                     </span>
                   </div>
-                  <div className="flex items-center gap-4 text-sm text-gray-600">
-                    {contact.title && (
+                  <div className="flex items-center flex-wrap gap-4 text-sm text-gray-600">
+                    {contact.company_name && (
                       <div className="flex items-center gap-1">
                         <Building2 className="w-4 h-4" />
-                        <span>{contact.title}</span>
+                        <span>{contact.company_name}</span>
+                      </div>
+                    )}
+                    {contact.title && (
+                      <span>{contact.title}</span>
+                    )}
+                    {contact.date_of_birth && (
+                      <div className="flex items-center gap-1">
+                        <Calendar className="w-4 h-4" />
+                        <span>{new Date(contact.date_of_birth).toLocaleDateString()}</span>
                       </div>
                     )}
                     {contact.email && (
@@ -176,8 +243,11 @@ export default function CRM() {
                     )}
                   </div>
                 </div>
-                <div className="text-sm text-gray-500">
-                  Score: <span className="font-semibold text-gray-900">{contact.lead_score}</span>
+                <div className="flex items-center gap-3">
+                  <Edit2 className="w-5 h-5 text-gray-400 opacity-0 group-hover:opacity-100 transition" />
+                  <div className="text-sm text-gray-500">
+                    Score: <span className="font-semibold text-gray-900">{contact.lead_score}</span>
+                  </div>
                 </div>
               </div>
             ))
@@ -244,13 +314,44 @@ export default function CRM() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Job Title</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Company Name</label>
                 <input
                   type="text"
-                  value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  value={formData.company_name}
+                  onChange={(e) => setFormData({ ...formData, company_name: e.target.value })}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none"
-                  placeholder="Marketing Manager"
+                  placeholder="Acme Corporation"
+                />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Date of Birth</label>
+                  <input
+                    type="date"
+                    value={formData.date_of_birth}
+                    onChange={(e) => setFormData({ ...formData, date_of_birth: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Job Title</label>
+                  <input
+                    type="text"
+                    value={formData.title}
+                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none"
+                    placeholder="Marketing Manager"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Notes</label>
+                <textarea
+                  value={formData.notes}
+                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                  rows={3}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none resize-none"
+                  placeholder="Additional notes about this contact..."
                 />
               </div>
               <div className="flex gap-3 pt-4">
@@ -267,6 +368,132 @@ export default function CRM() {
                   className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {creating ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Create Contact'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {showEditContact && editingContact && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">Edit Contact</h2>
+              <button
+                onClick={() => {
+                  setShowEditContact(false);
+                  setEditingContact(null);
+                }}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            <form onSubmit={handleUpdateContact} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    First Name <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={editFormData.first_name}
+                    onChange={(e) => setEditFormData({ ...editFormData, first_name: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none"
+                    placeholder="John"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
+                  <input
+                    type="text"
+                    value={editFormData.last_name}
+                    onChange={(e) => setEditFormData({ ...editFormData, last_name: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none"
+                    placeholder="Doe"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                <input
+                  type="email"
+                  value={editFormData.email}
+                  onChange={(e) => setEditFormData({ ...editFormData, email: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none"
+                  placeholder="john@example.com"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
+                <input
+                  type="tel"
+                  value={editFormData.phone}
+                  onChange={(e) => setEditFormData({ ...editFormData, phone: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none"
+                  placeholder="+1 (555) 123-4567"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Company Name</label>
+                <input
+                  type="text"
+                  value={editFormData.company_name}
+                  onChange={(e) => setEditFormData({ ...editFormData, company_name: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none"
+                  placeholder="Acme Corporation"
+                />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Date of Birth</label>
+                  <input
+                    type="date"
+                    value={editFormData.date_of_birth}
+                    onChange={(e) => setEditFormData({ ...editFormData, date_of_birth: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Job Title</label>
+                  <input
+                    type="text"
+                    value={editFormData.title}
+                    onChange={(e) => setEditFormData({ ...editFormData, title: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none"
+                    placeholder="Marketing Manager"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Notes</label>
+                <textarea
+                  value={editFormData.notes}
+                  onChange={(e) => setEditFormData({ ...editFormData, notes: e.target.value })}
+                  rows={3}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none resize-none"
+                  placeholder="Additional notes about this contact..."
+                />
+              </div>
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowEditContact(false);
+                    setEditingContact(null);
+                  }}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={updating || !editFormData.first_name.trim()}
+                  className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {updating ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Update Contact'}
                 </button>
               </div>
             </form>

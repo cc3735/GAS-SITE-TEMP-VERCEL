@@ -1,4 +1,4 @@
-# AI Operating System - Multi-Tenant SaaS Platform
+# GAS Operating System - Multi-Tenant SaaS Platform
 
 A comprehensive, production-ready multi-tenant SaaS platform built with React, TypeScript, Vite, and Supabase. This platform provides a complete suite of business management tools including project management, CRM, AI agents, marketing automation, and social media management.
 

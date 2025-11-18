@@ -45,9 +45,17 @@ export default function Agents() {
   const [showNewAgent, setShowNewAgent] = useState(false);
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
+  const [editingAgent, setEditingAgent] = useState<any>(null);
+  const [showEditAgent, setShowEditAgent] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
+  });
+  const [editFormData, setEditFormData] = useState({
+    name: '',
+    description: '',
+    aiModel: 'gemini',
+    mcpServerIds: [] as string[],
   });
 
   const handleCreateAgent = async (e: React.FormEvent) => {
@@ -126,6 +134,16 @@ export default function Agents() {
             return (
               <div
                 key={agent.id}
+                onClick={() => {
+                  setEditingAgent(agent);
+                  setEditFormData({
+                    name: agent.name,
+                    description: agent.description || '',
+                    aiModel: 'gemini',
+                    mcpServerIds: [],
+                  });
+                  setShowEditAgent(true);
+                }}
                 className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition cursor-pointer"
               >
                 <div className="flex items-start justify-between mb-4">
@@ -249,6 +267,131 @@ export default function Agents() {
                   className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {creating ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Create Agent'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {showEditAgent && editingAgent && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-4xl w-full p-6 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">Edit AI Agent</h2>
+              <button
+                onClick={() => {
+                  setShowEditAgent(false);
+                  setEditingAgent(null);
+                }}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <h3 className="font-medium text-blue-900 mb-2">{editingAgent.name}</h3>
+              <p className="text-sm text-blue-700">Configure AI model, MCP servers, and additional settings.</p>
+            </div>
+
+            <form className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Agent Name
+                </label>
+                <input
+                  type="text"
+                  value={editFormData.name}
+                  onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none"
+                  placeholder="Agent name"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Description
+                </label>
+                <textarea
+                  value={editFormData.description}
+                  onChange={(e) => setEditFormData({ ...editFormData, description: e.target.value })}
+                  rows={3}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none resize-none"
+                  placeholder="Describe what this agent does..."
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  AI Model Override
+                </label>
+                <select
+                  value={editFormData.aiModel}
+                  onChange={(e) => setEditFormData({ ...editFormData, aiModel: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none"
+                >
+                  <option value="default">Use Organization Default</option>
+                  <option value="gemini">🤖 Google Gemini</option>
+                  <option value="gpt-4">🧠 GPT-4</option>
+                  <option value="claude">📚 Claude</option>
+                  <option value="gpt-3.5">⚡ GPT-3.5 Turbo</option>
+                </select>
+                <p className="text-xs text-gray-500 mt-1">
+                  Override the organization default AI model for this agent
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  Connected MCP Servers
+                </label>
+                <div className="space-y-2">
+                  <button type="button" className="text-blue-600 hover:text-blue-700 text-sm">
+                    + Connect MCP Server
+                  </button>
+                  {editFormData.mcpServerIds.length > 0 ? (
+                    <div className="space-y-2">
+                      {editFormData.mcpServerIds.map((serverId: string) => (
+                        <div key={serverId} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                          <span className="text-sm text-gray-900">Server {serverId}</span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEditFormData({
+                                ...editFormData,
+                                mcpServerIds: editFormData.mcpServerIds.filter(id => id !== serverId)
+                              });
+                            }}
+                            className="text-red-600 hover:text-red-700"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-500">No MCP servers connected</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowEditAgent(false);
+                    setEditingAgent(null);
+                  }}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition flex items-center justify-center gap-2"
+                >
+                  Save Changes
                 </button>
               </div>
             </form>
