@@ -104,5 +104,51 @@ export function useAgents() {
     }
   };
 
-  return { agents, loading, createAgent, refetch: fetchAgents };
+  const updateAgent = async (agentId: string, updates: Partial<Agent>) => {
+    if (!currentOrganization) return null;
+
+    try {
+      const { data, error } = await supabase
+        .from('ai_agents')
+        .update({
+          name: updates.name,
+          description: updates.description,
+          agent_type: updates.agent_type,
+          status: updates.status,
+          configuration: updates.configuration,
+          knowledge_base: updates.knowledge_base,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', agentId)
+        .eq('organization_id', currentOrganization.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error updating agent:', error);
+      throw error;
+    }
+  };
+
+  const deleteAgent = async (agentId: string) => {
+    if (!currentOrganization) return null;
+
+    try {
+      const { error } = await supabase
+        .from('ai_agents')
+        .delete()
+        .eq('id', agentId)
+        .eq('organization_id', currentOrganization.id);
+
+      if (error) throw error;
+      return true;
+    } catch (error) {
+      console.error('Error deleting agent:', error);
+      throw error;
+    }
+  };
+
+  return { agents, loading, createAgent, updateAgent, deleteAgent, refetch: fetchAgents };
 }

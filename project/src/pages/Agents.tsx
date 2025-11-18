@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useAgents } from '../hooks/useAgents';
-import { Bot, Plus, X, Loader2, Sparkles, MessageSquare, Phone, Zap, Share2, Activity } from 'lucide-react';
+import { Bot, Plus, X, Loader2, Sparkles, MessageSquare, Phone, Zap, Share2, Activity, Edit, Power } from 'lucide-react';
 import EnhancedAgentModal from '../components/EnhancedAgentModal';
+import AgentManagementModal from '../components/AgentManagementModal';
 
 const agentTypes = [
   {
@@ -42,16 +43,10 @@ const agentTypes = [
 ];
 
 export default function Agents() {
-  const { agents, loading, createAgent } = useAgents();
+  const { agents, loading, createAgent, updateAgent, deleteAgent } = useAgents();
   const [showEnhancedModal, setShowEnhancedModal] = useState(false);
-  const [editingAgent, setEditingAgent] = useState<any>(null);
-  const [showEditAgent, setShowEditAgent] = useState(false);
-  const [editFormData, setEditFormData] = useState({
-    name: '',
-    description: '',
-    aiModel: 'gemini',
-    mcpServerIds: [] as string[],
-  });
+  const [selectedAgent, setSelectedAgent] = useState<any>(null);
+  const [showAgentManagement, setShowAgentManagement] = useState(false);
 
   const handleCreateAgent = async (config: any) => {
     try {
@@ -82,6 +77,29 @@ export default function Agents() {
 
   const getStatusColor = (status: string | null) => {
     return status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700';
+  };
+
+  const handleAgentClick = (agent: any) => {
+    setSelectedAgent(agent);
+    setShowAgentManagement(true);
+  };
+
+  const handleUpdateAgent = async (agentId: string, updates: any) => {
+    try {
+      await updateAgent(agentId, updates);
+      setShowAgentManagement(false);
+    } catch (error) {
+      console.error('Failed to update agent:', error);
+    }
+  };
+
+  const handleDeleteAgent = async (agentId: string) => {
+    try {
+      await deleteAgent(agentId);
+      setShowAgentManagement(false);
+    } catch (error) {
+      console.error('Failed to delete agent:', error);
+    }
   };
 
   if (loading) {
@@ -131,17 +149,8 @@ export default function Agents() {
             return (
               <div
                 key={agent.id}
-                onClick={() => {
-                  setEditingAgent(agent);
-                  setEditFormData({
-                    name: agent.name,
-                    description: agent.description || '',
-                    aiModel: 'gemini',
-                    mcpServerIds: [],
-                  });
-                  setShowEditAgent(true);
-                }}
-                className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition cursor-pointer"
+                onClick={() => handleAgentClick(agent)}
+                className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition cursor-pointer group"
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className={`w-12 h-12 bg-gradient-to-br ${typeInfo.color} rounded-xl flex items-center justify-center`}>
@@ -174,6 +183,14 @@ export default function Agents() {
         isOpen={showEnhancedModal}
         onClose={() => setShowEnhancedModal(false)}
         onSave={handleCreateAgent}
+      />
+
+      <AgentManagementModal
+        isOpen={showAgentManagement}
+        onClose={() => setShowAgentManagement(false)}
+        agent={selectedAgent}
+        onSave={handleUpdateAgent}
+        onDelete={handleDeleteAgent}
       />
     </div>
   );

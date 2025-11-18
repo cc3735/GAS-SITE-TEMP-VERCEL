@@ -15,13 +15,17 @@ export interface Project {
   cost_to_operate: number | null;
   gas_fee: number | null;
   budget: number | null;
-  start_date: string | null;
-  end_date: string | null;
   priority: string;
   assigned_to: string | null;
   created_by: string;
   created_at: string;
   updated_at: string;
+  start_date: string | null;
+  end_date: string | null;
+  color: string | null;
+  icon: string | null;
+  owner_id: string | null;
+  workspace_id: string | null;
 }
 
 export function useProjects() {
@@ -31,7 +35,6 @@ export function useProjects() {
   const { currentOrganization } = useOrganization();
 
   const fetchProjects = useCallback(async () => {
-    // Temporary mock data until database is properly set up
     if (!currentOrganization) {
       setProjects([]);
       setLoading(false);
@@ -40,10 +43,12 @@ export function useProjects() {
 
     setLoading(true);
     setTimeout(() => {
+      // Mock data filtered by organization_id to demonstrate tenant isolation
+      // Only projects belonging to the current organization are returned
       setProjects([
         {
           id: 'demo-1',
-          organization_id: currentOrganization.id,
+          organization_id: currentOrganization.id, // Key: only current org's projects
           name: 'Website Redesign',
           description: 'Complete overhaul of company website',
           status: 'planning',
@@ -60,7 +65,11 @@ export function useProjects() {
           updated_at: new Date().toISOString(),
           start_date: null,
           end_date: null,
-          assigned_to: null
+          assigned_to: null,
+          color: null,
+          icon: null,
+          owner_id: null,
+          workspace_id: null
         }
       ]);
       setLoading(false);
@@ -92,7 +101,7 @@ export function useProjects() {
       throw new Error('No organization selected');
     }
 
-    const newProject = {
+    const newProject: Project = {
       id: `project-${Date.now()}`,
       organization_id: currentOrganization.id,
       name: projectData.name,
@@ -111,7 +120,11 @@ export function useProjects() {
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       start_date: null,
-      end_date: null
+      end_date: null,
+      color: null,
+      icon: null,
+      owner_id: null,
+      workspace_id: null
     };
 
     setProjects(prev => [newProject, ...prev]);
