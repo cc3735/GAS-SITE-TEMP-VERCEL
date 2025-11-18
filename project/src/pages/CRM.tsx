@@ -157,102 +157,169 @@ export default function CRM() {
           </div>
         </div>
 
-        <div className="divide-y divide-gray-200">
-          {filteredContacts.length === 0 ? (
-            <div className="p-12 text-center">
-              <Users className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                {contacts.length === 0 ? 'No contacts yet' : 'No contacts found'}
-              </h3>
-              <p className="text-gray-600 mb-4">
-                {contacts.length === 0
-                  ? 'Add your first contact to get started'
-                  : 'Try adjusting your search or filters'}
-              </p>
-              {contacts.length === 0 && (
-                <button
-                  onClick={() => setShowNewContact(true)}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition"
-                >
-                  Add Your First Contact
-                </button>
-              )}
-            </div>
-          ) : (
-            filteredContacts.map((contact) => (
-              <div
-                key={contact.id}
-                onClick={() => {
-                  setEditingContact(contact);
-                  setEditFormData({
-                    first_name: contact.first_name,
-                    last_name: contact.last_name || '',
-                    email: contact.email || '',
-                    phone: contact.phone || '',
-                    title: contact.title || '',
-                    company_name: contact.company_name || '',
-                    date_of_birth: contact.date_of_birth || '',
-                    notes: contact.notes || '',
-                  });
-                  setShowEditContact(true);
-                }}
-                className="p-4 hover:bg-gray-50 transition cursor-pointer flex items-center gap-4 group"
+        {filteredContacts.length === 0 ? (
+          <div className="p-12 text-center">
+            <Users className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              {contacts.length === 0 ? 'No contacts yet' : 'No contacts found'}
+            </h3>
+            <p className="text-gray-600 mb-4">
+              {contacts.length === 0
+                ? 'Add your first contact to get started'
+                : 'Try adjusting your search or filters'}
+            </p>
+            {contacts.length === 0 && (
+              <button
+                onClick={() => setShowNewContact(true)}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition"
               >
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-blue-700 rounded-full flex items-center justify-center text-white font-semibold text-lg">
-                  {contact.first_name.charAt(0)}
-                  {contact.last_name?.charAt(0)}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h3 className="font-semibold text-gray-900">
-                      {contact.first_name} {contact.last_name}
-                    </h3>
-                    <span
-                      className={`text-xs px-2 py-0.5 rounded ${getStatusColor(contact.lead_status)}`}
-                    >
-                      {contact.lead_status}
-                    </span>
-                  </div>
-                  <div className="flex items-center flex-wrap gap-4 text-sm text-gray-600">
-                    {contact.company_name && (
-                      <div className="flex items-center gap-1">
-                        <Building2 className="w-4 h-4" />
-                        <span>{contact.company_name}</span>
+                Add Your First Contact
+              </button>
+            )}
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50 border-b border-gray-200">
+                <tr>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Contact
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Company
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Title
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Email
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Phone
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Lead Score
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {filteredContacts.map((contact) => (
+                  <tr
+                    key={contact.id}
+                    onClick={() => {
+                      setEditingContact(contact);
+                      setEditFormData({
+                        first_name: contact.first_name,
+                        last_name: contact.last_name || '',
+                        email: contact.email || '',
+                        phone: contact.phone || '',
+                        title: contact.title || '',
+                        company_name: contact.company_name || '',
+                        date_of_birth: contact.date_of_birth || '',
+                        notes: contact.notes || '',
+                      });
+                      setShowEditContact(true);
+                    }}
+                    className="hover:bg-gray-50 cursor-pointer transition"
+                  >
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-700 rounded-full flex items-center justify-center text-white font-semibold text-sm mr-3">
+                          {contact.first_name.charAt(0)}
+                          {contact.last_name?.charAt(0)}
+                        </div>
+                        <div>
+                          <div className="text-sm font-medium text-gray-900">
+                            {contact.first_name} {contact.last_name}
+                          </div>
+                          {contact.date_of_birth && (
+                            <div className="text-sm text-gray-500 flex items-center gap-1">
+                              <Calendar className="w-3 h-3" />
+                              {new Date(contact.date_of_birth).toLocaleDateString()}
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    )}
-                    {contact.title && (
-                      <span>{contact.title}</span>
-                    )}
-                    {contact.date_of_birth && (
-                      <div className="flex items-center gap-1">
-                        <Calendar className="w-4 h-4" />
-                        <span>{new Date(contact.date_of_birth).toLocaleDateString()}</span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900 flex items-center gap-2">
+                        <Building2 className="w-4 h-4 text-gray-400" />
+                        {contact.company_name || '-'}
                       </div>
-                    )}
-                    {contact.email && (
-                      <div className="flex items-center gap-1">
-                        <Mail className="w-4 h-4" />
-                        <span>{contact.email}</span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">
+                        {contact.title || '-'}
                       </div>
-                    )}
-                    {contact.phone && (
-                      <div className="flex items-center gap-1">
-                        <Phone className="w-4 h-4" />
-                        <span>{contact.phone}</span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900 flex items-center gap-2">
+                        {contact.email ? (
+                          <>
+                            <Mail className="w-4 h-4 text-gray-400" />
+                            {contact.email}
+                          </>
+                        ) : (
+                          '-'
+                        )}
                       </div>
-                    )}
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Edit2 className="w-5 h-5 text-gray-400 opacity-0 group-hover:opacity-100 transition" />
-                  <div className="text-sm text-gray-500">
-                    Score: <span className="font-semibold text-gray-900">{contact.lead_score}</span>
-                  </div>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900 flex items-center gap-2">
+                        {contact.phone ? (
+                          <>
+                            <Phone className="w-4 h-4 text-gray-400" />
+                            {contact.phone}
+                          </>
+                        ) : (
+                          '-'
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(contact.lead_status)}`}>
+                        {contact.lead_status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <div className="font-medium">
+                        {contact.lead_score}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setEditingContact(contact);
+                          setEditFormData({
+                            first_name: contact.first_name,
+                            last_name: contact.last_name || '',
+                            email: contact.email || '',
+                            phone: contact.phone || '',
+                            title: contact.title || '',
+                            company_name: contact.company_name || '',
+                            date_of_birth: contact.date_of_birth || '',
+                            notes: contact.notes || '',
+                          });
+                          setShowEditContact(true);
+                        }}
+                        className="text-indigo-600 hover:text-indigo-900 p-2 rounded-lg hover:bg-indigo-50 transition"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       {showNewContact && (
