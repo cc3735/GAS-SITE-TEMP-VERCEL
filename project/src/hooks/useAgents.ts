@@ -8,10 +8,11 @@ interface Agent {
   name: string;
   description: string | null;
   agent_type: string;
-  status: string;
+  status: string | null;
   configuration: any;
+  knowledge_base: any;
   performance_metrics: any;
-  created_at: string;
+  created_at: string | null;
 }
 
 export function useAgents() {
@@ -69,6 +70,7 @@ export function useAgents() {
     name: string;
     description?: string;
     agent_type: string;
+    configuration?: any;
   }) => {
     if (!currentOrganization || !user) return null;
 
@@ -81,7 +83,13 @@ export function useAgents() {
           description: agentData.description || null,
           agent_type: agentData.agent_type,
           status: 'active',
-          configuration: {},
+          configuration: agentData.configuration || {},
+          knowledge_base: agentData.configuration ? {
+            referenceLinks: agentData.configuration.referenceLinks || [],
+            uploadedFiles: agentData.configuration.uploadedFiles || [],
+            promptTemplate: agentData.configuration.promptTemplate || '',
+            memorySize: agentData.configuration.memorySize || 1000
+          } : null,
           performance_metrics: { tasks_completed: 0, tokens_used: 0, success_rate: 100 },
           created_by: user.id,
         })

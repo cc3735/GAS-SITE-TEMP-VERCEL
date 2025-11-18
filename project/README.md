@@ -27,6 +27,10 @@ A comprehensive, production-ready multi-tenant SaaS platform built with React, T
 - **Agent Tasks**: Assign and track tasks for AI agents
 - **MCP Servers**: Model Context Protocol server integration
 - **Tool Management**: Configure tools and resources for AI agents
+- **Multiple Creation Methods**: Wizard setup, JSON import, or n8n workflow integration
+- **Knowledge Base**: Upload documents, images, and videos to enhance agent capabilities
+- **Reference Links**: Add web resources for agent context and learning
+- **Advanced Configuration**: Custom AI models, temperature settings, token limits, and memory size
 
 ### Marketing Automation
 - **Campaigns**: Create and manage marketing campaigns
@@ -346,11 +350,18 @@ The GAS OS AI Assistant is available on every page to help you navigate and use 
 5. Track deal progress through stages
 
 #### AI Agents
-1. Set up MCP servers with connection details
-2. Create AI agents with specific capabilities
-3. Assign tasks to agents
-4. Monitor agent performance
-5. Review results and logs
+1. Set up MCP servers with connection details from the MCP page
+2. Create AI agents using one of three methods:
+   - **Wizard Setup**: Step-by-step guided configuration
+   - **JSON Import**: Import agent configurations from JSON files
+   - **n8n Integration**: Connect to n8n workflow automation
+3. Enhance agent knowledge by:
+   - Adding reference links for web resources
+   - Uploading documents, images, and videos to the knowledge base
+   - Configuring AI model preferences, temperature, and token limits
+4. Connect agents to MCP servers for extended capabilities
+5. Assign tasks to agents and monitor performance
+6. Review results and logs for continuous improvement
 
 #### Marketing
 1. Create a campaign with target audience
