@@ -19,6 +19,7 @@ import {
   Building2,
   Sparkles,
 } from 'lucide-react';
+import ChatBot from './ChatBot';
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: Home },
@@ -161,6 +162,9 @@ export default function DashboardLayout() {
           <Outlet />
         </div>
       </div>
+
+      {/* ChatBot - Available on all pages */}
+      <ChatBot />
     </div>
   );
 }

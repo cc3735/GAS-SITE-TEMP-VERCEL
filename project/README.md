@@ -45,6 +45,12 @@ A comprehensive, production-ready multi-tenant SaaS platform built with React, T
 - **Custom Reports**: Generate reports based on specific metrics
 - **Data Export**: Export data for external analysis
 
+### Intelligent Assistant & Help System
+- **AI-Powered Chatbot**: Always-available assistant to guide users
+- **Comprehensive Knowledge Base**: Knows all features and capabilities
+- **Contextual Help**: Provides specific guidance for tasks and workflows
+- **Navigation Assistance**: Helps users find features and complete actions
+
 ## Tech Stack
 
 ### Frontend
@@ -306,6 +312,22 @@ The built files will be in the `dist/` directory, ready for deployment.
 3. **Invite Team Members**: Add team members and assign roles
 4. **Configure Integrations**: Set up MCP servers, social accounts, and other integrations
 5. **Start Working**: Begin creating projects, contacts, campaigns, and more
+
+### Using the AI Assistant
+
+The GAS OS AI Assistant is available on every page to help you navigate and use the system:
+
+- **Floating Chat Button**: Blue message circle in the bottom-right corner
+- **Always Available**: Click anytime to get help or guidance
+- **Contextual Responses**: Knows about all features and capabilities
+- **Help Topics**: Ask about projects, marketing, CRM, navigation, AI agents, etc.
+
+**Example Questions:**
+- "How do I create a new project?"
+- "What marketing templates are available?"
+- "How do I manage CRM contacts?"
+- "Show me how to use the calendar view"
+- "What analytics are available?"
 
 ### Key Workflows
 
