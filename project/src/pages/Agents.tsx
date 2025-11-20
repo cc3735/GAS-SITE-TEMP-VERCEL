@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useAgents } from '../hooks/useAgents';
-import { Bot, Plus, X, Loader2, Sparkles, MessageSquare, Phone, Zap, Share2, Activity, Edit, Power, Code, FileText, Settings, Copy, Eye } from 'lucide-react';
+import { Bot, Plus, X, Loader2, Sparkles, MessageSquare, Phone, Zap, Share2, Activity, Edit, Power, Code, FileText, Settings, Copy, Eye, Play } from 'lucide-react';
 import EnhancedAgentModal from '../components/EnhancedAgentModal';
 import AgentManagementModal from '../components/AgentManagementModal';
+import AgentPlaygroundModal from '../components/AgentPlaygroundModal';
 
 const agentTypes = [
   {
@@ -48,6 +49,8 @@ export default function Agents() {
   const [showEnhancedModal, setShowEnhancedModal] = useState(false);
   const [selectedAgent, setSelectedAgent] = useState<any>(null);
   const [showAgentManagement, setShowAgentManagement] = useState(false);
+  const [showPlayground, setShowPlayground] = useState(false);
+  const [playgroundAgent, setPlaygroundAgent] = useState<any>(null);
 
   const handleCreateAgent = async (config: any) => {
     try {
@@ -101,6 +104,12 @@ export default function Agents() {
     } catch (error) {
       console.error('Failed to delete agent:', error);
     }
+  };
+
+  const handleRunAgent = (e: React.MouseEvent, agent: any) => {
+    e.stopPropagation(); // Prevent opening management modal
+    setPlaygroundAgent(agent);
+    setShowPlayground(true);
   };
 
   if (loading) {
@@ -205,9 +214,12 @@ export default function Agents() {
                         <Activity className="w-4 h-4" />
                         <span>{agent.performance_metrics?.tasks_completed || 0} tasks</span>
                       </div>
-                      <div className="text-sm text-gray-500">
-                        {agent.performance_metrics?.success_rate || 0}% success
-                      </div>
+                      <button
+                        onClick={(e) => handleRunAgent(e, agent)}
+                        className="flex items-center gap-1 text-xs font-medium bg-blue-50 text-blue-600 px-2 py-1 rounded hover:bg-blue-100 transition"
+                      >
+                        <Play className="w-3 h-3" /> Run
+                      </button>
                     </div>
                   </div>
                 );
@@ -378,6 +390,12 @@ export default function Agents() {
         agent={selectedAgent}
         onSave={handleUpdateAgent}
         onDelete={handleDeleteAgent}
+      />
+
+      <AgentPlaygroundModal
+        isOpen={showPlayground}
+        onClose={() => setShowPlayground(false)}
+        agent={playgroundAgent}
       />
     </div>
   );

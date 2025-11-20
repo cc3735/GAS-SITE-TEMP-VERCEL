@@ -1,8 +1,10 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { OrganizationProvider, useOrganization } from './contexts/OrganizationContext';
+import { ToastProvider } from './contexts/ToastContext';
 import Login from './pages/Login';
 import AuthCallback from './pages/AuthCallback';
+import OrganizationSetup from './pages/OrganizationSetup';
 
 import DashboardLayout from './components/DashboardLayout';
 import Dashboard from './pages/Dashboard';
@@ -61,9 +63,18 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <OrganizationProvider>
-          <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/auth/callback" element={<AuthCallback />} />
+          <ToastProvider>
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route path="/auth/callback" element={<AuthCallback />} />
+            <Route
+              path="/setup"
+              element={
+                <ProtectedRoute>
+                  <OrganizationSetup />
+                </ProtectedRoute>
+              }
+            />
 
             <Route
               path="/"
@@ -84,6 +95,7 @@ function App() {
               <Route path="settings" element={<Settings />} />
             </Route>
           </Routes>
+          </ToastProvider>
         </OrganizationProvider>
       </AuthProvider>
     </BrowserRouter>

@@ -3,23 +3,13 @@ import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useOrganization } from '../contexts/OrganizationContext';
 import {
-  Menu,
-  X,
-  Home,
-  FolderKanban,
-  Users,
-  Mail,
-  Share2,
-  Bot,
-  Server,
-  BarChart3,
-  Settings,
   ChevronDown,
   LogOut,
   Building2,
   Sparkles,
 } from 'lucide-react';
 import ChatBot from './ChatBot';
+import CommandPalette from './CommandPalette';
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: Home },
@@ -165,6 +155,9 @@ export default function DashboardLayout() {
 
       {/* ChatBot - Available on all pages */}
       <ChatBot />
+      
+      {/* Command Palette - Global shortcut Cmd+K */}
+      <CommandPalette />
     </div>
   );
 }

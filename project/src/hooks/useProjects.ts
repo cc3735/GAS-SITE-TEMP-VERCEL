@@ -42,39 +42,49 @@ export function useProjects() {
     }
 
     setLoading(true);
-    setTimeout(() => {
-      // Mock data filtered by organization_id to demonstrate tenant isolation
-      // Only projects belonging to the current organization are returned
-      setProjects([
-        {
-          id: 'demo-1',
-          organization_id: currentOrganization.id, // Key: only current org's projects
-          name: 'Website Redesign',
-          description: 'Complete overhaul of company website',
-          status: 'planning',
-          estimated_completion: '1-3-months',
-          tools_used: ['React', 'Next.js'],
-          proposed_tech: ['Tailwind CSS'],
-          project_details: 'Modern, responsive website with improved UX',
-          cost_to_operate: 2500.00,
-          gas_fee: 150.00,
-          budget: 10000.00,
-          priority: 'high',
-          created_by: 'demo-user',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          start_date: null,
-          end_date: null,
-          assigned_to: null,
-          color: null,
-          icon: null,
-          owner_id: null,
-          workspace_id: null
-        }
-      ]);
-      setLoading(false);
+    try {
+      const { data, error } = await supabase
+        .from('projects')
+        .select('*')
+        .eq('organization_id', currentOrganization.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      const mappedProjects: Project[] = (data || []).map((p: any) => ({
+        id: p.id,
+        organization_id: p.organization_id,
+        name: p.name,
+        description: p.description,
+        status: p.status,
+        estimated_completion: p.custom_fields?.estimated_completion || null,
+        tools_used: p.custom_fields?.tools_used || null,
+        proposed_tech: p.custom_fields?.proposed_tech || null,
+        project_details: p.custom_fields?.project_details || null,
+        cost_to_operate: p.custom_fields?.cost_to_operate || null,
+        gas_fee: p.custom_fields?.gas_fee || null,
+        budget: p.budget,
+        priority: p.priority || 'medium',
+        assigned_to: p.owner_id, // Map owner to assigned_to
+        created_by: p.created_by,
+        created_at: p.created_at,
+        updated_at: p.updated_at,
+        start_date: p.start_date,
+        end_date: p.end_date,
+        color: p.color,
+        icon: p.icon,
+        owner_id: p.owner_id,
+        workspace_id: p.workspace_id
+      }));
+
+      setProjects(mappedProjects);
       setError(null);
-    }, 500);
+    } catch (err: any) {
+      console.error('Error fetching projects:', err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   }, [currentOrganization]);
 
   useEffect(() => {
@@ -96,54 +106,129 @@ export function useProjects() {
     priority?: string;
     assigned_to?: string;
   }) => {
-    // Mock successful creation
     if (!currentOrganization) {
       throw new Error('No organization selected');
     }
 
-    const newProject: Project = {
-      id: `project-${Date.now()}`,
-      organization_id: currentOrganization.id,
-      name: projectData.name,
-      description: projectData.description || null,
-      status: 'planning',
-      estimated_completion: projectData.estimated_completion || null,
-      tools_used: projectData.tools_used || null,
-      proposed_tech: projectData.proposed_tech || null,
-      project_details: projectData.project_details || null,
-      cost_to_operate: projectData.cost_to_operate || null,
-      gas_fee: projectData.gas_fee || null,
-      budget: projectData.budget || null,
-      priority: projectData.priority || 'medium',
-      assigned_to: null,
-      created_by: 'demo-user',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      start_date: null,
-      end_date: null,
-      color: null,
-      icon: null,
-      owner_id: null,
-      workspace_id: null
-    };
+    try {
+      const user = (await supabase.auth.getUser()).data.user;
+      
+      const customFields = {
+        estimated_completion: projectData.estimated_completion,
+        tools_used: projectData.tools_used,
+        proposed_tech: projectData.proposed_tech,
+        project_details: projectData.project_details,
+        cost_to_operate: projectData.cost_to_operate,
+        gas_fee: projectData.gas_fee
+      };
 
-    setProjects(prev => [newProject, ...prev]);
+      const { data, error } = await supabase
+        .from('projects')
+        .insert({
+          organization_id: currentOrganization.id,
+          name: projectData.name,
+          description: projectData.description,
+          status: 'planning',
+          budget: projectData.budget,
+          priority: projectData.priority || 'medium',
+          start_date: projectData.start_date,
+          end_date: projectData.end_date,
+          owner_id: projectData.assigned_to || user?.id,
+          created_by: user?.id,
+          custom_fields: customFields
+        })
+        .select()
+        .single();
 
-    return newProject;
+      if (error) throw error;
+
+      // Refresh list
+      await fetchProjects();
+      return data;
+    } catch (err: any) {
+      console.error('Error creating project:', err);
+      throw err;
+    }
   };
 
   const updateProject = async (projectId: string, updates: Partial<Project>) => {
-    // Mock update
-    const updatedProject = { ...projects.find(p => p.id === projectId), ...updates } as Project;
-    setProjects(prev => prev.map(project =>
-      project.id === projectId ? updatedProject : project
-    ));
-    return updatedProject;
+    try {
+      // Extract custom fields from updates if they exist
+      const customFieldKeys = [
+        'estimated_completion', 
+        'tools_used', 
+        'proposed_tech', 
+        'project_details', 
+        'cost_to_operate', 
+        'gas_fee'
+      ];
+      
+      const customFieldsUpdate: any = {};
+      let hasCustomFields = false;
+
+      // We need to fetch current custom_fields first to merge, or just patch carefully.
+      // Ideally, we merge with existing custom_fields.
+      
+      // Separate top-level columns from custom fields
+      const dbUpdates: any = {};
+      
+      Object.entries(updates).forEach(([key, value]) => {
+        if (customFieldKeys.includes(key)) {
+          customFieldsUpdate[key] = value;
+          hasCustomFields = true;
+        } else if (key === 'assigned_to') {
+            dbUpdates.owner_id = value;
+        } else if (key !== 'id' && key !== 'organization_id' && key !== 'created_at' && key !== 'created_by') {
+           // Map allowed DB columns
+           dbUpdates[key] = value;
+        }
+      });
+
+      if (hasCustomFields) {
+        // Fetch current project to merge custom fields
+        const currentProject = projects.find(p => p.id === projectId);
+        const existingCustomFields = {
+            estimated_completion: currentProject?.estimated_completion,
+            tools_used: currentProject?.tools_used,
+            proposed_tech: currentProject?.proposed_tech,
+            project_details: currentProject?.project_details,
+            cost_to_operate: currentProject?.cost_to_operate,
+            gas_fee: currentProject?.gas_fee,
+        };
+        dbUpdates.custom_fields = { ...existingCustomFields, ...customFieldsUpdate };
+      }
+
+      const { data, error } = await supabase
+        .from('projects')
+        .update(dbUpdates)
+        .eq('id', projectId)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      await fetchProjects();
+      return data;
+    } catch (err: any) {
+      console.error('Error updating project:', err);
+      throw err;
+    }
   };
 
   const deleteProject = async (projectId: string) => {
-    // Mock delete
-    setProjects(prev => prev.filter(project => project.id !== projectId));
+    try {
+      const { error } = await supabase
+        .from('projects')
+        .delete()
+        .eq('id', projectId);
+
+      if (error) throw error;
+      
+      setProjects(prev => prev.filter(project => project.id !== projectId));
+    } catch (err: any) {
+      console.error('Error deleting project:', err);
+      throw err;
+    }
   };
 
   return {

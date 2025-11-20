@@ -1,149 +1,101 @@
 import { useState } from 'react';
-import { Mail, Share2, Plus, Calendar, Megaphone, Users, TrendingUp, X, Send, Target, Sparkles, Heart, ShoppingCart } from 'lucide-react';
+import { Mail, Share2, Plus, Calendar, Megaphone, Users, TrendingUp, X, Send, ShoppingCart, Loader2 } from 'lucide-react';
+import { useCampaigns } from '../hooks/useCampaigns';
+import { useSocial } from '../hooks/useSocial';
+import { useToast } from '../contexts/ToastContext';
 
 type TabType = 'campaigns' | 'social';
 
-type CampaignTemplate = {
-  id: string;
-  name: string;
-  description: string;
-  category: string;
-  icon: React.ComponentType<any>;
-  color: string;
-  metrics: {
-    estimatedOpens: string;
-    estimatedClicks: string;
-    sendTime: string;
-  };
-};
-
 export default function MarketingSocial() {
   const [activeTab, setActiveTab] = useState<TabType>('campaigns');
+  const { campaigns, loading: campaignsLoading, createCampaign, sendCampaign } = useCampaigns();
+  const { posts, loading: socialLoading, createPost } = useSocial();
+  const { addToast } = useToast();
+  const [sendingId, setSendingId] = useState<string | null>(null);
+
+  const handleSendCampaign = async (id: string) => {
+    setSendingId(id);
+    try {
+        await sendCampaign(id);
+        addToast('success', 'Campaign sent successfully!');
+    } catch (error) {
+        addToast('error', 'Failed to send campaign');
+    } finally {
+        setSendingId(null);
+    }
+  };
+  
   const [showCampaignModal, setShowCampaignModal] = useState(false);
-  const [selectedTemplate, setSelectedTemplate] = useState<CampaignTemplate | null>(null);
+  const [showSocialModal, setShowSocialModal] = useState(false);
+  const [creating, setCreating] = useState(false);
+
   const [campaignForm, setCampaignForm] = useState({
     name: '',
     subject: '',
     description: '',
-    audience: '',
+    audience: 'all',
     sendDate: '',
-    templateId: ''
+    campaign_type: 'email' as const
   });
 
-  // Campaign templates data
-  const campaignTemplates: CampaignTemplate[] = [
-    {
-      id: 'welcome-series',
-      name: 'Welcome Series',
-      description: '5-email automated welcome flow',
-      category: 'Onboarding',
-      icon: Sparkles,
-      color: 'bg-blue-500',
-      metrics: {
-        estimatedOpens: '35-45%',
-        estimatedClicks: '8-12%',
-        sendTime: 'Immediate + 3, 7, 14, 21 days'
-      }
-    },
-    {
-      id: 'product-launch',
-      name: 'Product Launch',
-      description: 'Build anticipation for new features',
-      category: 'Announcements',
-      icon: Target,
-      color: 'bg-green-500',
-      metrics: {
-        estimatedOpens: '28-38%',
-        estimatedClicks: '12-18%',
-        sendTime: '2 weeks before, 1 week before, launch day'
-      }
-    },
-    {
-      id: 're-engagement',
-      name: 'Re-engagement',
-      description: 'Win back inactive subscribers',
-      category: 'Nurture',
-      icon: Heart,
-      color: 'bg-purple-500',
-      metrics: {
-        estimatedOpens: '22-32%',
-        estimatedClicks: '6-10%',
-        sendTime: '30 days of inactivity'
-      }
-    },
-    {
-      id: 'promotional',
-      name: 'Promotional Sale',
-      description: 'Drive conversions with special offers',
-      category: 'Sales',
-      icon: ShoppingCart,
-      color: 'bg-orange-500',
-      metrics: {
-        estimatedOpens: '40-50%',
-        estimatedClicks: '15-25%',
-        sendTime: 'Immediately after signup'
-      }
-    },
-    {
-      id: 'educational',
-      name: 'Educational Content',
-      description: 'Share valuable tips and resources',
-      category: 'Content',
-      icon: Send,
-      color: 'bg-indigo-500',
-      metrics: {
-        estimatedOpens: '25-35%',
-        estimatedClicks: '10-15%',
-        sendTime: 'Weekly, Friday morning'
-      }
-    },
-    {
-      id: 'seasonal',
-      name: 'Seasonal Campaign',
-      description: 'Holiday and seasonal messaging',
-      category: 'Events',
-      icon: Calendar,
-      color: 'bg-pink-500',
-      metrics: {
-        estimatedOpens: '30-40%',
-        estimatedClicks: '12-18%',
-        sendTime: 'Date-specific triggers'
-      }
+  const [socialForm, setSocialForm] = useState({
+    content: '',
+    scheduledDate: ''
+  });
+
+  const handleCreateCampaign = async () => {
+    if (!campaignForm.name || !campaignForm.subject) return;
+    setCreating(true);
+    try {
+      await createCampaign({
+        name: campaignForm.name,
+        description: campaignForm.description,
+        campaign_type: campaignForm.campaign_type,
+        scheduled_at: campaignForm.sendDate ? new Date(campaignForm.sendDate).toISOString() : undefined,
+        settings: { subject: campaignForm.subject, audience: campaignForm.audience }
+      });
+      setShowCampaignModal(false);
+      setCampaignForm({ name: '', subject: '', description: '', audience: 'all', sendDate: '', campaign_type: 'email' });
+      addToast('success', 'Campaign created successfully!');
+    } catch (error) {
+      console.error('Failed to create campaign:', error);
+      addToast('error', 'Failed to create campaign');
+    } finally {
+      setCreating(false);
     }
-  ];
+  };
+
+  const handleCreatePost = async () => {
+    if (!socialForm.content) return;
+    setCreating(true);
+    try {
+      await createPost({
+        content: socialForm.content,
+        scheduled_at: socialForm.scheduledDate ? new Date(socialForm.scheduledDate).toISOString() : undefined
+      });
+      setShowSocialModal(false);
+      setSocialForm({ content: '', scheduledDate: '' });
+      addToast('success', 'Social post created successfully!');
+    } catch (error) {
+      console.error('Failed to create post:', error);
+      addToast('error', 'Failed to create post');
+    } finally {
+      setCreating(false);
+    }
+  };
 
   const tabs = [
     { id: 'campaigns' as const, name: 'Campaigns & Marketing', icon: Mail },
     { id: 'social' as const, name: 'Social Media', icon: Share2 },
   ];
 
-  const handleTemplateSelect = (template: CampaignTemplate) => {
-    setSelectedTemplate(template);
-    setCampaignForm({
-      name: `${template.name} Campaign`,
-      subject: `Default ${template.name} subject line`,
-      description: template.description,
-      audience: 'All subscribers',
-      sendDate: new Date().toISOString().split('T')[0],
-      templateId: template.id
-    });
-    setShowCampaignModal(true);
-  };
-
-  const handleCreateCampaign = () => {
-    // Mock campaign creation
-    alert(`Campaign "${campaignForm.name}" created using ${selectedTemplate?.name} template!`);
-    setShowCampaignModal(false);
-    setSelectedTemplate(null);
-    setCampaignForm({
-      name: '',
-      subject: '',
-      description: '',
-      audience: '',
-      sendDate: '',
-      templateId: ''
-    });
-  };
+  if (campaignsLoading || socialLoading) {
+    return (
+      <div className="p-6 lg:p-8 flex items-center justify-center min-h-[400px]">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 lg:p-8">
@@ -196,101 +148,76 @@ export default function MarketingSocial() {
             </button>
           </div>
 
+          {/* Campaign Stats */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center">
-                  <Mail className="w-6 h-6 text-blue-600" />
-                </div>
-                <TrendingUp className="w-5 h-5 text-green-600" />
-              </div>
-              <h3 className="text-sm font-medium text-gray-600 mb-1">Active Campaigns</h3>
-              <p className="text-3xl font-bold text-gray-900 mb-2">8</p>
-              <p className="text-sm text-gray-500">+2 this week</p>
+              <h3 className="text-sm font-medium text-gray-600 mb-1">Total Campaigns</h3>
+              <p className="text-3xl font-bold text-gray-900 mb-2">{campaigns.length}</p>
             </div>
-
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-12 h-12 bg-green-50 rounded-lg flex items-center justify-center">
-                  <Users className="w-6 h-6 text-green-600" />
-                </div>
-                <TrendingUp className="w-5 h-5 text-green-600" />
-              </div>
-              <h3 className="text-sm font-medium text-gray-600 mb-1">Total Recipients</h3>
-              <p className="text-3xl font-bold text-gray-900 mb-2">15,247</p>
-              <p className="text-sm text-gray-500">+1,423 this month</p>
+               <h3 className="text-sm font-medium text-gray-600 mb-1">Active</h3>
+               <p className="text-3xl font-bold text-gray-900 mb-2">
+                 {campaigns.filter(c => c.status === 'active').length}
+               </p>
             </div>
-
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-12 h-12 bg-purple-50 rounded-lg flex items-center justify-center">
-                  <Megaphone className="w-6 h-6 text-purple-600" />
-                </div>
-                <TrendingUp className="w-5 h-5 text-green-600" />
-              </div>
-              <h3 className="text-sm font-medium text-gray-600 mb-1">Average Open Rate</h3>
-              <p className="text-3xl font-bold text-gray-900 mb-2">24.6%</p>
-              <p className="text-sm text-gray-500">+2.1% from last campaign</p>
+               <h3 className="text-sm font-medium text-gray-600 mb-1">Scheduled</h3>
+               <p className="text-3xl font-bold text-gray-900 mb-2">
+                 {campaigns.filter(c => c.status === 'scheduled').length}
+               </p>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Campaign Templates</h3>
-                <p className="text-gray-600">Choose from proven campaign templates to get started</p>
-              </div>
-              <button
-                onClick={() => setShowCampaignModal(true)}
-                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition"
-              >
-                <Plus className="w-4 h-4" />
-                Custom Campaign
-              </button>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {campaignTemplates.map((template) => {
-                const Icon = template.icon;
-                return (
-                  <button
-                    key={template.id}
-                    onClick={() => handleTemplateSelect(template)}
-                    className="group p-6 border-2 border-gray-200 rounded-lg hover:border-blue-600 hover:bg-blue-50 transition text-left"
-                  >
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className={`w-10 h-10 ${template.color} rounded-lg flex items-center justify-center`}>
-                        <Icon className="w-5 h-5 text-white" />
-                      </div>
-                      <div>
-                        <h4 className="font-semibold text-gray-900 mb-1">{template.name}</h4>
-                        <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
-                          {template.category}
-                        </span>
-                      </div>
-                    </div>
-
-                    <p className="text-sm text-gray-600 mb-4">{template.description}</p>
-
-                    <div className="space-y-2 text-xs text-gray-500">
-                      <div className="flex justify-between">
-                        <span>Est. Opens:</span>
-                        <span className="font-medium">{template.metrics.estimatedOpens}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Est. Clicks:</span>
-                        <span className="font-medium">{template.metrics.estimatedClicks}</span>
-                      </div>
-                      <div className="text-xs">
-                        <span>Send Timing:</span>
-                      </div>
-                      <div className="text-xs text-gray-500 mt-1">
-                        {template.metrics.sendTime}
-                      </div>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
+          {/* Campaigns List */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+             {campaigns.length === 0 ? (
+                <div className="p-8 text-center text-gray-500">No campaigns found. Create one to get started.</div>
+             ) : (
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created At</th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {campaigns.map((campaign) => (
+                      <tr key={campaign.id}>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="font-medium text-gray-900">{campaign.name}</div>
+                          <div className="text-sm text-gray-500">{campaign.description}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap capitalize">{campaign.campaign_type}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                            campaign.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                          }`}>
+                            {campaign.status}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {new Date(campaign.created_at).toLocaleDateString()}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                           {campaign.status === 'draft' && (
+                             <button 
+                               onClick={() => handleSendCampaign(campaign.id)}
+                               disabled={sendingId === campaign.id}
+                               className="text-blue-600 hover:text-blue-900 disabled:opacity-50 flex items-center gap-1 ml-auto"
+                             >
+                               {sendingId === campaign.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Send className="w-3 h-3" />}
+                               Send
+                             </button>
+                           )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+             )}
           </div>
         </div>
       )}
@@ -303,7 +230,7 @@ export default function MarketingSocial() {
               <p className="text-sm text-gray-600">Schedule posts and manage social media accounts</p>
             </div>
             <button
-              onClick={() => alert('Social posting coming soon!')}
+              onClick={() => setShowSocialModal(true)}
               className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition"
             >
               <Plus className="w-5 h-5" />
@@ -311,75 +238,42 @@ export default function MarketingSocial() {
             </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center">
-                  <Share2 className="w-6 h-6 text-blue-600" />
-                </div>
-                <TrendingUp className="w-5 h-5 text-green-600" />
-              </div>
-              <h3 className="text-sm font-medium text-gray-600 mb-1">Posts This Week</h3>
-              <p className="text-3xl font-bold text-gray-900 mb-2">12</p>
-              <p className="text-sm text-gray-500">+3 vs last week</p>
+          {/* Social Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <h3 className="text-sm font-medium text-gray-600 mb-1">Total Posts</h3>
+              <p className="text-3xl font-bold text-gray-900 mb-2">{posts.length}</p>
             </div>
-
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-12 h-12 bg-green-50 rounded-lg flex items-center justify-center">
-                  <Users className="w-6 h-6 text-green-600" />
-                </div>
-                <TrendingUp className="w-5 h-5 text-green-600" />
-              </div>
-              <h3 className="text-sm font-medium text-gray-600 mb-1">Active Accounts</h3>
-              <p className="text-3xl font-bold text-gray-900 mb-2">4</p>
-              <p className="text-sm text-gray-500">Twitter, Facebook, Instagram</p>
-            </div>
-
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-12 h-12 bg-purple-50 rounded-lg flex items-center justify-center">
-                  <Calendar className="w-6 h-6 text-purple-600" />
-                </div>
-                <TrendingUp className="w-5 h-5 text-green-600" />
-              </div>
-              <h3 className="text-sm font-medium text-gray-600 mb-1">Scheduled Posts</h3>
-              <p className="text-3xl font-bold text-gray-900 mb-2">7</p>
-              <p className="text-sm text-gray-500">Next post: Tomorrow 2:00 PM</p>
-            </div>
-
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-12 h-12 bg-orange-50 rounded-lg flex items-center justify-center">
-                  <TrendingUp className="w-6 h-6 text-orange-600" />
-                </div>
-                <TrendingUp className="w-5 h-5 text-green-600" />
-              </div>
-              <h3 className="text-sm font-medium text-gray-600 mb-1">Avg. Engagement</h3>
-              <p className="text-3xl font-bold text-gray-900 mb-2">14.7%</p>
-              <p className="text-sm text-gray-500">+1.2% this week</p>
+             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <h3 className="text-sm font-medium text-gray-600 mb-1">Scheduled</h3>
+              <p className="text-3xl font-bold text-gray-900 mb-2">
+                {posts.filter(p => p.status === 'scheduled').length}
+              </p>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
-            <div className="text-center">
-              <Share2 className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Connect Social Media Accounts
-              </h3>
-              <p className="text-gray-600 mb-6">
-                Connect your social media accounts to start posting and managing your social presence.
-              </p>
-              <div className="flex justify-center">
-                <button
-                  onClick={() => alert('Social account connection coming soon!')}
-                  className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg transition"
-                >
-                  <Plus className="w-5 h-5" />
-                  Connect Accounts
-                </button>
+          {/* Posts List */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            {posts.length === 0 ? (
+               <div className="p-8 text-center text-gray-500">No social posts found.</div>
+            ) : (
+              <div className="divide-y divide-gray-200">
+                {posts.map((post) => (
+                  <div key={post.id} className="p-6 hover:bg-gray-50 transition">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <p className="text-gray-900 mb-2">{post.content}</p>
+                        <div className="flex gap-2 text-sm text-gray-500">
+                          <span>{post.status}</span>
+                          <span>•</span>
+                          <span>{new Date(post.created_at).toLocaleDateString()}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
-            </div>
+            )}
           </div>
         </div>
       )}
@@ -389,151 +283,109 @@ export default function MarketingSocial() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
-              <div>
-                <h2 className="text-xl font-bold text-gray-900">
-                  {selectedTemplate ? `Create ${selectedTemplate.name} Campaign` : 'Create Custom Campaign'}
-                </h2>
-                {selectedTemplate && (
-                  <p className="text-sm text-gray-600 mt-1">{selectedTemplate.description}</p>
-                )}
-              </div>
+              <h2 className="text-xl font-bold text-gray-900">Create Campaign</h2>
               <button
-                onClick={() => {
-                  setShowCampaignModal(false);
-                  setSelectedTemplate(null);
-                }}
+                onClick={() => setShowCampaignModal(false)}
                 className="text-gray-400 hover:text-gray-600"
               >
                 <X className="w-6 h-6" />
               </button>
             </div>
 
-            <div className="p-6">
-              <div className="space-y-6">
-                {/* Campaign Name */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Campaign Name <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={campaignForm.name}
-                    onChange={(e) => setCampaignForm({ ...campaignForm, name: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none"
-                    placeholder="Enter campaign name"
-                    required
-                  />
-                </div>
-
-                {/* Email Subject */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Email Subject <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={campaignForm.subject}
-                    onChange={(e) => setCampaignForm({ ...campaignForm, subject: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none"
-                    placeholder="Enter email subject line"
-                    required
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Target Audience */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Target Audience
-                    </label>
-                    <select
-                      value={campaignForm.audience}
-                      onChange={(e) => setCampaignForm({ ...campaignForm, audience: e.target.value })}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none"
-                    >
-                      <option value="all">All Subscribers</option>
-                      <option value="active">Active Users</option>
-                      <option value="inactive">Inactive Users</option>
-                      <option value="new">New Subscribers</option>
-                      <option value="leads">Lead Prospects</option>
-                      <option value="customers">Existing Customers</option>
-                    </select>
-                  </div>
-
-                  {/* Send Date */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Send Date
-                    </label>
-                    <input
-                      type="date"
-                      value={campaignForm.sendDate}
-                      onChange={(e) => setCampaignForm({ ...campaignForm, sendDate: e.target.value })}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none"
-                    />
-                  </div>
-                </div>
-
-                {/* Description */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Campaign Description
-                  </label>
+            <div className="p-6 space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Campaign Name</label>
+                <input
+                  type="text"
+                  value={campaignForm.name}
+                  onChange={(e) => setCampaignForm({ ...campaignForm, name: e.target.value })}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none"
+                  placeholder="e.g., Summer Sale"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Subject Line</label>
+                <input
+                  type="text"
+                  value={campaignForm.subject}
+                  onChange={(e) => setCampaignForm({ ...campaignForm, subject: e.target.value })}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none"
+                  placeholder="Subject..."
+                />
+              </div>
+              <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
                   <textarea
                     value={campaignForm.description}
                     onChange={(e) => setCampaignForm({ ...campaignForm, description: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none"
                     rows={3}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none resize-none"
-                    placeholder="Describe the campaign goals and content..."
                   />
-                </div>
-
-                {/* Template Info */}
-                {selectedTemplate && (
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className={`w-8 h-8 ${selectedTemplate.color} rounded-lg flex items-center justify-center`}>
-                        <selectedTemplate.icon className="w-4 h-4 text-white" />
-                      </div>
-                      <div>
-                        <h4 className="font-semibold text-gray-900">{selectedTemplate.name} Template</h4>
-                        <p className="text-sm text-gray-600">{selectedTemplate.category} campaign</p>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div>
-                        <span className="text-gray-600">Estimated Opens:</span>
-                        <p className="font-semibold text-gray-900">{selectedTemplate.metrics.estimatedOpens}</p>
-                      </div>
-                      <div>
-                        <span className="text-gray-600">Estimated Clicks:</span>
-                        <p className="font-semibold text-gray-900">{selectedTemplate.metrics.estimatedClicks}</p>
-                      </div>
-                    </div>
-                  </div>
-                )}
+              </div>
+               <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Scheduled Date (Optional)</label>
+                  <input
+                    type="date"
+                    value={campaignForm.sendDate}
+                    onChange={(e) => setCampaignForm({ ...campaignForm, sendDate: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none"
+                  />
               </div>
 
               <div className="flex gap-3 pt-6 border-t border-gray-200">
                 <button
-                  type="button"
-                  onClick={() => {
-                    setShowCampaignModal(false);
-                    setSelectedTemplate(null);
-                  }}
-                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
+                  onClick={() => setShowCampaignModal(false)}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
                 >
                   Cancel
                 </button>
                 <button
-                  type="button"
                   onClick={handleCreateCampaign}
-                  disabled={!campaignForm.name.trim() || !campaignForm.subject.trim()}
-                  className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  disabled={creating || !campaignForm.name}
+                  className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center justify-center gap-2"
                 >
-                  <Send className="w-4 h-4" />
-                  Create Campaign
+                  {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Create Campaign'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Social Creation Modal */}
+      {showSocialModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <h2 className="text-xl font-bold text-gray-900">New Social Post</h2>
+              <button onClick={() => setShowSocialModal(false)} className="text-gray-400 hover:text-gray-600">
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            <div className="p-6 space-y-6">
+               <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Content</label>
+                  <textarea
+                    value={socialForm.content}
+                    onChange={(e) => setSocialForm({ ...socialForm, content: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none"
+                    rows={4}
+                    placeholder="What's on your mind?"
+                  />
+              </div>
+              <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Schedule (Optional)</label>
+                  <input
+                    type="datetime-local"
+                    value={socialForm.scheduledDate}
+                    onChange={(e) => setSocialForm({ ...socialForm, scheduledDate: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none"
+                  />
+              </div>
+              <div className="flex gap-3 pt-4">
+                <button onClick={() => setShowSocialModal(false)} className="flex-1 px-4 py-2 border border-gray-300 rounded-lg">Cancel</button>
+                <button onClick={handleCreatePost} disabled={creating || !socialForm.content} className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg flex justify-center items-center">
+                   {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Post'}
                 </button>
               </div>
             </div>
