@@ -7,6 +7,9 @@ import { Users, FolderKanban, Mail, Bot, TrendingUp, Clock, Building2, Plus, X, 
 import { useCompanies } from '../hooks/useCompanies';
 import { useContacts } from '../hooks/useContacts';
 import { useProjects } from '../hooks/useProjects';
+import { useCampaigns } from '../hooks/useCampaigns';
+import { useAgents } from '../hooks/useAgents';
+import { useToast } from '../contexts/ToastContext';
 import ProjectFormModal from '../components/ProjectFormModal';
 
 export default function Dashboard() {
@@ -15,6 +18,9 @@ export default function Dashboard() {
   const { createCompany } = useCompanies();
   const { contacts } = useContacts();
   const { projects, createProject } = useProjects();
+  const { campaigns, createCampaign } = useCampaigns();
+  const { agents } = useAgents();
+  const { addToast } = useToast();
   const navigate = useNavigate();
 
   const [showNewCompany, setShowNewCompany] = useState(false);
@@ -25,6 +31,7 @@ export default function Dashboard() {
   const [creating, setCreating] = useState(false);
   const [projectCreating, setProjectCreating] = useState(false);
   const [contactCreating, setContactCreating] = useState(false);
+  const [campaignCreating, setCampaignCreating] = useState(false);
   const [orgCreating, setOrgCreating] = useState(false);
 
   const [companyFormData, setCompanyFormData] = useState({
@@ -59,6 +66,15 @@ export default function Dashboard() {
     notes: '',
   });
 
+  const [campaignFormData, setCampaignFormData] = useState({
+    name: '',
+    subject: '',
+    description: '',
+    audience: 'all',
+    sendDate: '',
+    campaign_type: 'email' as const
+  });
+
   const [orgFormData, setOrgFormData] = useState({
     name: '',
     slug: '',
@@ -80,8 +96,10 @@ export default function Dashboard() {
         description: '',
       });
       setShowNewCompany(false);
+      addToast('success', 'Company created successfully!');
     } catch (error) {
       console.error('Failed to create company:', error);
+      addToast('error', 'Failed to create company');
     } finally {
       setCreating(false);
     }
@@ -144,11 +162,36 @@ export default function Dashboard() {
       if (workspaceError) throw workspaceError;
 
       await refetchOrganizations();
+      addToast('success', 'Organization created successfully!');
     } catch (error: any) {
       console.error('Error creating organization:', error);
-      alert(error.message || 'Failed to create organization');
+      addToast('error', error.message || 'Failed to create organization');
     } finally {
       setOrgCreating(false);
+    }
+  };
+
+  const handleCreateCampaign = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!campaignFormData.name || !campaignFormData.subject) return;
+    
+    setCampaignCreating(true);
+    try {
+      await createCampaign({
+        name: campaignFormData.name,
+        description: campaignFormData.description,
+        campaign_type: campaignFormData.campaign_type,
+        scheduled_at: campaignFormData.sendDate ? new Date(campaignFormData.sendDate).toISOString() : undefined,
+        settings: { subject: campaignFormData.subject, audience: campaignFormData.audience }
+      });
+      setCampaignFormData({ name: '', subject: '', description: '', audience: 'all', sendDate: '', campaign_type: 'email' });
+      setShowNewCampaign(false);
+      addToast('success', 'Campaign created successfully!');
+    } catch (error) {
+      console.error('Failed to create campaign:', error);
+      addToast('error', 'Failed to create campaign');
+    } finally {
+      setCampaignCreating(false);
     }
   };
 
@@ -238,20 +281,77 @@ export default function Dashboard() {
 
   // Normal dashboard for existing users
 
+  // Calculate real stats
   const stats = [
-    { name: 'Active Projects', value: '12', icon: FolderKanban, change: '+2 this week', trend: 'up' },
-    { name: 'Total Contacts', value: '2,847', icon: Users, change: '+124 this month', trend: 'up' },
-    { name: 'Campaigns Running', value: '8', icon: Mail, change: '3 scheduled', trend: 'neutral' },
-    { name: 'AI Agents Active', value: '5', icon: Bot, change: '2,431 tasks completed', trend: 'up' },
+    { 
+      name: 'Active Projects', 
+      value: projects.filter(p => p.status === 'active' || p.status === 'in_progress').length.toString(), 
+      icon: FolderKanban, 
+      change: `${projects.length} total`, 
+      trend: 'neutral' 
+    },
+    { 
+      name: 'Total Contacts', 
+      value: contacts.length.toString(), 
+      icon: Users, 
+      change: 'All time', 
+      trend: 'up' 
+    },
+    { 
+      name: 'Campaigns Running', 
+      value: campaigns.filter(c => c.status === 'active' || c.status === 'scheduled').length.toString(), 
+      icon: Mail, 
+      change: `${campaigns.length} total`, 
+      trend: 'neutral' 
+    },
+    { 
+      name: 'AI Agents Active', 
+      value: agents.filter(a => a.status === 'active').length.toString(), 
+      icon: Bot, 
+      change: `${agents.length} configured`, 
+      trend: 'up' 
+    },
   ];
 
-  const recentActivity = [
-    { action: 'New contact added', details: 'John Doe via Landing Page', time: '5 minutes ago' },
-    { action: 'Task completed', details: 'Design homepage mockup', time: '1 hour ago' },
-    { action: 'Campaign sent', details: 'Monthly Newsletter - 2,431 recipients', time: '3 hours ago' },
-    { action: 'Deal won', details: 'Enterprise Plan - $15,000', time: '5 hours ago' },
-    { action: 'AI Agent executed', details: 'Content generation for blog post', time: '6 hours ago' },
-  ];
+  // Aggregate and sort recent activity from all sources
+  const getAllActivity = () => {
+    const activity = [
+      ...projects.map(p => ({
+        action: 'New Project',
+        details: p.name,
+        time: new Date(p.created_at),
+        type: 'project'
+      })),
+      ...contacts.map(c => ({
+        action: 'New Contact',
+        details: `${c.first_name} ${c.last_name || ''}`,
+        time: new Date(c.created_at),
+        type: 'contact'
+      })),
+      ...campaigns.map(c => ({
+        action: 'Campaign Created',
+        details: c.name,
+        time: new Date(c.created_at),
+        type: 'campaign'
+      })),
+      ...agents.map(a => ({
+        action: 'Agent Configured',
+        details: a.name,
+        time: new Date(a.created_at || new Date().toISOString()),
+        type: 'agent'
+      }))
+    ];
+
+    return activity
+      .sort((a, b) => b.time.getTime() - a.time.getTime())
+      .slice(0, 5)
+      .map(item => ({
+        ...item,
+        time: item.time.toLocaleDateString() + ' ' + item.time.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+      }));
+  };
+
+  const recentActivity = getAllActivity();
 
   return (
     <div className="p-6 lg:p-8">
@@ -578,30 +678,69 @@ export default function Dashboard() {
                 <X className="w-6 h-6" />
               </button>
             </div>
-            <div className="space-y-6">
-              <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <p className="text-sm text-yellow-700">
-                  Campaign creation functionality will be implemented. This will include email marketing, SMS campaigns, and social media automation.
-                </p>
+            <form onSubmit={handleCreateCampaign} className="space-y-6">
+               <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Campaign Name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={campaignFormData.name}
+                  onChange={(e) => setCampaignFormData({ ...campaignFormData, name: e.target.value })}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none"
+                  placeholder="e.g., Summer Sale"
+                  required
+                />
               </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Subject Line <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={campaignFormData.subject}
+                  onChange={(e) => setCampaignFormData({ ...campaignFormData, subject: e.target.value })}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none"
+                  placeholder="Subject..."
+                  required
+                />
+              </div>
+              <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                  <textarea
+                    value={campaignFormData.description}
+                    onChange={(e) => setCampaignFormData({ ...campaignFormData, description: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none"
+                    rows={3}
+                  />
+              </div>
+               <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Scheduled Date (Optional)</label>
+                  <input
+                    type="date"
+                    value={campaignFormData.sendDate}
+                    onChange={(e) => setCampaignFormData({ ...campaignFormData, sendDate: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none"
+                  />
+              </div>
+
               <div className="flex gap-3 pt-4">
                 <button
+                  type="button"
                   onClick={() => setShowNewCampaign(false)}
                   className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
                 >
                   Cancel
                 </button>
                 <button
-                  onClick={() => {
-                    navigate('/marketing-social');
-                    setShowNewCampaign(false);
-                  }}
-                  className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition"
+                  type="submit"
+                  disabled={campaignCreating || !campaignFormData.name}
+                  className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition flex items-center justify-center gap-2"
                 >
-                  Go to Marketing & Social Page
+                   {campaignCreating ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Create Campaign'}
                 </button>
               </div>
-            </div>
+            </form>
           </div>
         </div>
       )}

@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageCircle, X, Send, Bot, User, Minimize2, Maximize2 } from 'lucide-react';
+import { MessageCircle, X, Send, Bot, User, Minimize2, Maximize2, Loader2, Sparkles } from 'lucide-react';
+import { useProjects } from '../hooks/useProjects';
+import { useContacts } from '../hooks/useContacts';
 
 interface Message {
   id: string;
@@ -8,19 +10,33 @@ interface Message {
   timestamp: Date;
 }
 
+/**
+ * SmartChatBot Component
+ * 
+ * Enhancements:
+ * - "Context-Aware": It fetches live data (Projects, Contacts) from the hooks.
+ * - "Client-Side RAG": It performs simple keyword matching on the fetched data to answer questions dynamically.
+ *   (e.g. "How many projects?" -> counts projects array).
+ * - "Vector Ready": The UI and structure are ready to swap the simple logic with a real vector DB call.
+ */
 const ChatBot: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      content: 'Hi! I\'m your GAS Operating System assistant. I\'m here to help you navigate and make the most of all available features. What can I help you with today?',
+      content: 'Hi! I\'m your AI assistant. I have access to your live project and contact data. Ask me "How many projects do I have?" or "Find contact John".',
       sender: 'bot',
       timestamp: new Date()
     }
   ]);
   const [currentMessage, setCurrentMessage] = useState('');
+  const [isThinking, setIsThinking] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Hook into live data for "Client-Side RAG"
+  const { projects } = useProjects();
+  const { contacts } = useContacts();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -28,81 +44,45 @@ const ChatBot: React.FC = () => {
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [messages, isThinking]);
 
-  const getBotResponse = (userMessage: string): string => {
-    const message = userMessage.toLowerCase();
+  // Simulated RAG Logic: Search local state instead of Vector DB for now
+  const generateSmartResponse = (query: string): string => {
+    const lowerQuery = query.toLowerCase();
 
-    // Project Management
-    if (message.includes('project') || message.includes('projects')) {
-      if (message.includes('create') || message.includes('new')) {
-        return 'To create a new project, go to the Projects page or use the "New Project" button on the Dashboard. You can set the project name, description, timeline, budget, and assign team members. Once created, you\'ll see comprehensive project details in the header area.';
+    // 1. Project Queries
+    if (lowerQuery.includes('project') || lowerQuery.includes('projects')) {
+      if (lowerQuery.includes('how many') || lowerQuery.includes('count')) {
+        return `You currently have ${projects.length} projects.`;
       }
-      if (message.includes('calendar') || message.includes('schedule')) {
-        return 'The Projects Calendar view shows all your tasks organized by due dates. You can navigate between months, see task priorities with color coding (red=urgent, orange=high, blue=medium, gray=low), and get an overview of upcoming deadlines. Up to 3 tasks are shown per day.';
+      if (lowerQuery.includes('list') || lowerQuery.includes('show')) {
+        const projectNames = projects.map(p => p.name).join(', ');
+        return `Here are your projects: ${projectNames || 'No projects found.'}`;
       }
-      if (message.includes('delete') || message.includes('remove')) {
-        return 'To delete a project, click the trash icon (🗑️) next to the project tab. You\'ll get a confirmation dialog. All associated tasks and data will be removed permanently.';
+      // Search specific project
+      const foundProject = projects.find(p => lowerQuery.includes(p.name.toLowerCase()));
+      if (foundProject) {
+        return `Found project "${foundProject.name}": Status is ${foundProject.status}, Budget is $${foundProject.budget || 0}. Description: ${foundProject.description}`;
       }
-      return 'GAS OS offers comprehensive project management: create projects with timelines and budgets, track tasks with priorities, view everything in a beautiful calendar format, and manage team access. Select a project to see details like budget, timeline, and task progress.';
     }
 
-    // Marketing & Campaigns
-    if (message.includes('marketing') || message.includes('campaign') || message.includes('email')) {
-      if (message.includes('template') || message.includes('templates')) {
-        return 'We offer 6 proven campaign templates: Welcome Series (5-email flow), Product Launch (build anticipation), Re-engagement (win back inactive users), Promotional Sale (drive conversions), Educational Content (share resources), and Seasonal Campaign (holiday messaging). Each shows estimated performance metrics!';
+    // 2. Contact Queries
+    if (lowerQuery.includes('contact') || lowerQuery.includes('contacts') || lowerQuery.includes('who is')) {
+       if (lowerQuery.includes('how many') || lowerQuery.includes('count')) {
+        return `You have ${contacts.length} contacts in your CRM.`;
       }
-      if (message.includes('create') || message.includes('new')) {
-        return 'Click the "New Campaign" button or choose from our campaign templates. Templates automatically pre-fill forms with optimal settings and include performance estimates (open rates, click rates, send timing). You can target specific audiences and schedule delivery dates.';
+      // Search specific contact
+      const foundContact = contacts.find(c => 
+        lowerQuery.includes(c.first_name.toLowerCase()) || 
+        (c.last_name && lowerQuery.includes(c.last_name.toLowerCase()))
+      );
+      if (foundContact) {
+        return `Found contact: ${foundContact.first_name} ${foundContact.last_name || ''}. Email: ${foundContact.email || 'N/A'}. Title: ${foundContact.title || 'N/A'}.`;
       }
-      return 'Our Marketing & Social platform includes email campaigns, automation sequences, and social media management. Use templates for proven campaign types or create custom campaigns. Each template includes estimated performance metrics to help you succeed.';
     }
 
-    // CRM & Contacts
-    if (message.includes('crm') || message.includes('contact') || message.includes('customer')) {
-      if (message.includes('add') || message.includes('new')) {
-        return 'Use the "Add Contact" quick action on the Dashboard or go to the CRM page. You can add details like name, email, phone, title, company, and notes. Your CRM helps track all customer interactions and relationships.';
-      }
-      return 'The CRM system manages all your contacts, companies, and customer relationships. Add new contacts via the Dashboard quick action, organize them by company, and track communication history. All your customer data is stored securely.';
-    }
-
-    // Dashboard & Navigation
-    if (message.includes('dashboard') || message.includes('stats')) {
-      return 'The Dashboard shows key statistics (active projects, total contacts, campaign performance) and Quick Actions for fast access to common tasks. Use it as your command center for everything in GAS OS.';
-    }
-
-    if (message.includes('navigation') || message.includes('menu') || message.includes('sidebar')) {
-      return 'Use the sidebar to navigate between: Dashboard (home/stats), Projects (management/calendar), CRM (contacts/customers), Marketing & Social (campaigns/email), AI Agents (automation), MCP Servers, Analytics, and Settings.';
-    }
-
-    if (message.includes('quick action') || message.includes('quick')) {
-      return 'Quick Actions on the Dashboard provide fast access to: New Project (create project), Add Contact (add customer), New Campaign (start marketing), Add Company (create business account). These are shortcuts to the most common tasks.';
-    }
-
-    // Help & General
-    if (message.includes('help') || message.includes('tutorial') || message.includes('guide')) {
-      return 'I\'m here to help! You can ask me about any feature: projects, marketing campaigns, CRM contacts, dashboard stats, or how to navigate. I know everything about GAS OS capabilities and can guide you through any task.';
-    }
-
-    if (message.includes('ai') || message.includes('agent') || message.includes('automation')) {
-      return 'GAS OS includes AI Agents for automation tasks. They can handle content generation, data analysis, repetitive workflows, and intelligent automation. Check the AI Agents section for available models and capabilities.';
-    }
-
-    if (message.includes('analytics') || message.includes('reports')) {
-      return 'The Analytics page provides detailed insights into your business performance, campaign effectiveness, project progress, and customer engagement metrics. Track everything in one comprehensive dashboard.';
-    }
-
-    // Default responses
-    if (message.includes('what can you do') || message.includes('capabilities')) {
-      return 'I can help you with: Project Management (creation, calendar views, task tracking), Marketing Campaigns (email templates, automation), CRM (contact management, customer relationships), Dashboard navigation, AI Agents, and any other GAS OS features. Just ask me about what you\'re trying to accomplish!';
-    }
-
-    if (message.includes('thank') || message.includes('thanks')) {
-      return 'You\'re welcome! I\'m always here to help you make the most of GAS OS. Feel free to ask if you need assistance with any feature or task.';
-    }
-
-    // Generic response for unrecognized queries
-    return 'I understand you\'re asking about ' + userMessage + '. Can you be more specific about what you\'d like to know? I can help with projects, marketing campaigns, CRM contacts, navigation, or any other GAS OS feature!';
+    // 3. Fallback / General Help
+    return "I can help you manage your data. Try asking about your 'projects' or 'contacts'. For example: 'How many projects do I have?'";
   };
 
   const handleSendMessage = () => {
@@ -117,17 +97,21 @@ const ChatBot: React.FC = () => {
 
     setMessages(prev => [...prev, userMessage]);
     setCurrentMessage('');
+    setIsThinking(true);
 
-    // Simulate bot response delay
+    // Simulate network/processing delay
     setTimeout(() => {
+      const responseText = generateSmartResponse(userMessage.content);
+      
       const botResponse: Message = {
         id: (Date.now() + 1).toString(),
-        content: getBotResponse(currentMessage),
+        content: responseText,
         sender: 'bot',
         timestamp: new Date()
       };
       setMessages(prev => [...prev, botResponse]);
-    }, 500);
+      setIsThinking(false);
+    }, 1000);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -151,23 +135,23 @@ const ChatBot: React.FC = () => {
   }
 
   return (
-    <div className={`fixed bottom-6 right-6 z-50 transition-all duration-200 ${isMinimized ? 'w-80 h-14' : 'w-80 h-96'}`}>
-      <div className="bg-white rounded-lg shadow-xl border border-gray-200 flex flex-col h-full">
+    <div className={`fixed bottom-6 right-6 z-50 transition-all duration-200 ${isMinimized ? 'w-80 h-14' : 'w-96 h-[500px]'}`}>
+      <div className="bg-white rounded-lg shadow-xl border border-gray-200 flex flex-col h-full overflow-hidden">
         {/* Header */}
-        <div className="bg-blue-600 text-white p-4 rounded-t-lg flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Bot size={20} />
-            <span className="font-semibold">GAS OS Assistant</span>
+        <div className="bg-blue-600 text-white p-4 flex items-center justify-between cursor-pointer" onClick={() => !isMinimized && setIsMinimized(true)}>
+          <div className="flex items-center gap-2">
+            <Sparkles size={18} />
+            <span className="font-semibold">AI Assistant</span>
           </div>
           <div className="flex items-center gap-1">
             <button
-              onClick={() => setIsMinimized(!isMinimized)}
+              onClick={(e) => { e.stopPropagation(); setIsMinimized(!isMinimized); }}
               className="hover:bg-blue-700 p-1 rounded transition-colors"
             >
               {isMinimized ? <Maximize2 size={16} /> : <Minimize2 size={16} />}
             </button>
             <button
-              onClick={() => setIsOpen(false)}
+              onClick={(e) => { e.stopPropagation(); setIsOpen(false); }}
               className="hover:bg-blue-700 p-1 rounded transition-colors"
             >
               <X size={16} />
@@ -178,58 +162,57 @@ const ChatBot: React.FC = () => {
         {!isMinimized && (
           <>
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0">
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
               {messages.map((message) => (
                 <div
                   key={message.id}
                   className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
                   <div
-                    className={`max-w-[80%] rounded-lg px-3 py-2 ${
+                    className={`max-w-[85%] rounded-2xl px-4 py-3 shadow-sm ${ 
                       message.sender === 'user'
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-100 text-gray-900'
+                        ? 'bg-blue-600 text-white rounded-tr-none'
+                        : 'bg-white text-gray-800 border border-gray-200 rounded-tl-none'
                     }`}
                   >
-                    <div className="flex items-center gap-2 mb-1">
-                      {message.sender === 'user' ? (
-                        <User size={14} className="text-blue-100" />
-                      ) : (
-                        <Bot size={14} className="text-gray-400" />
-                      )}
-                      <span className="text-xs opacity-70">
-                        {message.sender === 'bot' ? 'GAS Assistant' : 'You'}
-                      </span>
-                    </div>
-                    <p className="text-sm leading-relaxed">{message.content}</p>
+                    <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
+                    <p className={`text-[10px] mt-1 ${message.sender === 'user' ? 'text-blue-200' : 'text-gray-400'}`}>
+                      {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </p>
                   </div>
                 </div>
               ))}
+              
+              {isThinking && (
+                <div className="flex justify-start">
+                  <div className="bg-white text-gray-800 border border-gray-200 rounded-2xl rounded-tl-none px-4 py-3 shadow-sm flex items-center gap-2">
+                    <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
+                    <span className="text-xs text-gray-500">Analyzing data...</span>
+                  </div>
+                </div>
+              )}
               <div ref={messagesEndRef} />
             </div>
 
             {/* Input */}
-            <div className="border-t border-gray-200 p-4">
+            <div className="border-t border-gray-200 p-3 bg-white">
               <div className="flex gap-2">
                 <input
                   type="text"
                   value={currentMessage}
                   onChange={(e) => setCurrentMessage(e.target.value)}
                   onKeyPress={handleKeyPress}
-                  placeholder="Ask me anything about GAS OS..."
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none text-sm"
+                  placeholder="Ask about your projects..."
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-full focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none text-sm"
                 />
                 <button
                   onClick={handleSendMessage}
                   disabled={!currentMessage.trim()}
-                  className="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <Send size={16} />
+                  <Send size={18} />
                 </button>
               </div>
-              <p className="text-xs text-gray-500 mt-2 text-center">
-                Ask about projects, marketing, CRM, navigation, or any feature!
-              </p>
             </div>
           </>
         )}

@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { Settings as SettingsIcon, Key, Save, Eye, EyeOff } from 'lucide-react';
+import { Settings as SettingsIcon, Key, Save, Eye, EyeOff, Users, Mail } from 'lucide-react';
+import { useMembers } from '../hooks/useMembers';
 
-type SettingsTab = 'general' | 'api-keys';
+type SettingsTab = 'general' | 'api-keys' | 'team';
 
 const aiModels = [
   { id: 'gemini', name: 'Google Gemini', description: 'Google\'s Gemini models', icon: '🤖' },
@@ -45,8 +46,11 @@ export default function Settings() {
 
   const tabs = [
     { id: 'general' as const, name: 'General', icon: SettingsIcon },
+    { id: 'team' as const, name: 'Team Members', icon: Users },
     { id: 'api-keys' as const, name: 'API Keys', icon: Key },
   ];
+  
+  const { members, loading: membersLoading } = useMembers();
 
   return (
     <div className="p-6 lg:p-8">
@@ -93,6 +97,53 @@ export default function Settings() {
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">User Preferences</h3>
             <p className="text-gray-600">Personal settings and preferences will be available here.</p>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'team' && (
+        <div className="space-y-6">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="flex items-center justify-between mb-6">
+               <div>
+                <h3 className="text-lg font-semibold text-gray-900">Team Members</h3>
+                <p className="text-gray-600">Manage access to your organization</p>
+               </div>
+               <button className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition">
+                 <Mail className="w-4 h-4" /> Invite Member
+               </button>
+            </div>
+            
+            <div className="overflow-x-auto">
+              <table className="w-full text-left">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase">User</th>
+                    <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase">Role</th>
+                    <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase">Joined</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {members.map((member) => (
+                    <tr key={member.id}>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                           <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-semibold">
+                             {member.profile?.full_name?.charAt(0) || member.profile?.email?.charAt(0) || 'U'}
+                           </div>
+                           <div>
+                             <div className="font-medium text-gray-900">{member.profile?.full_name || 'Unknown'}</div>
+                             <div className="text-xs text-gray-500">{member.profile?.email}</div>
+                           </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 capitalize text-sm text-gray-700">{member.role}</td>
+                      <td className="px-6 py-4 text-sm text-gray-500">{new Date(member.joined_at).toLocaleDateString()}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}
