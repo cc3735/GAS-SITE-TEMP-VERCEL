@@ -20,6 +20,7 @@ import BusinessApps from './pages/BusinessApps';
 import AdminDashboard from './pages/AdminDashboard';
 import MissionControl from './pages/MissionControl';
 import CustomerProfile from './pages/CustomerProfile';
+import Diagnostics from './pages/Diagnostics';
 import { Loader2 } from 'lucide-react';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -111,6 +112,7 @@ function App() {
                 <Route path="business-apps" element={<BusinessApps />} />
                 <Route path="mission-control" element={<MissionControl />} />
                 <Route path="crm/customer/:id" element={<CustomerProfile />} />
+                <Route path="diagnostics" element={<Diagnostics />} />
                 <Route path="admin" element={<AdminDashboard />} />
                 <Route path="settings" element={<Settings />} />
               </Route>
