@@ -20,7 +20,10 @@ import BusinessApps from './pages/BusinessApps';
 import AdminDashboard from './pages/AdminDashboard';
 import MissionControl from './pages/MissionControl';
 import CustomerProfile from './pages/CustomerProfile';
+import IntakeDashboard from './pages/IntakeDashboard';
+import NudgeCampaigns from './pages/NudgeCampaigns';
 import Diagnostics from './pages/Diagnostics';
+import WebOS from './pages/WebOS';
 import { Loader2 } from 'lucide-react';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -94,6 +97,15 @@ function App() {
               />
 
               <Route
+                path="/webos"
+                element={
+                  <OrganizationRoute>
+                    <WebOS />
+                  </OrganizationRoute>
+                }
+              />
+
+              <Route
                 path="/"
                 element={
                   <OrganizationRoute>
@@ -111,6 +123,8 @@ function App() {
                 <Route path="analytics" element={<Analytics />} />
                 <Route path="business-apps" element={<BusinessApps />} />
                 <Route path="mission-control" element={<MissionControl />} />
+                <Route path="intake" element={<IntakeDashboard />} />
+                <Route path="nudges" element={<NudgeCampaigns />} />
                 <Route path="crm/customer/:id" element={<CustomerProfile />} />
                 <Route path="diagnostics" element={<Diagnostics />} />
                 <Route path="admin" element={<AdminDashboard />} />

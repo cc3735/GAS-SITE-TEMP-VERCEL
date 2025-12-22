@@ -21,18 +21,7 @@ const UnifiedInbox: React.FC<UnifiedInboxProps> = ({
   const [sortBy, setSortBy] = useState<SortOption>(defaultSort);
   const [selectedThreadId, setSelectedThreadId] = useState<string | null>(null);
 
-  const { threads, loading, error } = useUnifiedInbox(organizationId, filters, searchQuery, sortBy);
-
-  const getChannelIcon = (channel: string) => {
-    switch (channel) {
-      case 'sms': return <MessageSquare size={16} className="text-green-400" />;
-      case 'email': return <Mail size={16} className="text-blue-400" />;
-      case 'voice': return <Phone size={16} className="text-purple-400" />;
-      case 'instagram': return <Instagram size={16} className="text-pink-500" />;
-      case 'facebook': return <Facebook size={16} className="text-blue-600" />;
-      default: return <MessageSquare size={16} />;
-    }
-  };
+  const selectedThread = threads.find(t => t.id === selectedThreadId);
 
   return (
     <div className="flex h-[600px] bg-gray-900 border border-gray-700 rounded-lg overflow-hidden">
@@ -109,50 +98,87 @@ const UnifiedInbox: React.FC<UnifiedInboxProps> = ({
         </div>
       </div>
 
-      {/* Right Column - Conversation View (Placeholder for now) */}
+      {/* Right Column - Conversation View */}
       <div className="flex-1 bg-gray-900 flex flex-col">
-         {selectedThreadId ? (
+         {selectedThread ? (
              <div className="flex-1 flex flex-col">
-                 <div className="p-4 border-b border-gray-700 flex justify-between items-center">
+                 <div className="p-4 border-b border-gray-700 flex justify-between items-center bg-gray-800">
                      <div>
-                         <h3 className="text-lg font-semibold text-white">Alice Johnson</h3>
-                         <p className="text-xs text-gray-400">via SMS • +1 (555) 123-4567</p>
+                         <h3 className="text-lg font-semibold text-white">{selectedThread.customerName}</h3>
+                         <div className="flex items-center gap-2 text-xs text-gray-400">
+                            {getChannelIcon(selectedThread.channel)}
+                            <span className="capitalize">via {selectedThread.channel}</span>
+                            {selectedThread.humanOnlineStatus && <span className="text-green-400">• Online</span>}
+                         </div>
                      </div>
-                     <button className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-500">Resolve</button>
+                     <button className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-500 transition-colors">
+                        Resolve Thread
+                     </button>
                  </div>
-                 <div className="flex-1 p-4 overflow-y-auto space-y-4">
-                     {/* Chat Bubbles Placeholder */}
+
+                 {/* Message History */}
+                 <div className="flex-1 p-4 overflow-y-auto space-y-4 bg-gray-900">
+                     {/* Customer Message (Mocked from thread) */}
                      <div className="flex justify-start">
-                         <div className="max-w-[70%] bg-gray-800 rounded-lg p-3 text-gray-300">
-                             <p className="text-sm">Hi, I need help with my order #12345.</p>
-                             <span className="text-xs text-gray-500 block mt-1">10:42 AM</span>
+                         <div className="max-w-[70%] bg-gray-800 rounded-2xl rounded-tl-none p-3 text-gray-300 shadow-sm">
+                             <p className="text-sm">{selectedThread.lastMessage}</p>
+                             <span className="text-[10px] text-gray-500 block mt-1">
+                                {new Date(selectedThread.lastMessageAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                             </span>
                          </div>
                      </div>
-                     <div className="flex justify-end">
-                         <div className="max-w-[70%] bg-blue-900/30 border border-blue-800 rounded-lg p-3 text-white">
-                             <div className="flex items-center text-xs text-blue-400 mb-1 space-x-1">
-                                 <span>AI Agent</span>
+
+                     {/* AI Response Mock */}
+                     {selectedThread.assignedAgentId && (
+                         <div className="flex justify-end">
+                             <div className="max-w-[70%] bg-blue-900/20 border border-blue-800/50 rounded-2xl rounded-tr-none p-3 text-white">
+                                 <div className="flex items-center text-xs text-blue-400 mb-1 space-x-1">
+                                     <span className="font-semibold">AI Agent</span>
+                                 </div>
+                                 <p className="text-sm">I've received your message about "{selectedThread.lastMessage}". How can I assist you further?</p>
+                                 <span className="text-[10px] text-blue-400/50 block mt-1">Just now</span>
                              </div>
-                             <p className="text-sm">Hello Alice! I'd be happy to help you with order #12345. What seems to be the issue?</p>
-                             <span className="text-xs text-blue-400/50 block mt-1">10:42 AM</span>
                          </div>
-                     </div>
+                     )}
                  </div>
+
+                 {/* Input Area */}
                  <div className="p-4 border-t border-gray-700 bg-gray-800">
+                     {/* Quick Actions */}
+                     <div className="flex gap-2 mb-3 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-gray-600">
+                        <button className="whitespace-nowrap px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded-full text-xs text-gray-300 transition-colors">
+                            📅 Schedule Call
+                        </button>
+                        <button className="whitespace-nowrap px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded-full text-xs text-gray-300 transition-colors">
+                            💰 Send Pricing
+                        </button>
+                        <button className="whitespace-nowrap px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded-full text-xs text-gray-300 transition-colors">
+                            👋 Introduction
+                        </button>
+                        <button className="whitespace-nowrap px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded-full text-xs text-gray-300 transition-colors">
+                            ❓ Ask for Details
+                        </button>
+                     </div>
+
                      <div className="flex space-x-2">
                          <input 
                             type="text" 
-                            placeholder="Type a reply..." 
-                            className="flex-1 bg-gray-900 border border-gray-700 rounded p-2 text-white focus:outline-none focus:border-blue-500"
+                            placeholder="Type a reply or use quick actions..." 
+                            className="flex-1 bg-gray-900 border border-gray-700 rounded-lg p-3 text-white text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
                          />
-                         <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-500">Send</button>
+                         <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-500 transition-colors font-medium text-sm">
+                            Send
+                         </button>
                      </div>
                  </div>
              </div>
          ) : (
-             <div className="flex-1 flex items-center justify-center text-gray-500 flex-col">
-                 <MessageSquare size={48} className="mb-4 opacity-50" />
-                 <p>Select a conversation to start messaging</p>
+             <div className="flex-1 flex items-center justify-center text-gray-500 flex-col bg-gray-900/50">
+                 <div className="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center mb-4">
+                    <MessageSquare size={32} className="opacity-50" />
+                 </div>
+                 <p className="font-medium">Select a conversation to start messaging</p>
+                 <p className="text-sm opacity-60 mt-1">Choose a thread from the list on the left</p>
              </div>
          )}
       </div>

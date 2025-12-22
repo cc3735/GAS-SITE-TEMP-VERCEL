@@ -260,7 +260,8 @@ npm run dev  # Starts on port 3003
 
 ### Project Management
 - Multi-workspace support
-- Task boards (Kanban)
+- Task boards (Kanban) with Drag-and-Drop
+- Task History & Audit Logs
 - Time tracking
 
 ### Unified Messaging
@@ -386,6 +387,7 @@ This project is proprietary software. All rights reserved.
 ## 📞 Support
 
 - **Documentation**: `/docs`
+- **Project Management Guide**: [`docs/PROJECT_MANAGEMENT.md`](docs/PROJECT_MANAGEMENT.md)
 - **Email**: support@gasweb.info
 - **Issues**: GitHub Issues
 

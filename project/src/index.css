@@ -1,3 +1,68 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  :root {
+    /* Light Theme (Default) */
+    --bg-page: 249 250 251; /* gray-50 */
+    --bg-surface: 255 255 255; /* white */
+    --bg-surface-hover: 243 244 246; /* gray-100 */
+    
+    --text-primary: 17 24 39; /* gray-900 */
+    --text-secondary: 55 65 81; /* gray-700 */
+    --text-subtle: 107 114 128; /* gray-500 */
+    
+    --border-default: 229 231 235; /* gray-200 */
+    --border-strong: 209 213 219; /* gray-300 */
+    
+    --accent-primary: 37 99 235; /* blue-600 */
+    --accent-hover: 29 78 216; /* blue-700 */
+    --text-on-accent: 255 255 255;
+    
+    --bg-accent-subtle: 239 246 255; /* blue-50 */
+    --text-accent: 37 99 235; /* blue-600 */
+  }
+
+  .theme-dark {
+    /* Dark Theme */
+    --bg-page: 17 24 39; /* gray-900 */
+    --bg-surface: 31 41 55; /* gray-800 */
+    --bg-surface-hover: 55 65 81; /* gray-700 */
+    
+    --text-primary: 249 250 251; /* gray-50 */
+    --text-secondary: 209 213 219; /* gray-300 */
+    --text-subtle: 156 163 175; /* gray-400 */
+    
+    --border-default: 55 65 81; /* gray-700 */
+    --border-strong: 75 85 99; /* gray-600 */
+    
+    --accent-primary: 59 130 246; /* blue-500 */
+    --accent-hover: 37 99 235; /* blue-600 */
+    --text-on-accent: 255 255 255;
+    
+    --bg-accent-subtle: 30 58 138; /* blue-900 */
+    --text-accent: 96 165 250; /* blue-400 */
+  }
+
+  .theme-neon {
+    /* Mission Control / Neon Theme */
+    --bg-page: 10 10 15; /* Very dark blue/black */
+    --bg-surface: 20 20 30; /* Dark blue/gray */
+    --bg-surface-hover: 30 30 45; 
+    
+    --text-primary: 240 240 255; /* White-ish */
+    --text-secondary: 160 170 200; /* Blue-gray */
+    --text-subtle: 100 110 140; 
+    
+    --border-default: 40 45 70; /* Dark blue border */
+    --border-strong: 60 70 110; 
+    
+    --accent-primary: 124 58 237; /* Violet-600 (Neon Purple) */
+    --accent-hover: 109 40 217; 
+    --text-on-accent: 255 255 255;
+    
+    --bg-accent-subtle: 46 16 101; /* Deep Purple */
+    --text-accent: 167 139 250; /* Violet-400 */
+  }
+}

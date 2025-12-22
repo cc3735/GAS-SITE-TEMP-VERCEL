@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, FolderKanban, Users, Mail, Bot, Settings, Plus, Home, Activity, X } from 'lucide-react';
+import { Search, FolderKanban, Users, Mail, Bot, Settings, Plus, Home, Activity, X, Terminal } from 'lucide-react';
 
 interface CommandItem {
   id: string;

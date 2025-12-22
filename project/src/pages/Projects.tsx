@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useProjects } from '../hooks/useProjects';
 import { useTasks } from '../hooks/useTasks';
-import { FolderKanban, Plus, Calendar, List, LayoutGrid, X, Loader2, MoreVertical, Check, Clock, AlertCircle, Trash2, DollarSign, User, ChevronLeft, ChevronRight } from 'lucide-react';
+import { FolderKanban, Plus, Calendar, List, LayoutGrid, X, Loader2, MoreVertical, Check, Clock, AlertCircle, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import ProjectFormModal from '../components/ProjectFormModal';
+import KanbanBoard from '../components/KanbanBoard';
 
 export default function Projects() {
   const { projects, loading: projectsLoading, createProject, deleteProject } = useProjects();
@@ -12,6 +13,7 @@ export default function Projects() {
   const [showNewTask, setShowNewTask] = useState(false);
   const [newTaskName, setNewTaskName] = useState('');
   const [creating, setCreating] = useState(false);
+  const [newTaskStatus, setNewTaskStatus] = useState('todo'); // Add state for new task status
 
   // Calendar state
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -24,7 +26,7 @@ export default function Projects() {
 
     setCreating(true);
     try {
-      await createTask({ name: newTaskName });
+      await createTask({ name: newTaskName, status: newTaskStatus }); // Pass status
       setNewTaskName('');
       setShowNewTask(false);
     } catch (error) {
@@ -53,41 +55,46 @@ export default function Projects() {
     }
   };
 
+  const openNewTaskModal = (status: string = 'todo') => {
+      setNewTaskStatus(status);
+      setShowNewTask(true);
+  };
+
   const selectedProjectData = projects.find(p => p.id === selectedProject);
 
   const statusColumns = [
-    { id: 'todo', name: 'To Do', icon: Clock, color: 'bg-gray-100 text-gray-700' },
-    { id: 'in_progress', name: 'In Progress', icon: AlertCircle, color: 'bg-blue-100 text-blue-700' },
-    { id: 'review', name: 'Review', icon: MoreVertical, color: 'bg-yellow-100 text-yellow-700' },
-    { id: 'done', name: 'Done', icon: Check, color: 'bg-green-100 text-green-700' },
+    { id: 'todo', name: 'To Do', icon: Clock, color: 'bg-gray-500/10 text-gray-500' },
+    { id: 'in_progress', name: 'In Progress', icon: AlertCircle, color: 'bg-blue-500/10 text-blue-500' },
+    { id: 'review', name: 'Review', icon: MoreVertical, color: 'bg-yellow-500/10 text-yellow-500' },
+    { id: 'done', name: 'Done', icon: Check, color: 'bg-green-500/10 text-green-500' },
   ];
 
   const priorityColors = {
-    low: 'bg-gray-100 text-gray-700',
-    medium: 'bg-blue-100 text-blue-700',
-    high: 'bg-orange-100 text-orange-700',
-    urgent: 'bg-red-100 text-red-700',
+    low: 'bg-gray-500/10 text-gray-500',
+    medium: 'bg-blue-500/10 text-blue-500',
+    high: 'bg-orange-500/10 text-orange-500',
+    urgent: 'bg-red-500/10 text-red-500',
   };
 
   if (projectsLoading) {
     return (
       <div className="p-6 lg:p-8 flex items-center justify-center min-h-[400px]">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+        <Loader2 className="w-8 h-8 animate-spin text-accent" />
       </div>
     );
   }
 
   return (
-    <div className="h-screen flex flex-col">
-      <div className="p-6 lg:p-8 border-b border-gray-200 bg-white">
+    <div className="h-screen flex flex-col bg-page">
+      <div className="p-6 lg:p-8 border-b border-border bg-surface">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            <FolderKanban className="w-8 h-8 text-blue-600" />
-            <h1 className="text-3xl font-bold text-gray-900">Projects</h1>
+            <FolderKanban className="w-8 h-8 text-accent" />
+            <h1 className="text-3xl font-bold text-primary">Projects</h1>
           </div>
           <button
             onClick={() => setShowNewProject(true)}
-            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition"
+            className="flex items-center gap-2 bg-accent hover:bg-accent-hover text-accent-foreground px-4 py-2 rounded-lg transition"
           >
             <Plus className="w-5 h-5" />
             New Project
@@ -102,8 +109,8 @@ export default function Projects() {
                   onClick={() => setSelectedProject(project.id)}
                   className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition ${
                     selectedProject === project.id
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      ? 'bg-accent text-accent-foreground'
+                      : 'bg-surface hover:bg-surface-hover text-secondary border border-border'
                   }`}
                 >
                   {project.name}
@@ -113,7 +120,7 @@ export default function Projects() {
                     e.stopPropagation();
                     handleDeleteProject(project.id);
                   }}
-                  className="p-1 text-gray-400 hover:text-red-600 transition"
+                  className="p-1 text-subtle hover:text-red-600 transition"
                   title="Delete project"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -123,11 +130,11 @@ export default function Projects() {
           </div>
 
           {selectedProject && (
-            <div className="flex items-center gap-2 border-l border-gray-300 pl-4">
+            <div className="flex items-center gap-2 border-l border-border pl-4">
               <button
                 onClick={() => setView('kanban')}
                 className={`p-2 rounded-lg transition ${
-                  view === 'kanban' ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:bg-gray-100'
+                  view === 'kanban' ? 'bg-accent-subtle text-accent' : 'text-secondary hover:bg-surface-hover'
                 }`}
               >
                 <LayoutGrid className="w-5 h-5" />
@@ -135,7 +142,7 @@ export default function Projects() {
               <button
                 onClick={() => setView('list')}
                 className={`p-2 rounded-lg transition ${
-                  view === 'list' ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:bg-gray-100'
+                  view === 'list' ? 'bg-accent-subtle text-accent' : 'text-secondary hover:bg-surface-hover'
                 }`}
               >
                 <List className="w-5 h-5" />
@@ -143,7 +150,7 @@ export default function Projects() {
               <button
                 onClick={() => setView('calendar')}
                 className={`p-2 rounded-lg transition ${
-                  view === 'calendar' ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:bg-gray-100'
+                  view === 'calendar' ? 'bg-accent-subtle text-accent' : 'text-secondary hover:bg-surface-hover'
                 }`}
               >
                 <Calendar className="w-5 h-5" />
@@ -153,31 +160,31 @@ export default function Projects() {
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col bg-gray-50">
+      <div className="flex-1 flex flex-col bg-page">
         {/* Project Header - Always visible on selected project */}
         {selectedProject && selectedProjectData && (
-          <div className="p-6 bg-white border-b border-gray-200">
+          <div className="p-6 bg-surface border-b border-border">
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-4">
-                  <h2 className="text-2xl font-bold text-gray-900">{selectedProjectData.name}</h2>
+                  <h2 className="text-2xl font-bold text-primary">{selectedProjectData.name}</h2>
                   <span className={`px-3 py-1 text-xs font-medium rounded-full ${
-                    selectedProjectData.priority === 'urgent' ? 'bg-red-100 text-red-800' :
-                    selectedProjectData.priority === 'high' ? 'bg-orange-100 text-orange-800' :
-                    selectedProjectData.priority === 'medium' ? 'bg-blue-100 text-blue-800' :
-                    'bg-gray-100 text-gray-800'
+                    selectedProjectData.priority === 'urgent' ? 'bg-red-500/10 text-red-600' :
+                    selectedProjectData.priority === 'high' ? 'bg-orange-500/10 text-orange-600' :
+                    selectedProjectData.priority === 'medium' ? 'bg-blue-500/10 text-blue-600' :
+                    'bg-gray-500/10 text-gray-600'
                   }`}>
                     {selectedProjectData.priority}
                   </span>
-                  <span className="px-3 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-800 capitalize">
+                  <span className="px-3 py-1 text-xs font-medium rounded-full bg-surface-hover text-secondary border border-border capitalize">
                     {selectedProjectData.status}
                   </span>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 text-sm">
                   <div>
-                    <span className="text-gray-500">Timeline:</span>
-                    <p className="text-gray-900">
+                    <span className="text-subtle">Timeline:</span>
+                    <p className="text-primary">
                       {selectedProjectData.estimated_completion ?
                         selectedProjectData.estimated_completion.replace('-', ' to ') :
                         'Not set'
@@ -187,8 +194,8 @@ export default function Projects() {
 
                   {selectedProjectData.cost_to_operate && (
                     <div>
-                      <span className="text-gray-500">Cost to Operate:</span>
-                      <p className="text-gray-900 font-semibold text-green-600">
+                      <span className="text-subtle">Cost to Operate:</span>
+                      <p className="text-primary font-semibold text-green-600">
                         ${selectedProjectData.cost_to_operate.toLocaleString()}
                       </p>
                     </div>
@@ -196,8 +203,8 @@ export default function Projects() {
 
                   {selectedProjectData.gas_fee && (
                     <div>
-                      <span className="text-gray-500">GAS Fee:</span>
-                      <p className="text-gray-900 font-semibold text-blue-600">
+                      <span className="text-subtle">GAS Fee:</span>
+                      <p className="text-primary font-semibold text-blue-600">
                         ${selectedProjectData.gas_fee.toLocaleString()}
                       </p>
                     </div>
@@ -205,21 +212,21 @@ export default function Projects() {
 
                   {selectedProjectData.budget && (
                     <div>
-                      <span className="text-gray-500">Budget:</span>
-                      <p className="text-gray-900 font-semibold text-purple-600">
+                      <span className="text-subtle">Budget:</span>
+                      <p className="text-primary font-semibold text-purple-600">
                         ${selectedProjectData.budget.toLocaleString()}
                       </p>
                     </div>
                   )}
 
                   <div>
-                    <span className="text-gray-500">Tasks:</span>
-                    <p className="text-gray-900 font-semibold">{tasks.length}</p>
+                    <span className="text-subtle">Tasks:</span>
+                    <p className="text-primary font-semibold">{tasks.length}</p>
                   </div>
 
                   <div>
-                    <span className="text-gray-500">Created:</span>
-                    <p className="text-gray-900">
+                    <span className="text-subtle">Created:</span>
+                    <p className="text-primary">
                       {new Date(selectedProjectData.created_at).toLocaleDateString()}
                     </p>
                   </div>
@@ -227,15 +234,15 @@ export default function Projects() {
 
                 {selectedProjectData.description && (
                   <div className="mt-4">
-                    <span className="text-gray-500 text-sm">Description:</span>
-                    <p className="text-gray-900 mt-1">{selectedProjectData.description}</p>
+                    <span className="text-subtle text-sm">Description:</span>
+                    <p className="text-primary mt-1">{selectedProjectData.description}</p>
                   </div>
                 )}
               </div>
 
               <button
                 onClick={() => handleDeleteProject(selectedProjectData.id)}
-                className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition ml-4"
+                className="p-2 text-red-400 hover:text-red-600 hover:bg-red-500/10 rounded-lg transition ml-4"
                 title="Delete project"
               >
                 <Trash2 className="w-5 h-5" />
@@ -249,12 +256,12 @@ export default function Projects() {
           {!selectedProject ? (
             <div className="flex items-center justify-center h-full">
               <div className="text-center">
-                <FolderKanban className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">No project selected</h3>
-                <p className="text-gray-600 mb-4">Create a project or select one to get started</p>
+                <FolderKanban className="w-16 h-16 text-subtle mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-primary mb-2">No project selected</h3>
+                <p className="text-secondary mb-4">Create a project or select one to get started</p>
                 <button
                   onClick={() => setShowNewProject(true)}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition"
+                  className="bg-accent hover:bg-accent-hover text-accent-foreground px-6 py-3 rounded-lg transition"
                 >
                   Create Your First Project
                 </button>
@@ -263,94 +270,46 @@ export default function Projects() {
           ) : (
             <>
               {view === 'kanban' && (
-                <div className="flex gap-4 h-full overflow-x-auto pb-4">
-                  {statusColumns.map((column) => {
-                    const Icon = column.icon;
-                    const columnTasks = tasks.filter((t) => t.status === column.id);
-
-                    return (
-                      <div key={column.id} className="flex-shrink-0 w-80 flex flex-col">
-                        <div className="bg-white rounded-lg border border-gray-200 p-4 mb-3">
-                          <div className="flex items-center justify-between mb-3">
-                            <div className="flex items-center gap-2">
-                              <div className={`p-1.5 rounded ${column.color}`}>
-                                <Icon className="w-4 h-4" />
-                              </div>
-                              <h3 className="font-semibold text-gray-900">{column.name}</h3>
-                              <span className="text-sm text-gray-500">({columnTasks.length})</span>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="flex-1 space-y-3 overflow-y-auto">
-                          {columnTasks.map((task) => (
-                            <div
-                              key={task.id}
-                              className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition cursor-pointer"
-                            >
-                              <h4 className="font-medium text-gray-900 mb-2">{task.name}</h4>
-                              {task.description && (
-                                <p className="text-sm text-gray-600 mb-3 line-clamp-2">{task.description}</p>
-                              )}
-                              <div className="flex items-center justify-between">
-                                <span className={`text-xs px-2 py-1 rounded ${priorityColors[task.priority as keyof typeof priorityColors]}`}>
-                                  {task.priority}
-                                </span>
-                                {task.due_date && (
-                                  <span className="text-xs text-gray-500">
-                                    {new Date(task.due_date).toLocaleDateString()}
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          ))}
-
-                          {column.id === 'todo' && (
-                            <button
-                              onClick={() => setShowNewTask(true)}
-                              className="w-full p-4 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-blue-600 hover:text-blue-600 transition"
-                            >
-                              <Plus className="w-5 h-5 mx-auto" />
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
+                <KanbanBoard 
+                  tasks={tasks}
+                  loading={tasksLoading}
+                  onStatusChange={handleStatusChange}
+                  onNewTask={openNewTaskModal}
+                  priorityColors={priorityColors}
+                />
               )}
 
               {view === 'list' && (
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-                  <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-                    <h3 className="font-semibold text-gray-900">All Tasks</h3>
+                <div className="bg-surface rounded-xl shadow-sm border border-border">
+                  <div className="p-4 border-b border-border flex items-center justify-between">
+                    <h3 className="font-semibold text-primary">All Tasks</h3>
                     <button
-                      onClick={() => setShowNewTask(true)}
-                      className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg transition text-sm"
+                      onClick={() => openNewTaskModal('todo')}
+                      className="flex items-center gap-2 bg-accent hover:bg-accent-hover text-accent-foreground px-3 py-1.5 rounded-lg transition text-sm"
                     >
                       <Plus className="w-4 h-4" />
                       Add Task
                     </button>
                   </div>
-                  <div className="divide-y divide-gray-200">
+                  <div className="divide-y divide-border">
                     {tasksLoading ? (
                       <div className="p-8 text-center">
-                        <Loader2 className="w-6 h-6 animate-spin text-blue-600 mx-auto" />
+                        <Loader2 className="w-6 h-6 animate-spin text-accent mx-auto" />
                       </div>
                     ) : tasks.length === 0 ? (
-                      <div className="p-8 text-center text-gray-600">No tasks yet</div>
+                      <div className="p-8 text-center text-secondary">No tasks yet</div>
                     ) : (
                       tasks.map((task) => (
-                        <div key={task.id} className="p-4 hover:bg-gray-50 transition flex items-center gap-4">
-                          <input type="checkbox" className="w-5 h-5 text-blue-600 rounded" checked={task.status === 'done'} onChange={() => handleStatusChange(task.id, task.status === 'done' ? 'todo' : 'done')} />
+                        <div key={task.id} className="p-4 hover:bg-surface-hover transition flex items-center gap-4">
+                          <input type="checkbox" className="w-5 h-5 text-accent rounded bg-surface border-border" checked={task.status === 'done'} onChange={() => handleStatusChange(task.id, task.status === 'done' ? 'todo' : 'done')} />
                           <div className="flex-1 min-w-0">
-                            <h4 className="font-medium text-gray-900">{task.name}</h4>
-                            {task.description && <p className="text-sm text-gray-600 mt-1">{task.description}</p>}
+                            <h4 className="font-medium text-primary">{task.name}</h4>
+                            {task.description && <p className="text-sm text-secondary mt-1">{task.description}</p>}
                           </div>
                           <span className={`text-xs px-2 py-1 rounded whitespace-nowrap ${priorityColors[task.priority as keyof typeof priorityColors]}`}>
                             {task.priority}
                           </span>
-                          <span className="text-sm text-gray-500 whitespace-nowrap">{task.status.replace('_', ' ')}</span>
+                          <span className="text-sm text-subtle whitespace-nowrap">{task.status.replace('_', ' ')}</span>
                         </div>
                       ))
                     )}
@@ -359,24 +318,24 @@ export default function Projects() {
               )}
 
               {view === 'calendar' && (
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+                <div className="bg-surface rounded-xl shadow-sm border border-border">
                   {/* Calendar Header */}
-                  <div className="p-6 border-b border-gray-200">
+                  <div className="p-6 border-b border-border">
                     <div className="flex items-center justify-between">
                       <button
                         onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1))}
-                        className="p-2 hover:bg-gray-100 rounded-lg transition"
+                        className="p-2 hover:bg-surface-hover rounded-lg transition"
                       >
-                        <ChevronLeft className="w-5 h-5 text-gray-600" />
+                        <ChevronLeft className="w-5 h-5 text-secondary" />
                       </button>
-                      <h3 className="text-lg font-semibold text-gray-900">
+                      <h3 className="text-lg font-semibold text-primary">
                         {currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
                       </h3>
                       <button
                         onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1))}
-                        className="p-2 hover:bg-gray-100 rounded-lg transition"
+                        className="p-2 hover:bg-surface-hover rounded-lg transition"
                       >
-                        <ChevronRight className="w-5 h-5 text-gray-600" />
+                        <ChevronRight className="w-5 h-5 text-secondary" />
                       </button>
                     </div>
                   </div>
@@ -386,7 +345,7 @@ export default function Projects() {
                     {/* Day Labels */}
                     <div className="grid grid-cols-7 gap-2 mb-4">
                       {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
-                        <div key={day} className="text-center text-sm font-medium text-gray-500 py-2">
+                        <div key={day} className="text-center text-sm font-medium text-subtle py-2">
                           {day}
                         </div>
                       ))}
@@ -406,7 +365,7 @@ export default function Projects() {
                         // Previous month days
                         for (let i = firstDay - 1; i >= 0; i--) {
                           days.push(
-                            <div key={`prev-${i}`} className="text-center text-sm text-gray-400 p-3">
+                            <div key={`prev-${i}`} className="text-center text-sm text-subtle p-3 opacity-50">
                               {prevMonthLastDate - i}
                             </div>
                           );
@@ -430,11 +389,11 @@ export default function Projects() {
                               key={`current-${i}`}
                               className={`text-center text-sm p-1 min-h-[80px] border rounded-lg ${
                                 isToday
-                                  ? 'bg-blue-50 border-blue-300'
-                                  : 'border-gray-200 hover:border-blue-300'
+                                  ? 'bg-accent-subtle border-accent'
+                                  : 'border-border hover:border-accent'
                               } transition cursor-pointer`}
                             >
-                              <div className="font-medium text-gray-900 mb-1">{i}</div>
+                              <div className="font-medium text-primary mb-1">{i}</div>
                               <div className="space-y-1">
                                 {dayTasks.slice(0, 3).map(task => (
                                   <div
@@ -451,7 +410,7 @@ export default function Projects() {
                                   </div>
                                 ))}
                                 {dayTasks.length > 3 && (
-                                  <div className="text-xs text-gray-500">
+                                  <div className="text-xs text-subtle">
                                     +{dayTasks.length - 3} more
                                   </div>
                                 )}
@@ -464,7 +423,7 @@ export default function Projects() {
                         const remainingCells = 42 - days.length;
                         for (let i = 1; i <= remainingCells; i++) {
                           days.push(
-                            <div key={`next-${i}`} className="text-center text-sm text-gray-400 p-3">
+                            <div key={`next-${i}`} className="text-center text-sm text-subtle p-3 opacity-50">
                               {i}
                             </div>
                           );
@@ -476,9 +435,9 @@ export default function Projects() {
                   </div>
 
                   {/* Task Legend */}
-                  <div className="p-6 border-t border-gray-200 bg-gray-50 rounded-b-xl">
+                  <div className="p-6 border-t border-border bg-page rounded-b-xl">
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-6 text-sm">
+                      <div className="flex items-center gap-6 text-sm text-secondary">
                         <div className="flex items-center gap-2">
                           <div className="w-3 h-3 bg-red-500 rounded"></div>
                           <span>Urgent</span>
@@ -496,7 +455,7 @@ export default function Projects() {
                           <span>Low</span>
                         </div>
                       </div>
-                      <div className="text-gray-600">
+                      <div className="text-secondary">
                         <Calendar className="w-4 h-4 inline mr-2" />
                         {tasks.length} total tasks
                       </div>
@@ -527,11 +486,11 @@ export default function Projects() {
       />
 
       {showNewTask && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-surface rounded-xl shadow-xl max-w-md w-full p-6 border border-border">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-gray-900">Create New Task</h2>
-              <button onClick={() => setShowNewTask(false)} className="text-gray-400 hover:text-gray-600">
+              <h2 className="text-xl font-bold text-primary">Create New Task</h2>
+              <button onClick={() => setShowNewTask(false)} className="text-subtle hover:text-primary">
                 <X className="w-6 h-6" />
               </button>
             </div>
@@ -541,21 +500,21 @@ export default function Projects() {
                 value={newTaskName}
                 onChange={(e) => setNewTaskName(e.target.value)}
                 placeholder="Task name"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none mb-4"
+                className="w-full px-4 py-3 border border-border bg-surface text-primary rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent outline-none mb-4"
                 autoFocus
               />
               <div className="flex gap-3">
                 <button
                   type="button"
                   onClick={() => setShowNewTask(false)}
-                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
+                  className="flex-1 px-4 py-2 border border-border text-secondary rounded-lg hover:bg-surface-hover transition"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={creating || !newTaskName.trim()}
-                  className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="flex-1 px-4 py-2 bg-accent hover:bg-accent-hover text-accent-foreground rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {creating ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Create'}
                 </button>

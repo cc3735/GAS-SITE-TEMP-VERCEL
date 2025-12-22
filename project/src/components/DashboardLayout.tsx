@@ -20,13 +20,21 @@ import {
   Boxes,
   Shield,
   LayoutDashboard,
+  Magnet,
+  Zap,
+  Sun,
+  Moon,
+  Monitor,
 } from 'lucide-react';
 import ChatBot from './ChatBot';
 import CommandPalette from './CommandPalette';
+import { useTheme } from '../contexts/ThemeContext';
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: Home },
   { name: 'Mission Control', href: '/mission-control', icon: LayoutDashboard },
+  { name: 'Intake Engine', href: '/intake', icon: Magnet },
+  { name: 'Nudge Campaigns', href: '/nudges', icon: Zap },
   { name: 'Projects', href: '/projects', icon: FolderKanban },
   { name: 'CRM', href: '/crm', icon: Users },
   { name: 'Marketing & Social', href: '/marketing-social', icon: Mail },
@@ -44,6 +52,7 @@ export default function DashboardLayout() {
   const location = useLocation();
   const { user, signOut } = useAuth();
   const { organizations, currentOrganization, switchOrganization } = useOrganization();
+  const { theme, setTheme } = useTheme();
 
   const handleSignOut = async () => {
     await signOut();
@@ -131,6 +140,30 @@ export default function DashboardLayout() {
           </nav>
 
           <div className="p-4 border-t border-gray-200">
+             <div className="flex bg-gray-100 p-1 rounded-lg mb-4">
+               <button
+                 onClick={() => setTheme('light')}
+                 className={`flex-1 p-1 rounded-md flex justify-center ${theme === 'light' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
+                 title="Light Mode"
+               >
+                 <Sun className="w-4 h-4" />
+               </button>
+               <button
+                 onClick={() => setTheme('dark')}
+                 className={`flex-1 p-1 rounded-md flex justify-center ${theme === 'dark' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
+                 title="Dark Mode"
+               >
+                 <Moon className="w-4 h-4" />
+               </button>
+               <button
+                 onClick={() => setTheme('neon')}
+                 className={`flex-1 p-1 rounded-md flex justify-center ${theme === 'neon' ? 'bg-white shadow-sm text-purple-600' : 'text-gray-500 hover:text-gray-700'}`}
+                 title="Neon Mode"
+               >
+                 <Zap className="w-4 h-4" />
+               </button>
+             </div>
+
             <div className="flex items-center gap-3 mb-3">
               <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-blue-700 rounded-full flex items-center justify-center text-white text-sm font-semibold">
                 {user?.email?.charAt(0).toUpperCase()}
