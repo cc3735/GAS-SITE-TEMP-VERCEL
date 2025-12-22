@@ -98,26 +98,26 @@ const MissionControl: React.FC = () => {
   const displayOrgId = currentOrganization?.id || 'mock-org-id';
 
   return (
-    <div className="min-h-screen bg-[#1a1a1a] text-gray-100">
+    <div className="min-h-screen bg-page text-primary transition-colors duration-200">
       {/* Header */}
-      <header className="bg-[#1a1a1a] border-b border-gray-800 px-6 py-4 flex items-center justify-between">
+      <header className="bg-surface border-b border-border px-6 py-4 flex items-center justify-between sticky top-0 z-10">
         <div className="flex items-center space-x-2">
-          <Shield className="text-blue-500" size={24} />
-          <h1 className="text-xl font-bold tracking-tight">Neuro-Ops BOS <span className="text-gray-500 font-normal">| Mission Control</span></h1>
+          <Shield className="text-accent" size={24} />
+          <h1 className="text-xl font-bold tracking-tight text-primary">Neuro-Ops BOS <span className="text-subtle font-normal">| Mission Control</span></h1>
         </div>
         <div className="flex items-center space-x-4">
             <div className="flex space-x-1 text-xs">
-                <span className="px-2 py-1 bg-green-900/30 text-green-400 rounded border border-green-900">System Online</span>
-                <span className="px-2 py-1 bg-blue-900/30 text-blue-400 rounded border border-blue-900">{kpis.activeAgents} Agents Active</span>
+                <span className="px-2 py-1 bg-green-500/10 text-green-600 rounded border border-green-500/20">System Online</span>
+                <span className="px-2 py-1 bg-accent-subtle text-accent-text rounded border border-accent/20">{kpis.activeAgents} Agents Active</span>
             </div>
-            <div className="w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center">
+            <div className="w-8 h-8 bg-surface-hover rounded-full flex items-center justify-center text-secondary border border-border">
               <User size={16} />
             </div>
         </div>
       </header>
 
       {/* Tab Navigation */}
-      <div className="px-6 border-b border-gray-800 bg-[#1f1f1f]">
+      <div className="px-6 border-b border-border bg-surface/50 backdrop-blur-sm sticky top-[65px] z-10">
         <div className="flex space-x-1">
           {tabs.map(tab => (
             <button
@@ -125,14 +125,14 @@ const MissionControl: React.FC = () => {
               onClick={() => setActiveTab(tab.id as any)}
               className={`flex items-center space-x-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
                 activeTab === tab.id 
-                  ? 'border-blue-500 text-blue-400' 
-                  : 'border-transparent text-gray-400 hover:text-gray-200 hover:border-gray-700'
+                  ? 'border-accent text-accent' 
+                  : 'border-transparent text-secondary hover:text-primary hover:border-border-strong'
               }`}
             >
               {tab.icon}
               <span>{tab.label}</span>
               {tab.count ? (
-                <span className="ml-2 bg-red-500/20 text-red-400 text-xs px-1.5 py-0.5 rounded-full">{tab.count}</span>
+                <span className="ml-2 bg-red-500/10 text-red-500 text-xs px-1.5 py-0.5 rounded-full">{tab.count}</span>
               ) : null}
             </button>
           ))}
@@ -145,34 +145,34 @@ const MissionControl: React.FC = () => {
           <div className="space-y-6">
              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                  {/* KPI Cards with Real Data */}
-                 <div className="bg-gray-800 p-4 rounded-lg border border-gray-700">
-                     <p className="text-gray-500 text-xs uppercase tracking-wide">Total Sales (Won)</p>
-                     <p className="text-2xl font-bold text-white">
+                 <div className="bg-surface p-4 rounded-lg border border-border shadow-sm">
+                     <p className="text-subtle text-xs uppercase tracking-wide">Total Sales (Won)</p>
+                     <p className="text-2xl font-bold text-primary">
                         {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(kpis.totalSales)}
                      </p>
-                     <p className="text-xs text-green-400 mt-1 flex items-center">
+                     <p className="text-xs text-green-500 mt-1 flex items-center">
                         <ArrowUpRight size={12} className="mr-1"/> Lifetime
                      </p>
                  </div>
-                 <div className="bg-gray-800 p-4 rounded-lg border border-gray-700">
-                     <p className="text-gray-500 text-xs uppercase tracking-wide">Active Conversations</p>
-                     <p className="text-2xl font-bold text-white">{kpis.activeThreads}</p>
-                     <p className="text-xs text-blue-400 mt-1">{kpis.urgentThreads} require attention</p>
+                 <div className="bg-surface p-4 rounded-lg border border-border shadow-sm">
+                     <p className="text-subtle text-xs uppercase tracking-wide">Active Conversations</p>
+                     <p className="text-2xl font-bold text-primary">{kpis.activeThreads}</p>
+                     <p className="text-xs text-accent mt-1">{kpis.urgentThreads} require attention</p>
                  </div>
-                 <div className="bg-gray-800 p-4 rounded-lg border border-gray-700">
-                     <p className="text-gray-500 text-xs uppercase tracking-wide">Avg Response Time</p>
-                     <p className="text-2xl font-bold text-white">--</p>
-                     <p className="text-xs text-gray-500 mt-1">Calculating...</p>
+                 <div className="bg-surface p-4 rounded-lg border border-border shadow-sm">
+                     <p className="text-subtle text-xs uppercase tracking-wide">Avg Response Time</p>
+                     <p className="text-2xl font-bold text-primary">--</p>
+                     <p className="text-xs text-subtle mt-1">Calculating...</p>
                  </div>
-                 <div className="bg-gray-800 p-4 rounded-lg border border-gray-700">
-                     <p className="text-gray-500 text-xs uppercase tracking-wide">Total Leads</p>
-                     <p className="text-2xl font-bold text-white">{kpis.totalContacts}</p>
-                     <p className="text-xs text-green-400 mt-1">+{kpis.newContactsToday} today</p>
+                 <div className="bg-surface p-4 rounded-lg border border-border shadow-sm">
+                     <p className="text-subtle text-xs uppercase tracking-wide">Total Leads</p>
+                     <p className="text-2xl font-bold text-primary">{kpis.totalContacts}</p>
+                     <p className="text-xs text-green-500 mt-1">+{kpis.newContactsToday} today</p>
                  </div>
              </div>
 
              <section>
-                 <h2 className="text-lg font-semibold text-white mb-4">Agent Status & Live Activity</h2>
+                 <h2 className="text-lg font-semibold text-primary mb-4">Agent Status & Live Activity</h2>
                  <AgentVisibility organizationId={displayOrgId} />
              </section>
           </div>
@@ -186,29 +186,29 @@ const MissionControl: React.FC = () => {
 
         {activeTab === 'attention' && (
             <div className="space-y-4">
-                <h3 className="text-lg font-medium text-white mb-4">Items Requiring Attention</h3>
+                <h3 className="text-lg font-medium text-primary mb-4">Items Requiring Attention</h3>
                 
                 {attentionItems.length === 0 ? (
-                  <div className="bg-gray-800 rounded-lg border border-gray-700 p-12 text-center">
+                  <div className="bg-surface rounded-lg border border-border p-12 text-center shadow-sm">
                       <AlertTriangle size={48} className="mx-auto text-green-500 mb-4" />
-                      <h3 className="text-xl font-medium text-white">All Clear</h3>
-                      <p className="text-gray-400 mt-2">No urgent items in the queue. Good job!</p>
+                      <h3 className="text-xl font-medium text-primary">All Clear</h3>
+                      <p className="text-secondary mt-2">No urgent items in the queue. Good job!</p>
                   </div>
                 ) : (
                   <div className="grid gap-4">
                     {attentionItems.map((item, idx) => (
-                      <div key={idx} className="bg-gray-800 p-4 rounded-lg border border-gray-700 flex items-start justify-between hover:bg-gray-750 transition-colors">
+                      <div key={idx} className="bg-surface p-4 rounded-lg border border-border flex items-start justify-between hover:bg-surface-hover transition-colors shadow-sm">
                         <div className="flex items-start gap-4">
-                          <div className={`p-2 rounded-full ${item.priority === 'critical' ? 'bg-red-500/20 text-red-400' : 'bg-yellow-500/20 text-yellow-400'}`}>
+                          <div className={`p-2 rounded-full ${item.priority === 'critical' ? 'bg-red-500/10 text-red-500' : 'bg-yellow-500/10 text-yellow-500'}`}>
                             <AlertTriangle size={20} />
                           </div>
                           <div>
-                            <h4 className="font-medium text-white">{item.title}</h4>
-                            <p className="text-sm text-gray-400">{item.description}</p>
-                            <span className="text-xs text-gray-500 mt-1 block">{new Date(item.time).toLocaleString()}</span>
+                            <h4 className="font-medium text-primary">{item.title}</h4>
+                            <p className="text-sm text-secondary">{item.description}</p>
+                            <span className="text-xs text-subtle mt-1 block">{new Date(item.time).toLocaleString()}</span>
                           </div>
                         </div>
-                        <button className="px-3 py-1 bg-gray-700 hover:bg-gray-600 text-sm text-white rounded transition-colors">
+                        <button className="px-3 py-1 bg-surface-hover hover:bg-border text-sm text-primary rounded border border-border transition-colors">
                           View
                         </button>
                       </div>
@@ -225,10 +225,10 @@ const MissionControl: React.FC = () => {
         )}
 
         {activeTab === 'alerts' && (
-            <div className="bg-gray-800 rounded-lg border border-gray-700 p-12 text-center">
+            <div className="bg-surface rounded-lg border border-border p-12 text-center shadow-sm">
                 <Bell size={48} className="mx-auto text-red-500 mb-4" />
-                <h3 className="text-xl font-medium text-white">Alert Center</h3>
-                <p className="text-gray-400 mt-2">System health and notifications.</p>
+                <h3 className="text-xl font-medium text-primary">Alert Center</h3>
+                <p className="text-secondary mt-2">System health and notifications.</p>
             </div>
         )}
       </main>
