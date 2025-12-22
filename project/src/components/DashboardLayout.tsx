@@ -19,12 +19,14 @@ import {
   X,
   Boxes,
   Shield,
+  LayoutDashboard,
 } from 'lucide-react';
 import ChatBot from './ChatBot';
 import CommandPalette from './CommandPalette';
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: Home },
+  { name: 'Mission Control', href: '/mission-control', icon: LayoutDashboard },
   { name: 'Projects', href: '/projects', icon: FolderKanban },
   { name: 'CRM', href: '/crm', icon: Users },
   { name: 'Marketing & Social', href: '/marketing-social', icon: Mail },

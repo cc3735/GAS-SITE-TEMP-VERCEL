@@ -22,7 +22,10 @@ export function useAgents() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!currentOrganization) return;
+    if (!currentOrganization) {
+        setLoading(false);
+        return;
+    }
 
     fetchAgents();
 
