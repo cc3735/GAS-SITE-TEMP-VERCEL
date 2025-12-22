@@ -52,7 +52,10 @@ export function useMCPServers() {
   }, [currentOrganization]);
 
   const fetchServers = async () => {
-    if (!currentOrganization) return;
+    if (!currentOrganization) {
+        setLoading(false);
+        return;
+    }
 
     try {
       const { data, error } = await supabase

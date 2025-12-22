@@ -24,7 +24,10 @@ export function useCompanies() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!currentOrganization) return;
+    if (!currentOrganization) {
+        setLoading(false);
+        return;
+    }
 
     fetchCompanies();
 

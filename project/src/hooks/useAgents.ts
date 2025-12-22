@@ -51,7 +51,10 @@ export function useAgents() {
   }, [currentOrganization]);
 
   const fetchAgents = async () => {
-    if (!currentOrganization) return;
+    if (!currentOrganization) {
+        setLoading(false);
+        return;
+    }
 
     try {
       const { data, error } = await supabase

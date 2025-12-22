@@ -25,7 +25,10 @@ export function useSync() {
 
   // Fetch sync statuses for all app instances
   const fetchSyncStatuses = useCallback(async () => {
-    if (!currentOrganization) return;
+    if (!currentOrganization) {
+      setLoading(false);
+      return;
+    }
 
     try {
       const { data, error } = await supabase
@@ -61,7 +64,10 @@ export function useSync() {
 
   // Subscribe to real-time sync status updates
   useEffect(() => {
-    if (!currentOrganization) return;
+    if (!currentOrganization) {
+      setLoading(false);
+      return;
+    }
 
     fetchSyncStatuses();
 
