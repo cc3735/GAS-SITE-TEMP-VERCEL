@@ -47,11 +47,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signInWithGoogle = async () => {
+    // EXPERIMENT: If on Vercel, let's try NOT sending a redirectTo param.
+    // This forces Supabase to use the "Site URL" configured in the dashboard.
+    // If this still goes to localhost, then the "Site URL" in Supabase is definitely set to localhost.
+    
+    let options: any = {
+      queryParams: {
+        access_type: 'offline',
+        prompt: 'consent',
+      },
+    };
+
+    if (window.location.hostname.includes('localhost')) {
+       options.redirectTo = `${window.location.origin}/auth/callback`;
+       console.log('Using Localhost Redirect:', options.redirectTo);
+    } else {
+       console.log('Using Default Site URL from Supabase Settings (No redirect param sent)');
+    }
+    
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
+      options,
     });
     if (error) {
       console.error('Error signing in with Google:', error);
