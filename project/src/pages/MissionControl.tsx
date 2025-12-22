@@ -95,7 +95,7 @@ const MissionControl: React.FC = () => {
     { id: 'alerts', label: 'Alerts', icon: <Bell size={18} /> },
   ];
 
-  if (!currentOrganization) return <div className="p-6 text-white">Loading Organization...</div>;
+  const displayOrgId = currentOrganization?.id || 'mock-org-id';
 
   return (
     <div className="min-h-screen bg-[#1a1a1a] text-gray-100">
@@ -173,14 +173,14 @@ const MissionControl: React.FC = () => {
 
              <section>
                  <h2 className="text-lg font-semibold text-white mb-4">Agent Status & Live Activity</h2>
-                 <AgentVisibility organizationId={currentOrganization.id} />
+                 <AgentVisibility organizationId={displayOrgId} />
              </section>
           </div>
         )}
 
         {activeTab === 'inbox' && (
             <div className="h-full">
-                <UnifiedInbox organizationId={currentOrganization.id} />
+                <UnifiedInbox organizationId={displayOrgId} />
             </div>
         )}
 
