@@ -68,7 +68,10 @@ function OrganizationRoute({ children }: { children: React.ReactNode }) {
     return <Navigate to="/login" replace />;
   }
 
-
+  if (!currentOrganization) {
+    console.log('User has no organization, redirecting to setup');
+    return <Navigate to="/setup" replace />;
+  }
 
   console.log('User has organization, continuing');
   return <>{children}</>;

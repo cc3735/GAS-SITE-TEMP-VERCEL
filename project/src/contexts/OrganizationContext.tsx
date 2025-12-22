@@ -36,7 +36,48 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
   const [memberRole, setMemberRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // ... (createDefaultOrganization remains same)
+  const createDefaultOrganization = async () => {
+    if (!user) return;
+
+    const orgName = 'My Organization';
+    const orgSlug = `org-${Math.random().toString(36).substring(2, 9)}`;
+
+    const { data: org, error: orgError } = await supabase
+      .from('organizations')
+      .insert({
+        name: orgName,
+        slug: orgSlug,
+        subscription_tier: 'free',
+        subscription_status: 'active'
+      })
+      .select()
+      .single();
+
+    if (orgError) throw orgError;
+
+    const { error: memberError } = await supabase
+      .from('organization_members')
+      .insert({
+        organization_id: org.id,
+        user_id: user.id,
+        role: 'owner'
+      });
+
+    if (memberError) throw memberError;
+
+    const { error: workspaceError } = await supabase
+      .from('workspaces')
+      .insert({
+        organization_id: org.id,
+        name: 'General',
+        is_default: true,
+        created_by: user.id
+      });
+
+    if (workspaceError) throw workspaceError;
+
+    return org;
+  };
 
   const fetchOrganizations = async () => {
     if (authLoading) return; // Wait for auth to load
