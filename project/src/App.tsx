@@ -123,11 +123,7 @@ function App() {
                 <Route path="mcp" element={<MCP />} />
                 <Route path="analytics" element={<Analytics />} />
                 <Route path="business-apps" element={<BusinessApps />} />
-                <Route path="mission-control" element={
-                  <ErrorBoundary>
-                    <MissionControl />
-                  </ErrorBoundary>
-                } />
+                <Route path="mission-control" element={<MissionControl />} />
                 <Route path="intake" element={<IntakeDashboard />} />
                 <Route path="nudges" element={<NudgeCampaigns />} />
                 <Route path="crm/customer/:id" element={<CustomerProfile />} />

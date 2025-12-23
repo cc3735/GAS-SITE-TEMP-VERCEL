@@ -196,7 +196,7 @@ export default function DashboardLayout() {
 
       <div className="lg:pl-64">
         <div className="pt-16 lg:pt-0">
-          <ErrorBoundary>
+          <ErrorBoundary key={location.pathname}>
             <Outlet />
           </ErrorBoundary>
         </div>
