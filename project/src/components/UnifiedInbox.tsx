@@ -21,14 +21,27 @@ const UnifiedInbox: React.FC<UnifiedInboxProps> = ({
   const [sortBy, setSortBy] = useState<SortOption>(defaultSort);
   const [selectedThreadId, setSelectedThreadId] = useState<string | null>(null);
 
-  const selectedThread = threads.find(t => t.id === selectedThreadId);
+  const { threads, loading, error } = useUnifiedInbox(organizationId, filters, searchQuery, sortBy);
+
+  const selectedThread = threads?.find(t => t.id === selectedThreadId);
+
+  const getChannelIcon = (channel: string) => {
+    switch (channel) {
+      case 'sms': return <MessageSquare size={16} className="text-green-500" />;
+      case 'email': return <Mail size={16} className="text-accent" />;
+      case 'voice': return <Phone size={16} className="text-purple-500" />;
+      case 'instagram': return <Instagram size={16} className="text-pink-500" />;
+      case 'facebook': return <Facebook size={16} className="text-blue-600" />;
+      default: return <MessageSquare size={16} />;
+    }
+  };
 
   return (
-    <div className="flex h-[600px] bg-gray-900 border border-gray-700 rounded-lg overflow-hidden">
+    <div className="flex h-[600px] bg-page border border-border rounded-lg overflow-hidden shadow-sm">
       {/* Left Sidebar - Channels */}
-      <div className="w-16 md:w-64 bg-gray-800 border-r border-gray-700 flex flex-col">
-        <div className="p-4 border-b border-gray-700">
-           <h2 className="text-white font-semibold hidden md:block">Inbox</h2>
+      <div className="w-16 md:w-64 bg-surface border-r border-border flex flex-col">
+        <div className="p-4 border-b border-border">
+           <h2 className="text-primary font-semibold hidden md:block">Inbox</h2>
         </div>
         <nav className="flex-1 overflow-y-auto py-2">
             {[
@@ -38,11 +51,11 @@ const UnifiedInbox: React.FC<UnifiedInboxProps> = ({
                 { id: 'social', label: 'Social', icon: <Instagram size={18} />, count: 4 },
                 { id: 'voice', label: 'Voice', icon: <Phone size={18} />, count: 1 },
             ].map(item => (
-                <button key={item.id} className="w-full flex items-center p-3 text-gray-400 hover:bg-gray-700 hover:text-white transition-colors">
+                <button key={item.id} className="w-full flex items-center p-3 text-secondary hover:bg-surface-hover hover:text-primary transition-colors">
                     <span className="mx-auto md:mx-0">{item.icon}</span>
                     <span className="ml-3 hidden md:block text-sm font-medium flex-1 text-left">{item.label}</span>
                     {item.count > 0 && (
-                        <span className="hidden md:flex items-center justify-center w-5 h-5 text-xs font-bold bg-blue-600 rounded-full text-white">
+                        <span className="hidden md:flex items-center justify-center w-5 h-5 text-xs font-bold bg-accent text-white rounded-full">
                             {item.count}
                         </span>
                     )}
@@ -52,46 +65,46 @@ const UnifiedInbox: React.FC<UnifiedInboxProps> = ({
       </div>
 
       {/* Middle Column - Thread List */}
-      <div className="w-80 md:w-96 bg-gray-800/50 border-r border-gray-700 flex flex-col">
-        <div className="p-3 border-b border-gray-700">
+      <div className="w-80 md:w-96 bg-surface/50 border-r border-border flex flex-col">
+        <div className="p-3 border-b border-border">
             <div className="relative">
-                <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
+                <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-subtle" />
                 <input 
                     type="text" 
                     placeholder="Search messages..." 
-                    className="w-full bg-gray-900 text-sm text-gray-300 pl-9 pr-3 py-2 rounded border border-gray-700 focus:outline-none focus:border-blue-500"
+                    className="w-full bg-surface text-sm text-primary pl-9 pr-3 py-2 rounded border border-border focus:outline-none focus:border-accent"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                 />
             </div>
-            <div className="flex items-center justify-between mt-2 text-xs text-gray-400">
+            <div className="flex items-center justify-between mt-2 text-xs text-secondary">
                 <span>Sort by: {sortBy}</span>
-                <button className="flex items-center hover:text-white"><Filter size={12} className="mr-1" /> Filter</button>
+                <button className="flex items-center hover:text-primary"><Filter size={12} className="mr-1" /> Filter</button>
             </div>
         </div>
         
         <div className="flex-1 overflow-y-auto">
             {loading ? (
-                <div className="p-4 text-center text-gray-500">Loading threads...</div>
+                <div className="p-4 text-center text-subtle">Loading threads...</div>
             ) : (
-                threads.map(thread => (
+                threads?.map(thread => (
                     <div 
                         key={thread.id}
                         onClick={() => setSelectedThreadId(thread.id)}
-                        className={`p-4 border-b border-gray-700 cursor-pointer hover:bg-gray-700/50 transition-colors ${selectedThreadId === thread.id ? 'bg-gray-700/50 border-l-2 border-l-blue-500' : ''}`}
+                        className={`p-4 border-b border-border cursor-pointer hover:bg-surface-hover transition-colors ${selectedThreadId === thread.id ? 'bg-surface-hover border-l-2 border-l-accent' : ''}`}
                     >
                         <div className="flex justify-between items-start mb-1">
-                            <span className="font-semibold text-white truncate pr-2">{thread.customerName}</span>
-                            <span className="text-xs text-gray-500 whitespace-nowrap">
+                            <span className="font-semibold text-primary truncate pr-2">{thread.customerName}</span>
+                            <span className="text-xs text-subtle whitespace-nowrap">
                                 {new Date(thread.lastMessageAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                             </span>
                         </div>
-                        <div className="flex items-center text-xs text-gray-400 mb-1 space-x-2">
+                        <div className="flex items-center text-xs text-secondary mb-1 space-x-2">
                              {getChannelIcon(thread.channel)}
-                             {thread.priority === 'urgent' && <span className="text-red-400 flex items-center"><AlertCircle size={10} className="mr-1" /> Urgent</span>}
-                             {thread.status === 'assigned' && <span className="text-blue-400">Assigned</span>}
+                             {thread.priority === 'urgent' && <span className="text-red-500 flex items-center"><AlertCircle size={10} className="mr-1" /> Urgent</span>}
+                             {thread.status === 'assigned' && <span className="text-accent">Assigned</span>}
                         </div>
-                        <p className="text-sm text-gray-400 truncate">{thread.lastMessage}</p>
+                        <p className="text-sm text-secondary truncate">{thread.lastMessage}</p>
                     </div>
                 ))
             )}
@@ -99,30 +112,30 @@ const UnifiedInbox: React.FC<UnifiedInboxProps> = ({
       </div>
 
       {/* Right Column - Conversation View */}
-      <div className="flex-1 bg-gray-900 flex flex-col">
+      <div className="flex-1 bg-page flex flex-col">
          {selectedThread ? (
              <div className="flex-1 flex flex-col">
-                 <div className="p-4 border-b border-gray-700 flex justify-between items-center bg-gray-800">
+                 <div className="p-4 border-b border-border flex justify-between items-center bg-surface">
                      <div>
-                         <h3 className="text-lg font-semibold text-white">{selectedThread.customerName}</h3>
-                         <div className="flex items-center gap-2 text-xs text-gray-400">
+                         <h3 className="text-lg font-semibold text-primary">{selectedThread.customerName}</h3>
+                         <div className="flex items-center gap-2 text-xs text-secondary">
                             {getChannelIcon(selectedThread.channel)}
                             <span className="capitalize">via {selectedThread.channel}</span>
-                            {selectedThread.humanOnlineStatus && <span className="text-green-400">• Online</span>}
+                            {selectedThread.humanOnlineStatus && <span className="text-green-500">• Online</span>}
                          </div>
                      </div>
-                     <button className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-500 transition-colors">
+                     <button className="px-3 py-1 bg-accent hover:bg-accent-hover text-white text-sm rounded transition-colors">
                         Resolve Thread
                      </button>
                  </div>
 
                  {/* Message History */}
-                 <div className="flex-1 p-4 overflow-y-auto space-y-4 bg-gray-900">
+                 <div className="flex-1 p-4 overflow-y-auto space-y-4 bg-page">
                      {/* Customer Message (Mocked from thread) */}
                      <div className="flex justify-start">
-                         <div className="max-w-[70%] bg-gray-800 rounded-2xl rounded-tl-none p-3 text-gray-300 shadow-sm">
+                         <div className="max-w-[70%] bg-surface border border-border rounded-2xl rounded-tl-none p-3 text-primary shadow-sm">
                              <p className="text-sm">{selectedThread.lastMessage}</p>
-                             <span className="text-[10px] text-gray-500 block mt-1">
+                             <span className="text-[10px] text-subtle block mt-1">
                                 {new Date(selectedThread.lastMessageAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                              </span>
                          </div>
@@ -131,31 +144,31 @@ const UnifiedInbox: React.FC<UnifiedInboxProps> = ({
                      {/* AI Response Mock */}
                      {selectedThread.assignedAgentId && (
                          <div className="flex justify-end">
-                             <div className="max-w-[70%] bg-blue-900/20 border border-blue-800/50 rounded-2xl rounded-tr-none p-3 text-white">
-                                 <div className="flex items-center text-xs text-blue-400 mb-1 space-x-1">
+                             <div className="max-w-[70%] bg-accent-subtle border border-accent/30 rounded-2xl rounded-tr-none p-3 text-primary">
+                                 <div className="flex items-center text-xs text-accent mb-1 space-x-1">
                                      <span className="font-semibold">AI Agent</span>
                                  </div>
                                  <p className="text-sm">I've received your message about "{selectedThread.lastMessage}". How can I assist you further?</p>
-                                 <span className="text-[10px] text-blue-400/50 block mt-1">Just now</span>
+                                 <span className="text-[10px] text-accent/70 block mt-1">Just now</span>
                              </div>
                          </div>
                      )}
                  </div>
 
                  {/* Input Area */}
-                 <div className="p-4 border-t border-gray-700 bg-gray-800">
+                 <div className="p-4 border-t border-border bg-surface">
                      {/* Quick Actions */}
-                     <div className="flex gap-2 mb-3 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-gray-600">
-                        <button className="whitespace-nowrap px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded-full text-xs text-gray-300 transition-colors">
+                     <div className="flex gap-2 mb-3 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-border">
+                        <button className="whitespace-nowrap px-3 py-1 bg-surface-hover hover:bg-border rounded-full text-xs text-secondary hover:text-primary transition-colors border border-border">
                             📅 Schedule Call
                         </button>
-                        <button className="whitespace-nowrap px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded-full text-xs text-gray-300 transition-colors">
+                        <button className="whitespace-nowrap px-3 py-1 bg-surface-hover hover:bg-border rounded-full text-xs text-secondary hover:text-primary transition-colors border border-border">
                             💰 Send Pricing
                         </button>
-                        <button className="whitespace-nowrap px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded-full text-xs text-gray-300 transition-colors">
+                        <button className="whitespace-nowrap px-3 py-1 bg-surface-hover hover:bg-border rounded-full text-xs text-secondary hover:text-primary transition-colors border border-border">
                             👋 Introduction
                         </button>
-                        <button className="whitespace-nowrap px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded-full text-xs text-gray-300 transition-colors">
+                        <button className="whitespace-nowrap px-3 py-1 bg-surface-hover hover:bg-border rounded-full text-xs text-secondary hover:text-primary transition-colors border border-border">
                             ❓ Ask for Details
                         </button>
                      </div>
@@ -164,17 +177,17 @@ const UnifiedInbox: React.FC<UnifiedInboxProps> = ({
                          <input 
                             type="text" 
                             placeholder="Type a reply or use quick actions..." 
-                            className="flex-1 bg-gray-900 border border-gray-700 rounded-lg p-3 text-white text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
+                            className="flex-1 bg-surface border border-border rounded-lg p-3 text-primary text-sm focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all"
                          />
-                         <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-500 transition-colors font-medium text-sm">
+                         <button className="bg-accent text-white px-4 py-2 rounded-lg hover:bg-accent-hover transition-colors font-medium text-sm">
                             Send
                          </button>
                      </div>
                  </div>
              </div>
          ) : (
-             <div className="flex-1 flex items-center justify-center text-gray-500 flex-col bg-gray-900/50">
-                 <div className="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center mb-4">
+             <div className="flex-1 flex items-center justify-center text-subtle flex-col bg-page">
+                 <div className="w-16 h-16 bg-surface rounded-full flex items-center justify-center mb-4 border border-border">
                     <MessageSquare size={32} className="opacity-50" />
                  </div>
                  <p className="font-medium">Select a conversation to start messaging</p>
