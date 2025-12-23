@@ -29,6 +29,7 @@ import {
 import ChatBot from './ChatBot';
 import CommandPalette from './CommandPalette';
 import { useTheme } from '../contexts/ThemeContext';
+import { ErrorBoundary } from './ErrorBoundary';
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: Home },
@@ -195,7 +196,9 @@ export default function DashboardLayout() {
 
       <div className="lg:pl-64">
         <div className="pt-16 lg:pt-0">
-          <Outlet />
+          <ErrorBoundary>
+            <Outlet />
+          </ErrorBoundary>
         </div>
       </div>
 
