@@ -492,6 +492,168 @@ Proceed with fixing
 
 _**Agent (model claude-4.5-opus-high-thinking, mode Agent)**_
 
+<think><details><summary>Thought Process</summary>
+The user wants me to proceed with fixing the issue. I now have access to edit tools. Let me implement both fixes:
+
+1. Remove the extra ErrorBoundary around the MissionControl route in App.tsx
+2. Key the ErrorBoundary in DashboardLayout.tsx by location.pathname
+
+Let me make these changes.</details></think>
+
+---
+
+I'll implement both fixes now.
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="search_replace">
+
+<details><summary>Tool use: **search_replace** • Edit file: project/src/App.tsx</summary>
+
+**Chunk 1**
+Lines added: 1, lines removed: 5
+
+```diff
+@@ -124,9 +124,5 @@
+                  &lt;Route path="analytics" element={&lt;Analytics /&gt;} /&gt;
+                  &lt;Route path="business-apps" element={&lt;BusinessApps /&gt;} /&gt;
+-                 &lt;Route path="mission-control" element={
+-                   &lt;ErrorBoundary&gt;
+-                     &lt;MissionControl /&gt;
+-                   &lt;/ErrorBoundary&gt;
+-                 } /&gt;
++                 &lt;Route path="mission-control" element={&lt;MissionControl /&gt;} /&gt;
+                  &lt;Route path="intake" element={&lt;IntakeDashboard /&gt;} /&gt;
+                  &lt;Route path="nudges" element={&lt;NudgeCampaigns /&gt;} /&gt;
+```
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="search_replace">
+
+<details><summary>Tool use: **search_replace** • Edit file: project/src/components/DashboardLayout.tsx</summary>
+
+**Chunk 1**
+Lines added: 1, lines removed: 1
+
+```diff
+@@ -197,5 +197,5 @@
+        &lt;div className="lg:pl-64"&gt;
+          &lt;div className="pt-16 lg:pt-0"&gt;
+-           &lt;ErrorBoundary&gt;
++           &lt;ErrorBoundary key={location.pathname}&gt;
+              &lt;Outlet /&gt;
+            &lt;/ErrorBoundary&gt;
+```
+
+</details>
+
+</tool-use>
+
+---
+
+<think><details><summary>Thought Process</summary>
+Both changes have been made. Let me check for any linting errors on these files.</details></think>
+
+---
+
+<tool-use data-tool-type="generic" data-tool-name="read_lints">
+<details>
+          <summary>Tool use: **read_lints** • Read lints for 2 files</summary>
+      
+Lint paths:
+
+- `project/src/App.tsx`
+- `project/src/components/DashboardLayout.tsx`
+
+Lint results
+
+
+**No lint errors found**
+</details>
+</tool-use>
+
+---
+
+<think><details><summary>Thought Process</summary>
+Both files have been updated and there are no linting errors. The fixes are complete. Let me summarize what was done.</details></think>
+
+---
+
+Both fixes have been applied:
+
+1. **`App.tsx`** — Removed the redundant `ErrorBoundary` wrapper around the `MissionControl` route.
+
+2. **`DashboardLayout.tsx`** — Added `key={location.pathname}` to the `ErrorBoundary` wrapping the `Outlet`, forcing React to fully unmount and remount page components when navigating between routes.
+
+These changes ensure that when you navigate away from Mission Control (or any other page), the previous page's component tree is completely torn down and replaced with the new route's content. You should now be able to navigate freely without needing to refresh or log out.
+
+---
+
+_**User (2025-12-23 14:41Z)**_
+
+This still isn't working.  Everything works until I select mission-control. When I select Mission Control, the page loads; however, I'm unable to select another section. IT juset doesn't load. Attached is a screenshot of the mission-control page. Pay attentoi to the url. Then when I click intake engine, you will notice int he next screenshot the url changes but the page doesn't. I have to hit f5 to refresh to actually get out of the page. I dont know whats going on and I think it might be best to rebuild the Mission-Control section from scratch. The visual layout can be identical. I dont have any data pipelines connected yet. Lets rebuild the entire mission-control from scratch keeping the same layout and design. For some reason, something is happening where I Can't click out of it and you can't fix it so lets recreate the mission-control section . I've also attached screenshots of what each section looks like in "mission-control". Command Center, Unified Inbox and Analytics 
+
+---
+
+_**Agent (model claude-4.5-opus-high-thinking, mode Agent)**_
+
+<think><details><summary>Thought Process</summary>
+The user is experiencing a persistent issue where the Mission Control page prevents navigation to other sections. The URL changes but the page content doesn't update. Despite the fixes I made, the issue persists.
+
+The user wants me to rebuild the Mission Control section from scratch while keeping the same visual layout and design. They've provided screenshots showing:
+1. Command Center tab - with KPIs, Agent Status cards, and Live Interactions
+2. Unified Inbox tab - with inbox list and conversation view
+3. Needs Attention tab - showing urgent items
+4. Analytics tab (mentioned but I saw the component earlier)
+
+Let me look at the current MissionControl.tsx and its child components to understand the structure, then rebuild it cleanly. The issue is likely something in the component that's causing React to get stuck - perhaps an infinite loop, a blocking effect, or something preventing re-renders.
+
+Let me:
+1. First backup/understand the current structure
+2. Create a new clean MissionControl component
+3. Recreate the child components if needed
+
+Let me read the current components to understand the layout:
+- MissionControl.tsx (already read)
+- AgentVisibility component
+- UnifiedInbox component
+- MissionControlAnalytics (already read)
+
+The issue could be:
+1. An infinite loop in useEffect
+2. A blocking operation
+3. Something with the hooks being used
+4. Event handlers preventing propagation
+
+Let me rebuild it from scratch with clean code.</details></think>
+
+---
+
+I'll rebuild the Mission Control section from scratch. Let me first look at the child components to understand the full structure, then recreate everything cleanly.
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file">
+<details><summary>Tool use: **read_file** • Read file: project/src/components/AgentVisibility.tsx</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file">
+<details><summary>Tool use: **read_file** • Read file: project/src/components/UnifiedInbox.tsx</summary>
+
+</details>
+</tool-use>
+
+---
+
 
 
 ---
