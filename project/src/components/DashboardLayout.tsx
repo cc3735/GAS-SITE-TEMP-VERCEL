@@ -59,37 +59,37 @@ export default function DashboardLayout() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="lg:hidden fixed top-0 left-0 right-0 bg-white border-b border-gray-200 z-50 px-4 py-3 flex items-center justify-between">
+    <div className="min-h-screen bg-page text-primary transition-colors duration-200">
+      <div className="lg:hidden fixed top-0 left-0 right-0 bg-surface border-b border-border z-50 px-4 py-3 flex items-center justify-between">
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="p-2 text-gray-600 hover:text-gray-900"
+          className="p-2 text-secondary hover:text-primary"
         >
           {sidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
         </button>
         <div className="flex items-center gap-2">
-          <Sparkles className="w-6 h-6 text-blue-600" />
-          <span className="font-bold text-gray-900">GAS OS</span>
+          <Sparkles className="w-6 h-6 text-accent" />
+          <span className="font-bold text-primary">GAS OS</span>
         </div>
       </div>
 
       <div
-        className={`fixed inset-y-0 left-0 w-64 bg-white border-r border-gray-200 z-40 transform transition-transform duration-200 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        className={`fixed inset-y-0 left-0 w-64 bg-surface border-r border-border z-40 transform transition-transform duration-200 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'
           } lg:translate-x-0`}
       >
         <div className="flex flex-col h-full">
-          <div className="p-6 border-b border-gray-200">
+          <div className="p-6 border-b border-border">
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg flex items-center justify-center">
+              <div className="w-10 h-10 bg-gradient-to-br from-accent to-accent-hover rounded-lg flex items-center justify-center">
                 <Sparkles className="w-5 h-5 text-white" />
               </div>
-              <span className="text-xl font-bold text-gray-900">GAS OS</span>
+              <span className="text-xl font-bold text-primary">GAS OS</span>
             </div>
 
             <div className="relative">
               <button
                 onClick={() => setOrgMenuOpen(!orgMenuOpen)}
-                className="w-full flex items-center justify-between px-3 py-2 text-sm font-medium text-gray-700 bg-gray-50 hover:bg-gray-100 rounded-lg transition"
+                className="w-full flex items-center justify-between px-3 py-2 text-sm font-medium text-secondary bg-page hover:bg-surface-hover rounded-lg transition"
               >
                 <div className="flex items-center gap-2 min-w-0">
                   <Building2 className="w-4 h-4 flex-shrink-0" />
@@ -99,7 +99,7 @@ export default function DashboardLayout() {
               </button>
 
               {orgMenuOpen && organizations.length > 0 && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg py-1 z-50">
+                <div className="absolute top-full left-0 right-0 mt-2 bg-surface border border-border rounded-lg shadow-lg py-1 z-50">
                   {organizations.map((org) => (
                     <button
                       key={org.id}
@@ -107,7 +107,7 @@ export default function DashboardLayout() {
                         switchOrganization(org.id);
                         setOrgMenuOpen(false);
                       }}
-                      className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-50 transition ${currentOrganization?.id === org.id ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
+                      className={`w-full text-left px-3 py-2 text-sm hover:bg-surface-hover transition ${currentOrganization?.id === org.id ? 'bg-accent-subtle text-accent' : 'text-secondary'
                         }`}
                     >
                       {org.name}
@@ -128,8 +128,8 @@ export default function DashboardLayout() {
                   to={item.href}
                   onClick={() => setSidebarOpen(false)}
                   className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition ${isActive
-                    ? 'bg-blue-50 text-blue-700'
-                    : 'text-gray-700 hover:bg-gray-50'
+                    ? 'bg-accent-subtle text-accent'
+                    : 'text-secondary hover:bg-surface-hover'
                     }`}
                 >
                   <Icon className="w-5 h-5" />
@@ -139,25 +139,25 @@ export default function DashboardLayout() {
             })}
           </nav>
 
-          <div className="p-4 border-t border-gray-200">
-             <div className="flex bg-gray-100 p-1 rounded-lg mb-4">
+          <div className="p-4 border-t border-border">
+             <div className="flex bg-surface-hover p-1 rounded-lg mb-4">
                <button
                  onClick={() => setTheme('light')}
-                 className={`flex-1 p-1 rounded-md flex justify-center ${theme === 'light' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
+                 className={`flex-1 p-1 rounded-md flex justify-center ${theme === 'light' ? 'bg-surface shadow-sm text-accent' : 'text-subtle hover:text-secondary'}`}
                  title="Light Mode"
                >
                  <Sun className="w-4 h-4" />
                </button>
                <button
                  onClick={() => setTheme('dark')}
-                 className={`flex-1 p-1 rounded-md flex justify-center ${theme === 'dark' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
+                 className={`flex-1 p-1 rounded-md flex justify-center ${theme === 'dark' ? 'bg-surface shadow-sm text-accent' : 'text-subtle hover:text-secondary'}`}
                  title="Dark Mode"
                >
                  <Moon className="w-4 h-4" />
                </button>
                <button
                  onClick={() => setTheme('neon')}
-                 className={`flex-1 p-1 rounded-md flex justify-center ${theme === 'neon' ? 'bg-white shadow-sm text-purple-600' : 'text-gray-500 hover:text-gray-700'}`}
+                 className={`flex-1 p-1 rounded-md flex justify-center ${theme === 'neon' ? 'bg-surface shadow-sm text-accent' : 'text-subtle hover:text-secondary'}`}
                  title="Neon Mode"
                >
                  <Zap className="w-4 h-4" />
@@ -165,19 +165,19 @@ export default function DashboardLayout() {
              </div>
 
             <div className="flex items-center gap-3 mb-3">
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-blue-700 rounded-full flex items-center justify-center text-white text-sm font-semibold">
+              <div className="w-8 h-8 bg-gradient-to-br from-accent to-accent-hover rounded-full flex items-center justify-center text-white text-sm font-semibold">
                 {user?.email?.charAt(0).toUpperCase()}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">
+                <p className="text-sm font-medium text-primary truncate">
                   {user?.user_metadata?.full_name || 'User'}
                 </p>
-                <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+                <p className="text-xs text-subtle truncate">{user?.email}</p>
               </div>
             </div>
             <button
               onClick={handleSignOut}
-              className="w-full flex items-center gap-2 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition"
+              className="w-full flex items-center gap-2 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-500/10 rounded-lg transition"
             >
               <LogOut className="w-4 h-4" />
               Sign Out

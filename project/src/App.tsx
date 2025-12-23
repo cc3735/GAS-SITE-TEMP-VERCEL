@@ -25,6 +25,7 @@ import NudgeCampaigns from './pages/NudgeCampaigns';
 import Diagnostics from './pages/Diagnostics';
 import WebOS from './pages/WebOS';
 import { Loader2 } from 'lucide-react';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -122,7 +123,11 @@ function App() {
                 <Route path="mcp" element={<MCP />} />
                 <Route path="analytics" element={<Analytics />} />
                 <Route path="business-apps" element={<BusinessApps />} />
-                <Route path="mission-control" element={<MissionControl />} />
+                <Route path="mission-control" element={
+                  <ErrorBoundary>
+                    <MissionControl />
+                  </ErrorBoundary>
+                } />
                 <Route path="intake" element={<IntakeDashboard />} />
                 <Route path="nudges" element={<NudgeCampaigns />} />
                 <Route path="crm/customer/:id" element={<CustomerProfile />} />
