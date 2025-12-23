@@ -19,6 +19,8 @@ import Settings from './pages/Settings';
 import BusinessApps from './pages/BusinessApps';
 import AdminDashboard from './pages/AdminDashboard';
 import MissionControl from './pages/MissionControl';
+import GasAdminMissionControl from './pages/GasAdminMissionControl';
+import GasAdminSettings from './pages/GasAdminSettings';
 import CustomerProfile from './pages/CustomerProfile';
 import IntakeDashboard from './pages/IntakeDashboard';
 import NudgeCampaigns from './pages/NudgeCampaigns';
@@ -130,6 +132,9 @@ function App() {
                 <Route path="diagnostics" element={<Diagnostics />} />
                 <Route path="admin" element={<AdminDashboard />} />
                 <Route path="settings" element={<Settings />} />
+                {/* GAS Master Admin Routes */}
+                <Route path="gas/mission-control" element={<GasAdminMissionControl />} />
+                <Route path="gas/settings" element={<GasAdminSettings />} />
               </Route>
             </Routes>
           </ToastProvider>

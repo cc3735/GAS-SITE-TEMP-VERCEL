@@ -16,13 +16,13 @@ interface Agent {
 }
 
 export function useAgents() {
-  const { currentOrganization } = useOrganization();
+  const { effectiveOrganization } = useOrganization();
   const { user } = useAuth();
   const [agents, setAgents] = useState<Agent[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!currentOrganization) {
+    if (!effectiveOrganization) {
         setLoading(false);
         return;
     }
@@ -37,7 +37,7 @@ export function useAgents() {
           event: '*',
           schema: 'public',
           table: 'ai_agents',
-          filter: `organization_id=eq.${currentOrganization.id}`,
+          filter: `organization_id=eq.${effectiveOrganization.id}`,
         },
         () => {
           fetchAgents();
@@ -48,10 +48,10 @@ export function useAgents() {
     return () => {
       subscription.unsubscribe();
     };
-  }, [currentOrganization]);
+  }, [effectiveOrganization]);
 
   const fetchAgents = async () => {
-    if (!currentOrganization) {
+    if (!effectiveOrganization) {
         setLoading(false);
         return;
     }
@@ -60,7 +60,7 @@ export function useAgents() {
       const { data, error } = await supabase
         .from('ai_agents')
         .select('*')
-        .eq('organization_id', currentOrganization.id)
+        .eq('organization_id', effectiveOrganization.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -78,13 +78,13 @@ export function useAgents() {
     agent_type: string;
     configuration?: any;
   }) => {
-    if (!currentOrganization || !user) return null;
+    if (!effectiveOrganization || !user) return null;
 
     try {
       const { data, error } = await supabase
         .from('ai_agents')
         .insert({
-          organization_id: currentOrganization.id,
+          organization_id: effectiveOrganization.id,
           name: agentData.name,
           description: agentData.description || null,
           agent_type: agentData.agent_type,
@@ -111,7 +111,7 @@ export function useAgents() {
   };
 
   const updateAgent = async (agentId: string, updates: Partial<Agent>) => {
-    if (!currentOrganization) return null;
+    if (!effectiveOrganization) return null;
 
     try {
       const { data, error } = await supabase
@@ -126,7 +126,7 @@ export function useAgents() {
           updated_at: new Date().toISOString(),
         })
         .eq('id', agentId)
-        .eq('organization_id', currentOrganization.id)
+        .eq('organization_id', effectiveOrganization.id)
         .select()
         .single();
 
@@ -139,14 +139,14 @@ export function useAgents() {
   };
 
   const deleteAgent = async (agentId: string) => {
-    if (!currentOrganization) return null;
+    if (!effectiveOrganization) return null;
 
     try {
       const { error } = await supabase
         .from('ai_agents')
         .delete()
         .eq('id', agentId)
-        .eq('organization_id', currentOrganization.id);
+        .eq('organization_id', effectiveOrganization.id);
 
       if (error) throw error;
       return true;

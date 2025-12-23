@@ -32,10 +32,10 @@ export function useProjects() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { currentOrganization } = useOrganization();
+  const { effectiveOrganization } = useOrganization();
 
   const fetchProjects = useCallback(async () => {
-    if (!currentOrganization) {
+    if (!effectiveOrganization) {
       setProjects([]);
       setLoading(false);
       return;
@@ -46,7 +46,7 @@ export function useProjects() {
       const { data, error } = await supabase
         .from('projects')
         .select('*')
-        .eq('organization_id', currentOrganization.id)
+        .eq('organization_id', effectiveOrganization.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -85,7 +85,7 @@ export function useProjects() {
     } finally {
       setLoading(false);
     }
-  }, [currentOrganization]);
+  }, [effectiveOrganization]);
 
   useEffect(() => {
     fetchProjects();
@@ -106,7 +106,7 @@ export function useProjects() {
     priority?: string;
     assigned_to?: string;
   }) => {
-    if (!currentOrganization) {
+    if (!effectiveOrganization) {
       throw new Error('No organization selected');
     }
 
@@ -125,7 +125,7 @@ export function useProjects() {
       const { data, error } = await supabase
         .from('projects')
         .insert({
-          organization_id: currentOrganization.id,
+          organization_id: effectiveOrganization.id,
           name: projectData.name,
           description: projectData.description,
           status: 'planning',

@@ -23,13 +23,13 @@ export interface Contact {
 }
 
 export function useContacts() {
-  const { currentOrganization } = useOrganization();
+  const { effectiveOrganization } = useOrganization();
   const { user } = useAuth();
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchContacts = useCallback(async () => {
-    if (!currentOrganization) {
+    if (!effectiveOrganization) {
       setContacts([]);
       setLoading(false);
       return;
@@ -40,7 +40,7 @@ export function useContacts() {
       const { data, error } = await supabase
         .from('contacts')
         .select('*')
-        .eq('organization_id', currentOrganization.id)
+        .eq('organization_id', effectiveOrganization.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -72,7 +72,7 @@ export function useContacts() {
     } finally {
       setLoading(false);
     }
-  }, [currentOrganization]);
+  }, [effectiveOrganization]);
 
   useEffect(() => {
     fetchContacts();
@@ -88,7 +88,7 @@ export function useContacts() {
     date_of_birth?: string;
     notes?: string;
   }) => {
-    if (!currentOrganization || !user) {
+    if (!effectiveOrganization || !user) {
       throw new Error('No organization or user selected');
     }
 
@@ -102,7 +102,7 @@ export function useContacts() {
       const { data, error } = await supabase
         .from('contacts')
         .insert({
-          organization_id: currentOrganization.id,
+          organization_id: effectiveOrganization.id,
           first_name: contactData.first_name,
           last_name: contactData.last_name || null,
           email: contactData.email || null,

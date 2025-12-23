@@ -16,13 +16,13 @@ export interface Deal {
 }
 
 export function useDeals() {
-  const { currentOrganization } = useOrganization();
+  const { effectiveOrganization } = useOrganization();
   const [deals, setDeals] = useState<Deal[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
-    if (!currentOrganization) {
+    if (!effectiveOrganization) {
       setLoading(false);
       return;
     }
@@ -33,7 +33,7 @@ export function useDeals() {
         const { data, error } = await supabase
           .from('deals')
           .select('*')
-          .eq('organization_id', currentOrganization.id)
+          .eq('organization_id', effectiveOrganization.id)
           .order('created_at', { ascending: false });
 
         if (error) throw error;
@@ -56,7 +56,7 @@ export function useDeals() {
           event: '*', 
           schema: 'public', 
           table: 'deals', 
-          filter: `organization_id=eq.${currentOrganization.id}` 
+          filter: `organization_id=eq.${effectiveOrganization.id}` 
         }, 
         (payload) => {
           if (payload.eventType === 'INSERT') {
@@ -73,7 +73,7 @@ export function useDeals() {
     return () => {
       subscription.unsubscribe();
     };
-  }, [currentOrganization]);
+  }, [effectiveOrganization]);
 
   return { deals, loading, error };
 }
