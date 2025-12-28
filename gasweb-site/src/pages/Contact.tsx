@@ -1,13 +1,21 @@
 /**
  * Contact Page Component
  * 
- * Consultation booking page with contact form, 
+ * Consultation booking page with contact form integrated with CRM,
  * calendar booking option, and contact information.
+ * 
+ * Features:
+ * - Form validation with real-time feedback
+ * - CRM integration via Supabase Edge Function
+ * - Analytics tracking (form started, completed, abandoned)
+ * - Phone number formatting
+ * - Company name normalization
+ * - Test mode for development
  * 
  * @module pages/Contact
  */
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   Mail,
   Phone,
@@ -18,19 +26,15 @@ import {
   CheckCircle2,
   MessageSquare,
   ArrowRight,
+  AlertCircle,
+  Loader2,
 } from 'lucide-react';
 
-/**
- * Contact form data type
- */
-interface FormData {
-  name: string;
-  email: string;
-  phone: string;
-  company: string;
-  service: string;
-  message: string;
-}
+// Services
+import { submitContactForm, trackFormEvent } from '../lib/contactService';
+import type { ContactFormData } from '../lib/contactService';
+import { validateContactForm, formatPhone, normalizeCompanyName } from '../lib/validation';
+import { trackFormStarted, trackFormCompleted, trackFormAbandoned, trackServiceSelected, countCompletedFields } from '../lib/analytics';
 
 /**
  * Service options for the form
@@ -47,49 +51,188 @@ const serviceOptions = [
 ];
 
 /**
+ * Pain point options for the form
+ */
+const painPointOptions = [
+  'Too much manual data entry',
+  'Slow customer response times',
+  'Repetitive tasks taking too much time',
+  'Difficulty scaling operations',
+  'Lack of integration between tools',
+  'High error rates in processes',
+  'Other',
+];
+
+/**
+ * Timeline options for the form
+ */
+const timelineOptions = [
+  'Immediate (within 1 month)',
+  'Short-term (1-3 months)',
+  'Medium-term (3-6 months)',
+  'Exploring options',
+];
+
+/**
  * Contact Page Component
  * 
  * @returns {JSX.Element} The contact page
  */
 export default function Contact(): JSX.Element {
-  const [formData, setFormData] = useState<FormData>({
+  // Form state
+  const [formData, setFormData] = useState<ContactFormData>({
     name: '',
     email: '',
     phone: '',
     company: '',
     service: '',
     message: '',
+    painPoint: '',
+    timeline: '',
+    isTestMode: import.meta.env.DEV, // Auto-enable in development
   });
+
+  // UI state
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  // Analytics tracking
+  const formStartedRef = useRef(false);
+
+  // Track form started on first interaction
+  useEffect(() => {
+    const hasContent = Object.values(formData).some((value) => {
+      if (typeof value === 'string') return value.trim().length > 0;
+      return false;
+    });
+
+    if (hasContent && !formStartedRef.current && !isSubmitted) {
+      formStartedRef.current = true;
+      trackFormStarted();
+      trackFormEvent('form_started', formData);
+    }
+  }, [formData, isSubmitted]);
+
+  // Track form abandonment on page unload
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (formStartedRef.current && !isSubmitted) {
+        const fieldsCompleted = countCompletedFields(formData);
+        trackFormAbandoned(fieldsCompleted);
+        trackFormEvent('form_abandoned', formData);
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [formData, isSubmitted]);
+
+  /**
+   * Handle form field changes
+   */
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+
+    // Format phone number as user types
+    if (name === 'phone') {
+      const formatted = formatPhone(value);
+      setFormData((prev) => ({ ...prev, [name]: formatted }));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
+
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
+
+    // Clear submit error when user makes changes
+    if (submitError) {
+      setSubmitError(null);
+    }
+
+    // Track service selection
+    if (name === 'service' && value) {
+      trackServiceSelected(value);
+    }
   };
 
+  /**
+   * Handle form submission
+   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitError(null);
+
+    // Normalize company name before validation
+    const normalizedData: ContactFormData = {
+      ...formData,
+      company: formData.company ? normalizeCompanyName(formData.company) : '',
+    };
+
+    // Validate form
+    const validation = validateContactForm(normalizedData);
+    if (!validation.isValid) {
+      setErrors(validation.errors);
+      // Scroll to first error
+      const firstErrorField = Object.keys(validation.errors)[0];
+      const element = document.getElementById(firstErrorField);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        element.focus();
+      }
+      return;
+    }
+
     setIsSubmitting(true);
-    
-    // Simulate form submission
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    
-    setIsSubmitting(false);
-    setIsSubmitted(true);
-    
-    // Reset form after showing success
-    setTimeout(() => {
-      setFormData({
-        name: '',
-        email: '',
-        phone: '',
-        company: '',
-        service: '',
-        message: '',
-      });
-      setIsSubmitted(false);
-    }, 5000);
+
+    try {
+      const result = await submitContactForm(normalizedData);
+
+      if (result.success) {
+        setIsSubmitted(true);
+        
+        // Track successful submission
+        trackFormCompleted(
+          normalizedData.service,
+          !!normalizedData.company,
+          !!normalizedData.phone
+        );
+        trackFormEvent('form_completed', normalizedData);
+
+        // Reset form after showing success
+        setTimeout(() => {
+          setFormData({
+            name: '',
+            email: '',
+            phone: '',
+            company: '',
+            service: '',
+            message: '',
+            painPoint: '',
+            timeline: '',
+            isTestMode: import.meta.env.DEV,
+          });
+          setIsSubmitted(false);
+          formStartedRef.current = false;
+        }, 5000);
+      } else {
+        setSubmitError(result.error || 'Failed to submit form. Please try again.');
+      }
+    } catch (error) {
+      console.error('Form submission error:', error);
+      setSubmitError('An unexpected error occurred. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -124,6 +267,14 @@ export default function Contact(): JSX.Element {
               <h2 className="text-2xl font-heading font-bold text-slate-900 mb-6">
                 Request a Consultation
               </h2>
+
+              {/* Test mode indicator */}
+              {import.meta.env.DEV && (
+                <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-800 flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4" />
+                  <span><strong>Test Mode:</strong> Submissions will be marked as test data and emails will be skipped.</span>
+                </div>
+              )}
               
               {isSubmitted ? (
                 <div className="bg-green-50 border border-green-200 rounded-2xl p-8 text-center animate-fade-in">
@@ -139,7 +290,19 @@ export default function Contact(): JSX.Element {
                   </p>
                 </div>
               ) : (
-                <form onSubmit={handleSubmit} className="space-y-6">
+                <form onSubmit={handleSubmit} className="space-y-6" noValidate>
+                  {/* Submit error alert */}
+                  {submitError && (
+                    <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
+                      <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-red-800 text-sm font-medium">Submission Error</p>
+                        <p className="text-red-700 text-sm">{submitError}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Name and Email row */}
                   <div className="grid md:grid-cols-2 gap-6">
                     <div>
                       <label htmlFor="name" className="block text-sm font-medium text-slate-700 mb-2">
@@ -149,12 +312,15 @@ export default function Contact(): JSX.Element {
                         type="text"
                         id="name"
                         name="name"
-                        required
                         value={formData.name}
                         onChange={handleChange}
-                        className="input-field"
+                        className={`input-field ${errors.name ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''}`}
                         placeholder="John Doe"
+                        autoComplete="name"
                       />
+                      {errors.name && (
+                        <p className="mt-1 text-sm text-red-600">{errors.name}</p>
+                      )}
                     </div>
                     
                     <div>
@@ -165,15 +331,19 @@ export default function Contact(): JSX.Element {
                         type="email"
                         id="email"
                         name="email"
-                        required
                         value={formData.email}
                         onChange={handleChange}
-                        className="input-field"
+                        className={`input-field ${errors.email ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''}`}
                         placeholder="john@company.com"
+                        autoComplete="email"
                       />
+                      {errors.email && (
+                        <p className="mt-1 text-sm text-red-600">{errors.email}</p>
+                      )}
                     </div>
                   </div>
                   
+                  {/* Phone and Company row */}
                   <div className="grid md:grid-cols-2 gap-6">
                     <div>
                       <label htmlFor="phone" className="block text-sm font-medium text-slate-700 mb-2">
@@ -185,9 +355,14 @@ export default function Contact(): JSX.Element {
                         name="phone"
                         value={formData.phone}
                         onChange={handleChange}
-                        className="input-field"
+                        className={`input-field ${errors.phone ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''}`}
                         placeholder="(555) 123-4567"
+                        maxLength={14}
+                        autoComplete="tel"
                       />
+                      {errors.phone && (
+                        <p className="mt-1 text-sm text-red-600">{errors.phone}</p>
+                      )}
                     </div>
                     
                     <div>
@@ -202,10 +377,12 @@ export default function Contact(): JSX.Element {
                         onChange={handleChange}
                         className="input-field"
                         placeholder="Your Company Inc."
+                        autoComplete="organization"
                       />
                     </div>
                   </div>
                   
+                  {/* Service selection */}
                   <div>
                     <label htmlFor="service" className="block text-sm font-medium text-slate-700 mb-2">
                       Service of Interest *
@@ -213,10 +390,9 @@ export default function Contact(): JSX.Element {
                     <select
                       id="service"
                       name="service"
-                      required
                       value={formData.service}
                       onChange={handleChange}
-                      className="input-field"
+                      className={`input-field ${errors.service ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''}`}
                     >
                       <option value="">Select a service...</option>
                       {serviceOptions.map((option) => (
@@ -225,8 +401,57 @@ export default function Contact(): JSX.Element {
                         </option>
                       ))}
                     </select>
+                    {errors.service && (
+                      <p className="mt-1 text-sm text-red-600">{errors.service}</p>
+                    )}
+                  </div>
+
+                  {/* Pain Point selection */}
+                  <div>
+                    <label htmlFor="painPoint" className="block text-sm font-medium text-slate-700 mb-2">
+                      Biggest Pain Point
+                    </label>
+                    <select
+                      id="painPoint"
+                      name="painPoint"
+                      value={formData.painPoint}
+                      onChange={handleChange}
+                      className="input-field"
+                    >
+                      <option value="">Select your main challenge...</option>
+                      {painPointOptions.map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                    </select>
+                    {errors.painPoint && (
+                      <p className="mt-1 text-sm text-red-600">{errors.painPoint}</p>
+                    )}
+                  </div>
+
+                  {/* Timeline selection */}
+                  <div>
+                    <label htmlFor="timeline" className="block text-sm font-medium text-slate-700 mb-2">
+                      Timeline
+                    </label>
+                    <select
+                      id="timeline"
+                      name="timeline"
+                      value={formData.timeline}
+                      onChange={handleChange}
+                      className="input-field"
+                    >
+                      <option value="">When are you looking to implement?</option>
+                      {timelineOptions.map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                   
+                  {/* Message textarea */}
                   <div>
                     <label htmlFor="message" className="block text-sm font-medium text-slate-700 mb-2">
                       Tell Us About Your Needs *
@@ -234,23 +459,34 @@ export default function Contact(): JSX.Element {
                     <textarea
                       id="message"
                       name="message"
-                      required
                       rows={5}
                       value={formData.message}
                       onChange={handleChange}
-                      className="input-field resize-none"
+                      className={`input-field resize-none ${errors.message ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''}`}
                       placeholder="Describe your current challenges and what you'd like to achieve with AI automation..."
+                      maxLength={2000}
                     />
+                    <div className="mt-1 flex justify-between items-center">
+                      {errors.message ? (
+                        <p className="text-sm text-red-600">{errors.message}</p>
+                      ) : (
+                        <span className="text-sm text-slate-500">Minimum 10 characters</span>
+                      )}
+                      <span className={`text-sm ${formData.message.length > 1900 ? 'text-amber-600' : 'text-slate-500'}`}>
+                        {formData.message.length}/2000
+                      </span>
+                    </div>
                   </div>
                   
+                  {/* Submit button */}
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="btn-primary w-full md:w-auto"
+                    className="btn-primary w-full md:w-auto disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isSubmitting ? (
                       <>
-                        <span className="animate-spin mr-2">⏳</span>
+                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
                         Sending...
                       </>
                     ) : (
@@ -442,4 +678,3 @@ export default function Contact(): JSX.Element {
     </>
   );
 }
-
