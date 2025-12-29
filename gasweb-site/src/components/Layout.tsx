@@ -93,14 +93,9 @@ export default function Layout(): JSX.Element {
             {/* Logo */}
             <Link 
               to="/" 
-              className="flex items-center gap-2 text-2xl font-bold"
+              className="flex items-center"
             >
-              <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-xl flex items-center justify-center">
-                <Zap className="w-6 h-6 text-white" />
-              </div>
-              <span className={`font-heading ${isScrolled ? 'text-slate-900' : 'text-slate-900'}`}>
-                GasWeb
-              </span>
+              <img src="/logo.png" alt="Global Automation Solutions" className="h-20 w-auto" />
             </Link>
 
             {/* Desktop Navigation */}
@@ -170,11 +165,8 @@ export default function Layout(): JSX.Element {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
             {/* Company Info */}
             <div className="lg:col-span-1">
-              <Link to="/" className="flex items-center gap-2 text-2xl font-bold mb-4">
-                <div className="w-10 h-10 bg-gradient-to-br from-primary-400 to-secondary-400 rounded-xl flex items-center justify-center">
-                  <Zap className="w-6 h-6 text-white" />
-                </div>
-                <span className="font-heading">GasWeb</span>
+              <Link to="/" className="flex items-center mb-4">
+                <img src="/logo.png" alt="Global Automation Solutions" className="h-20 w-auto" />
               </Link>
               <p className="text-slate-400 mb-6">
                 Empowering small businesses with AI automation solutions. 
@@ -276,4 +268,3 @@ export default function Layout(): JSX.Element {
     </div>
   );
 }
-
