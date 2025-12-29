@@ -89,13 +89,13 @@ export default function Layout(): JSX.Element {
         }`}
       >
         <nav className="section-container">
-          <div className="flex items-center justify-between h-16 md:h-20">
+          <div className="flex items-center justify-between h-20 md:h-28">
             {/* Logo */}
             <Link 
               to="/" 
               className="flex items-center"
             >
-              <img src="/logo.png" alt="Global Automation Solutions" className="h-20 w-auto" />
+              <img src="/logo.png" alt="Global Automation Solutions" className="h-24 w-auto" />
             </Link>
 
             {/* Desktop Navigation */}
@@ -155,7 +155,7 @@ export default function Layout(): JSX.Element {
       </header>
 
       {/* Main Content */}
-      <main className="flex-grow pt-16 md:pt-20">
+      <main className="flex-grow pt-20 md:pt-28">
         <Outlet />
       </main>
 
@@ -166,7 +166,7 @@ export default function Layout(): JSX.Element {
             {/* Company Info */}
             <div className="lg:col-span-1">
               <Link to="/" className="flex items-center mb-4">
-                <img src="/logo.png" alt="Global Automation Solutions" className="h-20 w-auto" />
+                <img src="/logo.png" alt="Global Automation Solutions" className="h-24 w-auto" />
               </Link>
               <p className="text-slate-400 mb-6">
                 Empowering small businesses with AI automation solutions. 
