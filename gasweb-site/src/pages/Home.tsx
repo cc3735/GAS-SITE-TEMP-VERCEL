@@ -25,6 +25,7 @@ import {
   Play,
   Users,
   Zap,
+  Mic,
 } from 'lucide-react';
 
 /**
@@ -48,6 +49,12 @@ const services = [
     title: 'AI Chatbots',
     description: 'Deploy intelligent chatbots that handle customer inquiries 24/7.',
     link: '/services#chatbots',
+  },
+  {
+    icon: Mic,
+    title: 'AI Voice Agents',
+    description: 'Handle phone calls 24/7 with human-like AI voice assistants.',
+    link: '/services#voice',
   },
   {
     icon: Bot,
@@ -490,4 +497,3 @@ export default function Home(): JSX.Element {
     </>
   );
 }
-

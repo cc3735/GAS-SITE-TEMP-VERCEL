@@ -25,6 +25,7 @@ import {
   Users,
   Target,
   Lightbulb,
+  Mic,
 } from 'lucide-react';
 
 /**
@@ -104,6 +105,31 @@ const services = [
     beforeAfter: {
       before: 'Limited support hours, delayed responses',
       after: '24/7 instant support, happier customers',
+    },
+  },
+  {
+    id: 'voice',
+    icon: Mic,
+    title: 'AI Voice Agents',
+    tagline: 'Automate inbound and outbound calls',
+    description: 'Handle customer calls, appointments, and inquiries 24/7 with human-like AI voice agents.',
+    features: [
+      'Natural conversation',
+      'Appointment scheduling',
+      'CRM integration',
+      'Multi-language support',
+      '24/7 availability',
+      'Call recording & transcription',
+    ],
+    useCases: [
+      'Customer support hotline',
+      'Sales qualification calls',
+      'Appointment reminders',
+      'Feedback surveys',
+    ],
+    beforeAfter: {
+      before: 'Missed calls, voicemail tag',
+      after: '100% answer rate, instant qualification',
     },
   },
   {
@@ -401,4 +427,3 @@ export default function Services(): JSX.Element {
     </>
   );
 }
-

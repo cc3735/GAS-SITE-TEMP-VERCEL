@@ -209,6 +209,7 @@ export default function Layout(): JSX.Element {
               <ul className="space-y-3 text-slate-400">
                 <li><Link to="/services" className="hover:text-white transition-colors">Email Automation</Link></li>
                 <li><Link to="/services" className="hover:text-white transition-colors">Chatbot Development</Link></li>
+                <li><Link to="/services" className="hover:text-white transition-colors">AI Voice Agents</Link></li>
                 <li><Link to="/services" className="hover:text-white transition-colors">Data Entry Automation</Link></li>
                 <li><Link to="/services" className="hover:text-white transition-colors">N8N Workflows</Link></li>
                 <li><Link to="/services" className="hover:text-white transition-colors">Custom AI Solutions</Link></li>
