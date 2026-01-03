@@ -123,6 +123,11 @@ export default function DashboardLayout() {
 
   // Build navigation based on permissions
   const navigation = baseNavigation.filter(item => {
+    // Hide "Mission Control" when in GAS organization (not impersonating)
+    // GAS admins should use "GAS Mission Control" instead, which allows impersonation
+    if (item.href === '/mission-control' && isMasterContext && !permissions.isImpersonating) {
+      return false;
+    }
     if (item.requiresPermission) {
       return permissions[item.requiresPermission] !== false;
     }
