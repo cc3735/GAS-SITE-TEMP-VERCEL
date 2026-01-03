@@ -19,9 +19,18 @@ import {
   XCircle,
   Clock,
   Zap,
+  Mail,
+  Plus,
+  X,
+  Loader2,
+  Send,
+  RefreshCw,
+  Trash2,
+  UserPlus,
 } from 'lucide-react';
 import { useOrganization, Organization } from '../contexts/OrganizationContext';
 import { usePermissions } from '../hooks/usePermissions';
+import { useInvitations } from '../hooks/useInvitations';
 
 // Mock data for demonstration - in production this would come from aggregated queries
 const MOCK_ORG_STATS: Record<string, { agents: number; conversations: number; leads: number; revenue: number }> = {
@@ -135,6 +144,187 @@ const AgentStatusRow: React.FC<{ agent: typeof MOCK_AGENT_STATUS[0] }> = ({ agen
         </span>
       </div>
     </div>
+  );
+};
+
+// Invitation Management Section Component
+const InvitationSection: React.FC<{ tenantOrgs: Organization[] }> = ({ tenantOrgs }) => {
+  const { invitations, loading, sendInvitation, cancelInvitation, resendInvitation } = useInvitations();
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteRole, setInviteRole] = useState('member');
+  const [inviteOrgId, setInviteOrgId] = useState('');
+  const [sending, setSending] = useState(false);
+  const [inviteError, setInviteError] = useState<string | null>(null);
+
+  const pendingInvitations = invitations.filter(inv => !inv.accepted_at && new Date(inv.expires_at) > new Date());
+
+  const handleSendInvitation = async () => {
+    if (!inviteEmail || !inviteOrgId) return;
+    
+    setSending(true);
+    setInviteError(null);
+    
+    const result = await sendInvitation(inviteEmail, inviteRole, inviteOrgId);
+    
+    if (result.success) {
+      setShowInviteModal(false);
+      setInviteEmail('');
+      setInviteRole('member');
+      setInviteOrgId('');
+    } else {
+      setInviteError(result.error || 'Failed to send invitation');
+    }
+    
+    setSending(false);
+  };
+
+  return (
+    <>
+      <div className="bg-surface rounded-lg border border-border">
+        <div className="p-4 border-b border-border flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-primary flex items-center gap-2">
+            <Mail className="w-5 h-5 text-accent" />
+            Invitations
+          </h2>
+          <button
+            onClick={() => setShowInviteModal(true)}
+            className="flex items-center gap-1 px-3 py-1.5 bg-accent hover:bg-accent-hover text-accent-foreground text-sm rounded transition"
+          >
+            <UserPlus className="w-4 h-4" />
+            Invite
+          </button>
+        </div>
+        <div className="p-4 max-h-64 overflow-y-auto">
+          {loading ? (
+            <div className="flex items-center justify-center py-4">
+              <Loader2 className="w-5 h-5 animate-spin text-accent" />
+            </div>
+          ) : pendingInvitations.length > 0 ? (
+            <div className="space-y-3">
+              {pendingInvitations.slice(0, 5).map(inv => (
+                <div key={inv.id} className="flex items-center justify-between py-2 border-b border-border last:border-0">
+                  <div>
+                    <p className="text-sm font-medium text-primary">{inv.email}</p>
+                    <p className="text-xs text-subtle">
+                      {inv.organization?.name} · <span className="capitalize">{inv.role}</span>
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => resendInvitation(inv.id)}
+                      className="p-1.5 text-subtle hover:text-accent rounded hover:bg-surface-hover"
+                      title="Resend"
+                    >
+                      <RefreshCw className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => cancelInvitation(inv.id)}
+                      className="p-1.5 text-subtle hover:text-red-500 rounded hover:bg-red-50 dark:hover:bg-red-900/20"
+                      title="Cancel"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-6 text-subtle">
+              <Mail className="w-8 h-8 mx-auto mb-2 opacity-50" />
+              <p className="text-sm">No pending invitations</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Invite Modal */}
+      {showInviteModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[70] p-4">
+          <div className="bg-surface rounded-xl shadow-xl max-w-md w-full p-6 border border-border">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-primary">Invite User</h2>
+              <button onClick={() => setShowInviteModal(false)} className="text-subtle hover:text-primary">
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-secondary mb-2">Organization</label>
+                <select
+                  value={inviteOrgId}
+                  onChange={(e) => setInviteOrgId(e.target.value)}
+                  className="w-full px-4 py-2 border border-border bg-surface text-primary rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent outline-none"
+                >
+                  <option value="">Select organization...</option>
+                  {tenantOrgs.map(org => (
+                    <option key={org.id} value={org.id}>{org.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-secondary mb-2">Email Address</label>
+                <input
+                  type="email"
+                  value={inviteEmail}
+                  onChange={(e) => setInviteEmail(e.target.value)}
+                  placeholder="user@example.com"
+                  className="w-full px-4 py-2 border border-border bg-surface text-primary rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-secondary mb-2">Role</label>
+                <select
+                  value={inviteRole}
+                  onChange={(e) => setInviteRole(e.target.value)}
+                  className="w-full px-4 py-2 border border-border bg-surface text-primary rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent outline-none"
+                >
+                  <option value="viewer">Viewer</option>
+                  <option value="member">Member</option>
+                  <option value="admin">Admin</option>
+                  <option value="owner">Owner</option>
+                </select>
+              </div>
+
+              {inviteError && (
+                <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-500 text-sm">
+                  {inviteError}
+                </div>
+              )}
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  onClick={() => setShowInviteModal(false)}
+                  className="flex-1 px-4 py-2 border border-border text-secondary rounded-lg hover:bg-surface-hover transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSendInvitation}
+                  disabled={sending || !inviteEmail || !inviteOrgId}
+                  className="flex-1 px-4 py-2 bg-accent hover:bg-accent-hover text-accent-foreground rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {sending ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4" />
+                      Send Invitation
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 
@@ -342,6 +532,11 @@ export default function GasAdminMissionControl() {
                   </div>
                 )}
               </div>
+            </div>
+
+            {/* Invitations Section */}
+            <div className="mt-4">
+              <InvitationSection tenantOrgs={tenantOrgs} />
             </div>
 
             {/* Quick Actions */}

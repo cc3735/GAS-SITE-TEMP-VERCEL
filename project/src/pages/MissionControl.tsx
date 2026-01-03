@@ -18,9 +18,12 @@ import {
   Instagram,
   Search,
   Filter,
-  AlertCircle
+  AlertCircle,
+  Server,
+  CheckCircle
 } from 'lucide-react';
 import { useOrganization } from '../contexts/OrganizationContext';
+import { useMCPServers } from '../hooks/useMCPServers';
 import MissionControlAnalytics from '../components/MissionControlAnalytics';
 
 // ============================================================
@@ -213,6 +216,100 @@ const AgentCardComponent: React.FC<{ agent: AgentCard }> = ({ agent }) => {
   );
 };
 
+// MCP Servers Section Component
+const MCPServersSection: React.FC = () => {
+  const { servers, loading, toggleServer } = useMCPServers();
+
+  if (loading) {
+    return (
+      <div className="bg-surface rounded-lg border border-border p-6 shadow-sm">
+        <h3 className="text-sm font-semibold text-primary mb-4 flex items-center">
+          <Server size={16} className="mr-2 text-accent" /> MCP Servers
+        </h3>
+        <div className="flex items-center justify-center py-8">
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-accent"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (servers.length === 0) {
+    return (
+      <div className="bg-surface rounded-lg border border-border p-6 shadow-sm">
+        <h3 className="text-sm font-semibold text-primary mb-4 flex items-center">
+          <Server size={16} className="mr-2 text-accent" /> MCP Servers
+        </h3>
+        <div className="text-center py-6 text-secondary">
+          <Server size={32} className="mx-auto mb-2 opacity-50" />
+          <p className="text-sm">No MCP servers configured for your organization.</p>
+          <p className="text-xs text-subtle mt-1">Contact your administrator to set up servers.</p>
+        </div>
+      </div>
+    );
+  }
+
+  const getHealthColor = (status: string) => {
+    return status === 'healthy' ? 'text-green-500' : 'text-red-500';
+  };
+
+  const HealthIcon = ({ status }: { status: string }) => {
+    return status === 'healthy' 
+      ? <CheckCircle size={14} className="text-green-500" />
+      : <AlertCircle size={14} className="text-red-500" />;
+  };
+
+  return (
+    <div className="bg-surface rounded-lg border border-border p-4 shadow-sm">
+      <h3 className="text-sm font-semibold text-primary mb-4 flex items-center">
+        <Server size={16} className="mr-2 text-accent" /> MCP Servers
+      </h3>
+      <div className="space-y-3">
+        {servers.map((server) => (
+          <div 
+            key={server.id} 
+            className="flex items-center justify-between p-3 bg-surface-hover rounded-lg border border-border"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg flex items-center justify-center">
+                <Server size={14} className="text-white" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="font-medium text-primary text-sm">{server.name}</span>
+                  <HealthIcon status={server.health_status} />
+                </div>
+                <span className="text-xs text-subtle">{server.server_type}</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className={`text-xs px-2 py-0.5 rounded ${
+                server.status === 'active' 
+                  ? 'bg-green-500/10 text-green-600' 
+                  : 'bg-gray-500/10 text-gray-500'
+              }`}>
+                {server.status}
+              </span>
+              <button
+                onClick={() => toggleServer(server.id)}
+                className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+                  server.is_enabled !== false ? 'bg-green-600' : 'bg-gray-300 dark:bg-gray-600'
+                }`}
+                title={server.is_enabled !== false ? 'Disable server' : 'Enable server'}
+              >
+                <span
+                  className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
+                    server.is_enabled !== false ? 'translate-x-5' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 // Command Center Tab Content
 const CommandCenterTab: React.FC = () => {
   const activeAgents = MOCK_AGENTS.filter(a => a.status === 'active' || a.status === 'processing').length;
@@ -248,6 +345,9 @@ const CommandCenterTab: React.FC = () => {
           ))}
         </div>
       </section>
+
+      {/* MCP Servers Section */}
+      <MCPServersSection />
 
       {/* Live Interactions */}
       <div className="bg-surface rounded-lg border border-border p-4 shadow-sm">

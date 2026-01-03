@@ -592,6 +592,192 @@ if (process.env.DEBUG_INTEGRATION) {
 
 ---
 
+## Permission System
+
+### Role-Based Access Control
+
+The platform uses a role-based permission system:
+
+| Role | Description | Capabilities |
+|------|-------------|--------------|
+| **owner** | Organization owner | Full access, billing, delete org |
+| **admin** | Organization admin | Manage members, configure apps |
+| **member** | Regular member | Use features, create content |
+| **viewer** | Read-only access | View dashboards, reports |
+
+### Permission Hook Integration
+
+```typescript
+import { usePermissions } from '../hooks/usePermissions';
+
+function MyComponent() {
+  const { 
+    isMasterAdmin, 
+    canViewBusinessApps, 
+    canConfigureMcpServers,
+    isViewer 
+  } = usePermissions();
+  
+  // Check master admin status (gasweb.info users)
+  if (isMasterAdmin) {
+    // Show admin features
+  }
+  
+  // Check MCP configuration permission
+  if (canConfigureMcpServers) {
+    // Show "Add Server" button
+  }
+  
+  // Read-only for viewers
+  if (isViewer) {
+    // Hide edit buttons
+  }
+}
+```
+
+### Master Admin Impersonation
+
+GAS master admins can impersonate client organizations:
+
+```typescript
+import { useOrganization } from '../contexts/OrganizationContext';
+
+function ImpersonationHandler() {
+  const { 
+    impersonateOrganization, 
+    stopImpersonating, 
+    isImpersonating 
+  } = useOrganization();
+  
+  // Start impersonating
+  await impersonateOrganization(targetOrgId);
+  
+  // Stop impersonating
+  stopImpersonating();
+}
+```
+
+## Organization Invitations
+
+### Sending Invitations
+
+```typescript
+import { useInvitations } from '../hooks/useInvitations';
+
+function InviteUser() {
+  const { sendInvitation, loading, error } = useInvitations();
+  
+  const handleInvite = async (email: string, role: string) => {
+    await sendInvitation(email, role);
+    // User receives email with invitation link
+  };
+}
+```
+
+### Accepting Invitations
+
+```typescript
+import { useInvitations } from '../hooks/useInvitations';
+
+function AcceptInvitation({ token }: { token: string }) {
+  const { acceptInvitation } = useInvitations();
+  
+  const handleAccept = async () => {
+    const result = await acceptInvitation(token);
+    // User is now a member of the organization
+    // Redirect to dashboard
+  };
+}
+```
+
+### Domain Auto-Join
+
+Organizations can enable domain-based auto-join:
+
+```typescript
+// Update organization settings
+await supabase
+  .from('organizations')
+  .update({ 
+    domain_auto_join_enabled: true,
+    allowed_domains: ['company.com', 'company.org']
+  })
+  .eq('id', orgId);
+```
+
+When a new user signs up with a matching email domain, they are automatically added to the organization as a member.
+
+## MCP Server Management
+
+### Configuration (Admin Only)
+
+Only GAS master admins can configure MCP servers:
+
+```typescript
+import { useMCPServers } from '../hooks/useMCPServers';
+import { usePermissions } from '../hooks/usePermissions';
+
+function MCPServerConfig() {
+  const { createServer, updateServer, deleteServer } = useMCPServers();
+  const { canConfigureMcpServers } = usePermissions();
+  
+  if (!canConfigureMcpServers) {
+    return <ReadOnlyView />;
+  }
+  
+  // Full configuration UI
+  return <ConfigurationUI />;
+}
+```
+
+### Client Toggles
+
+Clients can enable/disable MCP servers in their Mission Control:
+
+```typescript
+import { useMCPServers } from '../hooks/useMCPServers';
+
+function MCPToggles() {
+  const { servers, toggleServer } = useMCPServers();
+  
+  return servers.map(server => (
+    <ToggleSwitch
+      key={server.id}
+      enabled={server.enabled}
+      onChange={() => toggleServer(server.id, !server.enabled)}
+    />
+  ));
+}
+```
+
+## Navigation Structure
+
+### Merged Pages
+
+The navigation uses tabbed pages for related features:
+
+| Page | Contains | Route |
+|------|----------|-------|
+| **Lead Engagement** | Intake Engine, Nudge Campaigns | `/lead-engagement` |
+| **AI Infrastructure** | AI Agents, MCP Servers | `/ai-infrastructure` |
+
+### Role-Based Navigation
+
+Navigation items are filtered based on user role:
+
+```typescript
+// GAS admins see:
+// - GAS Mission Control
+// - GAS Admin Settings
+// - Business Apps
+
+// Regular users see:
+// - Mission Control (with MCP toggles)
+// - No Business Apps section
+```
+
+---
+
 ## Related Documentation
 
 - [Deployment Strategy](./DEPLOYMENT_STRATEGY.md)

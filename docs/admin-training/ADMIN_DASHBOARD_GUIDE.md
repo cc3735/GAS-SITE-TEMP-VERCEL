@@ -6,16 +6,27 @@ Complete guide for administrators managing the AI-Operating platform.
 
 The Admin Dashboard provides centralized control over:
 - Organizations and users
+- Organization invitations and domain auto-join
 - Business app instances
+- MCP server configuration
 - System health monitoring
 - Analytics and reporting
 - Configuration management
 
+## GAS Admin Access
+
+GAS administrators (users with `@gasweb.info` email domains) have elevated privileges:
+
+- **GAS Mission Control**: View and impersonate any client organization
+- **GAS Admin Settings**: Configure per-organization visibility and domain settings
+- **Business Apps**: Exclusive access to business application management
+- **MCP Server Configuration**: Only GAS admins can add/configure MCP servers
+
 ## Accessing the Dashboard
 
-1. Log in at `https://admin.your-domain.com`
-2. Use admin credentials
-3. Complete 2FA verification (if enabled)
+1. Log in at `https://app.your-domain.com`
+2. Use your `@gasweb.info` credentials
+3. You'll automatically see the GAS admin navigation items
 
 ## Dashboard Layout
 
@@ -78,6 +89,32 @@ The Admin Dashboard provides centralized control over:
 4. Owner receives invitation email
 
 ### Managing Organizations
+
+#### Inviting Users to an Organization
+
+1. Go to **GAS Mission Control**
+2. Find the organization in the list
+3. Click **Invite User** button
+4. Enter the user's email address
+5. Select their role (Member, Admin, Owner, or Viewer)
+6. Click **Send Invitation**
+7. User receives an email with an invitation link
+8. When they click the link and sign up, they're automatically added to the organization
+
+#### Domain Auto-Join Configuration
+
+Allow users to automatically join an organization based on their email domain:
+
+1. Go to **GAS Admin Settings**
+2. Find the organization card
+3. Click **Domain Auto-Join** section
+4. Toggle **Enable Domain Auto-Join** on
+5. Add allowed email domains (e.g., `example.com`, `company.org`)
+6. Click **Save Domain Settings**
+
+When a user signs up with an email matching any allowed domain, they'll automatically become a member of the organization.
+
+**Note:** Domain auto-join is opt-in per organization and must be explicitly enabled.
 
 #### Edit Organization
 
@@ -304,6 +341,61 @@ The Admin Dashboard provides centralized control over:
 3. Log in as that user
 4. Click banner to exit
 
+## Organization Impersonation (GAS Mission Control)
+
+GAS administrators can impersonate any organization to provide support:
+
+### Impersonating an Organization
+
+1. Go to **GAS Mission Control**
+2. Find the target organization in the list
+3. Click **Impersonate** button
+4. The sidebar will show a blue banner indicating impersonation mode
+5. You can now view and manage the organization's data
+
+### While Impersonating
+
+- All actions you take affect the impersonated organization
+- Navigation shows the client's available features (not GAS admin features)
+- The impersonation banner shows which organization you're viewing
+- Click **Exit Impersonation** to return to GAS admin view
+
+### Visibility Controls
+
+Configure what GAS admins can see when viewing a client organization:
+
+1. Go to **GAS Admin Settings**
+2. Find the organization card
+3. Toggle visibility options:
+   - **Unified Inbox**: View customer conversations
+   - **Business Apps**: View app configurations
+   - **AI Agents**: View agent setups
+   - **MCP Servers**: View server connections
+   - **Analytics**: View performance data
+   - **CRM Data**: View customer information
+4. Enable **PII Masking** to hide sensitive data when viewing
+
+## MCP Server Management
+
+### Adding MCP Servers (GAS Admins Only)
+
+1. Go to **AI Infrastructure** tab
+2. Click **MCP Servers** tab
+3. Click **Add Server**
+4. Configure server details
+5. Save configuration
+
+### Client MCP Server Toggles
+
+Clients can enable/disable MCP servers in their **Mission Control**:
+
+1. Client goes to **Mission Control**
+2. Navigate to **Command Center** tab
+3. Find **MCP Server Toggles** section
+4. Toggle servers on/off as needed
+
+**Note:** Clients cannot add or configure servers—only GAS admins can do that.
+
 ## Analytics
 
 ### Dashboard Metrics
@@ -435,6 +527,44 @@ Access logs for:
 4. Apply fix or escalate
 5. Update ticket
 6. Follow up with customer
+
+## Navigation Structure
+
+### GAS Admin Navigation
+
+When logged in as a GAS admin (`@gasweb.info`), you see:
+
+| Section | Description |
+|---------|-------------|
+| **Dashboard** | Overview and quick actions |
+| **GAS Mission Control** | Organization impersonation & management |
+| **GAS Admin Settings** | Per-org configuration & domain settings |
+| **Lead Engagement** | Intake Engine + Nudge Campaigns (tabbed) |
+| **AI Infrastructure** | AI Agents + MCP Servers (tabbed) |
+| **Business Apps** | Application management (GAS-only) |
+| **Projects** | Project management |
+| **CRM** | Customer relationship management |
+| **Marketing** | Campaign management |
+| **Social Media** | Social content management |
+| **Analytics** | Performance metrics |
+
+### Client Navigation
+
+Regular users see a simplified navigation:
+
+| Section | Description |
+|---------|-------------|
+| **Dashboard** | Overview and quick actions |
+| **Mission Control** | Command center with MCP toggles |
+| **Lead Engagement** | Intake Engine + Nudge Campaigns |
+| **AI Infrastructure** | AI Agents + MCP Servers (view-only for MCP config) |
+| **Projects** | Project management |
+| **CRM** | Customer relationship management |
+| **Marketing** | Campaign management |
+| **Social Media** | Social content management |
+| **Analytics** | Performance metrics |
+
+**Note:** Clients do NOT see Business Apps or GAS admin features.
 
 ## Keyboard Shortcuts
 

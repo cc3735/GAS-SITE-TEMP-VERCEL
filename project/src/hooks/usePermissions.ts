@@ -20,6 +20,7 @@ export interface Permissions {
   canViewBusinessApps: boolean;
   canViewAiAgents: boolean;
   canViewMcpServers: boolean;
+  canConfigureMcpServers: boolean; // GAS admin only - full CRUD on MCP servers
   canViewAnalytics: boolean;
   canViewCrm: boolean;
   piiMaskingEnabled: boolean;
@@ -46,6 +47,7 @@ const defaultPermissions: Permissions = {
   canViewBusinessApps: false,
   canViewAiAgents: false,
   canViewMcpServers: false,
+  canConfigureMcpServers: false,
   canViewAnalytics: false,
   canViewCrm: false,
   piiMaskingEnabled: true,
@@ -103,9 +105,8 @@ export function usePermissions(): Permissions {
       ? config.can_view_unified_inbox 
       : true; // Regular org members can always view their own inbox
     
-    const canViewBusinessApps = isMasterAdmin 
-      ? config.can_view_business_apps 
-      : true;
+    // Business Apps is GAS admin only feature - clients cannot see it
+    const canViewBusinessApps = isMasterAdmin && config.can_view_business_apps;
     
     const canViewAiAgents = isMasterAdmin 
       ? config.can_view_ai_agents 
@@ -114,6 +115,10 @@ export function usePermissions(): Permissions {
     const canViewMcpServers = isMasterAdmin 
       ? config.can_view_mcp_servers 
       : true;
+    
+    // Only GAS admins can configure MCP servers (add/edit/delete)
+    // Regular users can only toggle servers on/off in Mission Control
+    const canConfigureMcpServers = isMasterAdmin && !isImpersonating;
     
     const canViewAnalytics = isMasterAdmin 
       ? config.can_view_analytics 
@@ -141,6 +146,7 @@ export function usePermissions(): Permissions {
       canViewBusinessApps,
       canViewAiAgents,
       canViewMcpServers,
+      canConfigureMcpServers,
       canViewAnalytics,
       canViewCrm,
       piiMaskingEnabled: config.pii_masking_enabled,

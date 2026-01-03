@@ -16,6 +16,11 @@ import {
   Lock,
   CheckCircle,
   AlertTriangle,
+  Globe,
+  Plus,
+  X,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import { useOrganization, Organization, OrganizationConfig } from '../contexts/OrganizationContext';
 import { usePermissions } from '../hooks/usePermissions';
@@ -65,14 +70,20 @@ const VisibilityToggle: React.FC<VisibilityToggleProps> = ({
 );
 
 interface OrgConfigCardProps {
-  org: Organization;
+  org: Organization & { domain_auto_join_enabled?: boolean; allowed_domains?: string[] };
   onSave: (orgId: string, config: OrganizationConfig) => Promise<void>;
+  onSaveDomainSettings: (orgId: string, enabled: boolean, domains: string[]) => Promise<void>;
 }
 
-const OrgConfigCard: React.FC<OrgConfigCardProps> = ({ org, onSave }) => {
+const OrgConfigCard: React.FC<OrgConfigCardProps> = ({ org, onSave, onSaveDomainSettings }) => {
   const [config, setConfig] = useState<OrganizationConfig>(org.config);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [showDomainSettings, setShowDomainSettings] = useState(false);
+  const [domainAutoJoinEnabled, setDomainAutoJoinEnabled] = useState(org.domain_auto_join_enabled || false);
+  const [allowedDomains, setAllowedDomains] = useState<string[]>(org.allowed_domains || []);
+  const [newDomain, setNewDomain] = useState('');
+  const [domainSaving, setDomainSaving] = useState(false);
 
   const handleSave = async () => {
     setSaving(true);
@@ -85,7 +96,31 @@ const OrgConfigCard: React.FC<OrgConfigCardProps> = ({ org, onSave }) => {
     }
   };
 
+  const handleSaveDomainSettings = async () => {
+    setDomainSaving(true);
+    try {
+      await onSaveDomainSettings(org.id, domainAutoJoinEnabled, allowedDomains);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } finally {
+      setDomainSaving(false);
+    }
+  };
+
+  const handleAddDomain = () => {
+    if (newDomain && !allowedDomains.includes(newDomain.toLowerCase())) {
+      setAllowedDomains([...allowedDomains, newDomain.toLowerCase()]);
+      setNewDomain('');
+    }
+  };
+
+  const handleRemoveDomain = (domain: string) => {
+    setAllowedDomains(allowedDomains.filter(d => d !== domain));
+  };
+
   const hasChanges = JSON.stringify(config) !== JSON.stringify(org.config);
+  const hasDomainChanges = domainAutoJoinEnabled !== (org.domain_auto_join_enabled || false) ||
+    JSON.stringify(allowedDomains) !== JSON.stringify(org.allowed_domains || []);
 
   return (
     <div className="bg-surface rounded-lg border border-border overflow-hidden">
@@ -183,6 +218,115 @@ const OrgConfigCard: React.FC<OrgConfigCardProps> = ({ org, onSave }) => {
             onChange={(enabled) => setConfig({ ...config, pii_masking_enabled: enabled })}
           />
         </div>
+
+        {/* Domain Auto-Join Settings */}
+        <div className="border-t border-border pt-4 mt-4">
+          <button
+            onClick={() => setShowDomainSettings(!showDomainSettings)}
+            className="w-full flex items-center justify-between p-3 bg-surface-hover rounded-lg hover:bg-border transition"
+          >
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-surface rounded-lg">
+                <Globe className="w-5 h-5 text-green-500" />
+              </div>
+              <div className="text-left">
+                <p className="font-medium text-primary">Domain Auto-Join</p>
+                <p className="text-sm text-subtle">
+                  {domainAutoJoinEnabled 
+                    ? `Enabled for ${allowedDomains.length} domain(s)` 
+                    : 'Disabled'}
+                </p>
+              </div>
+            </div>
+            {showDomainSettings ? (
+              <ChevronUp className="w-5 h-5 text-subtle" />
+            ) : (
+              <ChevronDown className="w-5 h-5 text-subtle" />
+            )}
+          </button>
+
+          {showDomainSettings && (
+            <div className="mt-3 p-4 bg-surface-hover rounded-lg space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-primary">Enable Domain Auto-Join</p>
+                  <p className="text-xs text-subtle">Users with matching email domains will auto-join this organization</p>
+                </div>
+                <button
+                  onClick={() => setDomainAutoJoinEnabled(!domainAutoJoinEnabled)}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                    domainAutoJoinEnabled ? 'bg-green-500' : 'bg-border'
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      domainAutoJoinEnabled ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+              </div>
+
+              {domainAutoJoinEnabled && (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-secondary mb-2">Allowed Domains</label>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={newDomain}
+                        onChange={(e) => setNewDomain(e.target.value)}
+                        placeholder="example.com"
+                        className="flex-1 px-3 py-2 border border-border bg-surface text-primary rounded-lg text-sm focus:ring-2 focus:ring-accent focus:border-transparent outline-none"
+                        onKeyDown={(e) => e.key === 'Enter' && handleAddDomain()}
+                      />
+                      <button
+                        onClick={handleAddDomain}
+                        disabled={!newDomain}
+                        className="px-3 py-2 bg-accent hover:bg-accent-hover text-accent-foreground rounded-lg text-sm transition disabled:opacity-50"
+                      >
+                        <Plus className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {allowedDomains.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {allowedDomains.map(domain => (
+                        <span
+                          key={domain}
+                          className="inline-flex items-center gap-1 px-2 py-1 bg-green-500/10 text-green-600 text-sm rounded"
+                        >
+                          @{domain}
+                          <button
+                            onClick={() => handleRemoveDomain(domain)}
+                            className="hover:text-red-500"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
+
+              {hasDomainChanges && (
+                <button
+                  onClick={handleSaveDomainSettings}
+                  disabled={domainSaving}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm transition disabled:opacity-50"
+                >
+                  {domainSaving ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Save className="w-4 h-4" />
+                  )}
+                  Save Domain Settings
+                </button>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -211,6 +355,23 @@ export default function GasAdminSettings() {
     }
 
     // Refresh organizations to get updated config
+    await refetchOrganizations();
+  };
+
+  const handleSaveDomainSettings = async (orgId: string, enabled: boolean, domains: string[]) => {
+    const { error } = await supabase
+      .from('organizations')
+      .update({ 
+        domain_auto_join_enabled: enabled,
+        allowed_domains: domains 
+      })
+      .eq('id', orgId);
+
+    if (error) {
+      console.error('Error saving domain settings:', error);
+      throw error;
+    }
+
     await refetchOrganizations();
   };
 
@@ -316,8 +477,9 @@ export default function GasAdminSettings() {
             tenantOrgs.map(org => (
               <OrgConfigCard
                 key={org.id}
-                org={org}
+                org={org as any}
                 onSave={handleSaveOrgConfig}
+                onSaveDomainSettings={handleSaveDomainSettings}
               />
             ))
           ) : (

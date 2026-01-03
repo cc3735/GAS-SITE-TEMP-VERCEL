@@ -13,6 +13,7 @@ interface MCPServer {
   health_status: string;
   version: string | null;
   capabilities: any;
+  is_enabled: boolean;
   created_at: string;
 }
 
@@ -93,6 +94,7 @@ export function useMCPServers() {
           status: 'active',
           health_status: 'healthy',
           capabilities: {},
+          is_enabled: true,
           created_by: user.id,
         })
         .select()
@@ -106,5 +108,34 @@ export function useMCPServers() {
     }
   };
 
-  return { servers, loading, createServer, refetch: fetchServers };
+  const toggleServer = async (serverId: string) => {
+    const server = servers.find(s => s.id === serverId);
+    if (!server) return;
+
+    const newEnabledState = !server.is_enabled;
+    
+    // Optimistic update
+    setServers(prev => prev.map(s => 
+      s.id === serverId ? { ...s, is_enabled: newEnabledState } : s
+    ));
+
+    try {
+      const { error } = await supabase
+        .from('mcp_servers')
+        .update({ is_enabled: newEnabledState })
+        .eq('id', serverId);
+
+      if (error) {
+        // Revert on error
+        setServers(prev => prev.map(s => 
+          s.id === serverId ? { ...s, is_enabled: !newEnabledState } : s
+        ));
+        throw error;
+      }
+    } catch (error) {
+      console.error('Error toggling MCP server:', error);
+    }
+  };
+
+  return { servers, loading, createServer, toggleServer, refetch: fetchServers };
 }

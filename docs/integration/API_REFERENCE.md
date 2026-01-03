@@ -92,6 +92,120 @@ POST /api/organizations
 
 ---
 
+### Organization Invitations
+
+#### List Pending Invitations
+
+```http
+GET /api/invitations
+```
+
+**Query Parameters:**
+| Name | Type | Description |
+|------|------|-------------|
+| `organization_id` | string | Filter by organization |
+
+**Response:**
+```json
+{
+  "invitations": [
+    {
+      "id": "uuid",
+      "organization_id": "uuid",
+      "invited_email": "user@example.com",
+      "role": "member",
+      "expires_at": "2024-01-22T10:00:00Z",
+      "created_at": "2024-01-15T10:00:00Z",
+      "created_by": "admin@gasweb.info"
+    }
+  ]
+}
+```
+
+#### Send Invitation
+
+```http
+POST /api/invitations
+```
+
+**Request:**
+```json
+{
+  "organization_id": "uuid",
+  "email": "newuser@example.com",
+  "role": "member"
+}
+```
+
+**Response:**
+```json
+{
+  "id": "uuid",
+  "invitation_token": "secure-token",
+  "invitation_link": "https://app.domain.com/invite/accept?token=secure-token",
+  "expires_at": "2024-01-22T10:00:00Z"
+}
+```
+
+#### Accept Invitation
+
+```http
+POST /api/invitations/:token/accept
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "organization_id": "uuid",
+  "organization_name": "Acme Corp",
+  "role": "member"
+}
+```
+
+#### Revoke Invitation
+
+```http
+DELETE /api/invitations/:id
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Invitation revoked"
+}
+```
+
+---
+
+### Domain Auto-Join
+
+#### Update Domain Settings
+
+```http
+PATCH /api/organizations/:id/domain-settings
+```
+
+**Request:**
+```json
+{
+  "domain_auto_join_enabled": true,
+  "allowed_domains": ["example.com", "company.org"]
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "domain_auto_join_enabled": true,
+  "allowed_domains": ["example.com", "company.org"]
+}
+```
+
+---
+
 ### App Instances
 
 #### List App Instances
@@ -700,6 +814,61 @@ curl -X POST 'https://food.your-domain.com/api/orders' \
   -H "Authorization: Bearer $TOKEN" \
   -H 'Content-Type: application/json' \
   -d '{"customer_name":"John","items":[{"menu_item_id":"uuid","quantity":1}]}'
+```
+
+---
+
+## Supabase Edge Functions
+
+### send-invitation
+
+Sends organization invitation emails using the Resend API.
+
+**Endpoint:**
+```http
+POST /functions/v1/send-invitation
+```
+
+**Headers:**
+```http
+Authorization: Bearer <supabase-jwt-token>
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "to": "user@example.com",
+  "organizationName": "Acme Corp",
+  "invitationToken": "uuid-token-here",
+  "invitedByEmail": "admin@gasweb.info"
+}
+```
+
+**Response (Success):**
+```json
+{
+  "id": "resend-email-id"
+}
+```
+
+**Response (Error):**
+```json
+{
+  "error": "Missing RESEND_API_KEY environment variable"
+}
+```
+
+**Required Environment Variables:**
+| Variable | Description |
+|----------|-------------|
+| `RESEND_API_KEY` | Your Resend API key |
+| `SUPABASE_URL` | Your Supabase project URL |
+
+**Deployment:**
+```bash
+supabase functions deploy send-invitation
+supabase secrets set RESEND_API_KEY=your_resend_api_key
 ```
 
 ---

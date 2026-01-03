@@ -248,10 +248,31 @@ npm run dev  # Starts on port 3003
 
 ## ⚡ Core Features
 
-### AI Agent Management
-- Voice agents for customer calls
-- Chat agents for support
-- Task automation agents
+### Organization Management
+- **Email Invitations**: GAS admins can invite users via email with secure tokens
+- **Domain Auto-Join**: Organizations can opt-in to auto-join users by email domain
+- **Master Admin Impersonation**: gasweb.info users can impersonate any organization
+- **Role-Based Access**: Owner, Admin, Member, Viewer roles with granular permissions
+
+### Lead Engagement (Merged Section)
+- **Intake Engine**: Lead capture and qualification workflows
+- **Nudge Campaigns**: Automated follow-up and re-engagement campaigns
+- Tabbed interface combining both features
+
+### AI Infrastructure (Merged Section)
+- **AI Agents**: Voice, chat, and task automation agents with playground testing
+- **MCP Servers**: Model Context Protocol server management
+- GAS admins configure servers; clients enable/disable via Mission Control
+
+### Mission Control
+- Client-facing command center dashboard
+- MCP server toggle switches for enabling/disabling servers
+- Real-time status monitoring and quick actions
+
+### GAS Admin Features (gasweb.info only)
+- **GAS Mission Control**: Organization impersonation & management
+- **GAS Admin Settings**: Per-org visibility configuration & domain auto-join
+- **Business Apps**: Application management (exclusive to GAS admins)
 
 ### CRM System
 - Contact & company management
@@ -269,16 +290,6 @@ npm run dev  # Starts on port 3003
 - Real-time notifications
 - Message threading
 
-### Business Apps Hub
-- App instance management
-- Centralized configuration
-- Usage analytics
-
-### Admin Dashboard
-- Cross-organization view
-- System health monitoring
-- Event audit logs
-
 ---
 
 ## 🗃️ Database Schema
@@ -287,18 +298,32 @@ Key tables (see `supabase/migrations/` for full schema):
 
 | Table | Purpose |
 |-------|---------|
-| `organizations` | Multi-tenant organization management |
+| `organizations` | Multi-tenant organization management with domain auto-join settings |
+| `organization_members` | User-organization relationships with roles (owner/admin/member/viewer) |
+| `organization_invitations` | Email invitation tokens with expiration and acceptance tracking |
 | `user_profiles` | User settings and preferences |
 | `business_apps` | App catalog |
 | `app_instances` | Per-org app deployments |
 | `app_configurations` | Instance-specific settings |
 | `app_sync_logs` | Data sync history |
+| `mcp_servers` | MCP server configurations per organization |
+
+### Key Organization Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `is_master` | boolean | True for GAS master organization |
+| `domain` | text | Organization's primary domain |
+| `domain_auto_join_enabled` | boolean | Enable/disable domain-based auto-join |
+| `allowed_domains` | text[] | Array of email domains for auto-join |
+| `config` | jsonb | Visibility settings for GAS admin impersonation |
 
 ### Row Level Security (RLS)
 
 All tables implement RLS policies ensuring:
 - Users can only access their organization's data
-- Public read access where appropriate
+- Master admins (gasweb.info) can access all organizations when impersonating
+- Helper functions (`get_user_org_ids`, `is_master_admin`) prevent circular policy dependencies
 - Admin-only write access for sensitive operations
 
 ---

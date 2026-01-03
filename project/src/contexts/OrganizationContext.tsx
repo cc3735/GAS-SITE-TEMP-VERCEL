@@ -54,6 +54,7 @@ interface OrganizationContextType {
   currentOrganization: Organization | null;
   memberRole: string | null;
   loading: boolean;
+  error: string | null;
   
   // Master org & impersonation
   isMasterContext: boolean;
@@ -92,6 +93,7 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
   const [currentOrganization, setCurrentOrganization] = useState<Organization | null>(null);
   const [memberRole, setMemberRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   
   // Impersonation state
   const [impersonatedOrganizationId, setImpersonatedOrgId] = useState<string | null>(null);
@@ -108,12 +110,16 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
     : currentOrganization;
 
   const createDefaultOrganization = async (): Promise<Organization | null> => {
-    if (!user) return null;
+    if (!user) {
+      setError('User not authenticated');
+      return null;
+    }
 
     const orgName = 'My Organization';
     const orgSlug = `org-${Math.random().toString(36).substring(2, 9)}`;
 
     try {
+      setError(null);
       const { data: org, error: orgError } = await supabase
         .from('organizations')
         .insert({
@@ -127,7 +133,11 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
         .select()
         .single();
 
-      if (orgError) throw orgError;
+      if (orgError) {
+        console.error('Error creating organization:', orgError);
+        setError(`Failed to create organization: ${orgError.message}`);
+        throw orgError;
+      }
 
       const { error: memberError } = await supabase
         .from('organization_members')
@@ -137,7 +147,11 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
           role: 'owner'
         });
 
-      if (memberError) throw memberError;
+      if (memberError) {
+        console.error('Error adding user to organization:', memberError);
+        setError(`Failed to add user to organization: ${memberError.message}`);
+        throw memberError;
+      }
 
       const { error: workspaceError } = await supabase
         .from('workspaces')
@@ -148,11 +162,16 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
           created_by: user.id
         });
 
-      if (workspaceError) throw workspaceError;
+      if (workspaceError) {
+        console.warn('Workspace creation warning:', workspaceError);
+        // Don't throw - workspace is not critical
+      }
 
+      setError(null);
       return org;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating default organization:', error);
+      setError(error?.message || 'Failed to create organization. Please try again.');
       return null;
     }
   };
@@ -254,11 +273,13 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
       setAllOrganizations([]);
       setCurrentOrganization(null);
       setBusinessApps([]);
+      setError(null);
       setLoading(false);
       return;
     }
 
     console.log('Organization: Fetching organizations for user:', user.id);
+    setError(null);
 
     try {
       let { data: memberData, error: memberError } = await supabase
@@ -268,33 +289,64 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
 
       console.log('Organization: Member query result:', { memberData, memberError });
 
-      if (memberError) throw memberError;
+      if (memberError) {
+        console.error('Error fetching organization memberships:', memberError);
+        setError(`Failed to fetch organizations: ${memberError.message}`);
+        throw memberError;
+      }
 
-      // If user has no organization membership, create a default one
+      // If user has no organization membership, check for domain auto-join
       if (!memberData || memberData.length === 0) {
-        const newOrg = await createDefaultOrganization();
-        if (newOrg) {
-          // Refetch after creating
-          const { data: newMemberData, error: newMemberError } = await supabase
-            .from('organization_members')
-            .select('organization_id, role')
-            .eq('user_id', user.id);
-
-          if (newMemberError) throw newMemberError;
-          memberData = newMemberData;
-        } else {
+        console.log('Organization: User has no organization memberships, checking domain auto-join');
+        
+        // Get user's email domain
+        const emailDomain = user.email?.split('@')[1];
+        
+        if (emailDomain) {
+          // Check for organization with matching domain auto-join
+          const { data: autoJoinOrg } = await supabase
+            .from('organizations')
+            .select('id, name')
+            .eq('domain_auto_join_enabled', true)
+            .contains('allowed_domains', [emailDomain])
+            .single();
+          
+          if (autoJoinOrg) {
+            console.log('Organization: Found auto-join org:', autoJoinOrg.name);
+            
+            // Create membership for user
+            const { error: joinError } = await supabase
+              .from('organization_members')
+              .insert({
+                organization_id: autoJoinOrg.id,
+                user_id: user.id,
+                role: 'member'
+              });
+            
+            if (!joinError) {
+              console.log('Organization: Auto-joined user to:', autoJoinOrg.name);
+              
+              // Refetch memberships
+              const { data: newMemberData } = await supabase
+                .from('organization_members')
+                .select('organization_id, role')
+                .eq('user_id', user.id);
+              
+              memberData = newMemberData;
+            } else {
+              console.warn('Organization: Failed to auto-join:', joinError);
+            }
+          }
+        }
+        
+        // If still no memberships, redirect to setup
+        if (!memberData || memberData.length === 0) {
+          console.log('Organization: User has no organization memberships');
           setOrganizations([]);
           setCurrentOrganization(null);
           setLoading(false);
           return;
         }
-      }
-
-      if (!memberData || memberData.length === 0) {
-        setOrganizations([]);
-        setCurrentOrganization(null);
-        setLoading(false);
-        return;
       }
 
       const orgIds = memberData.map(m => m.organization_id);
@@ -345,8 +397,9 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
         // Fetch business apps for effective org
         await fetchBusinessApps(currentOrg.id);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching organizations:', error);
+      setError(error?.message || 'Failed to fetch organizations');
     } finally {
       setLoading(false);
     }
@@ -419,6 +472,7 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
         currentOrganization,
         memberRole,
         loading,
+        error,
         isMasterContext,
         impersonatedOrganizationId,
         effectiveOrganization,

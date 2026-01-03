@@ -161,15 +161,43 @@ Data Migration:
 
 ### Create Organization
 
-1. Log into Admin Dashboard
-2. Create new organization:
+1. Log into the platform with your GAS admin credentials
+2. Go to **GAS Mission Control**
+3. Click **Create Organization** (if creating new)
+4. Enter organization details:
    ```
    Name: [Customer Company Name]
    Slug: [customer-slug]
-   Owner Email: [customer@email.com]
+   Domain: [customer.com]
    Subscription: [Selected Tier]
    ```
-3. Send owner invitation
+5. Configure organization settings in **GAS Admin Settings**:
+   - Set visibility permissions
+   - Enable/disable domain auto-join if applicable
+
+### Invite Users
+
+**Option A: Email Invitation (Recommended)**
+1. In GAS Mission Control, find the organization
+2. Click **Invite User**
+3. Enter the user's email address
+4. Select role: Owner, Admin, Member, or Viewer
+5. Click **Send Invitation**
+6. User receives email with secure invitation link
+7. When they sign up via the link, they're automatically added
+
+**Option B: Domain Auto-Join (For Larger Teams)**
+1. Go to **GAS Admin Settings**
+2. Find the organization card
+3. Enable **Domain Auto-Join**
+4. Add allowed email domains (e.g., `customer.com`)
+5. Save settings
+6. Share the sign-up link with the customer
+7. Any user with a matching email domain is auto-added
+
+**Option C: Organization Key (Coming Soon)**
+- Users enter organization key during signup
+- Useful when domain-based matching isn't applicable
 
 ### Deploy Applications
 
@@ -385,21 +413,32 @@ Hi [Name],
 
 Welcome to AI-Operating! We're excited to have [Company] on board.
 
-Your account is now set up and ready to go. Here's what you need to know:
+You've been invited to join [Company] as a [Role]. Click the link below to accept your invitation and set up your account:
+
+🔗 Accept Invitation: [Invitation Link]
+
+Once you've logged in, here's what you need to know:
 
 📱 Login URL: https://app.your-domain.com
 📚 Documentation: https://docs.your-domain.com
 💬 Support: support@your-domain.com
 
-Your deployed applications:
+Your organization's deployed applications:
 - [App 1]
 - [App 2]
 
 Next steps:
-1. Complete your profile
-2. Invite team members
-3. Review the quick start guide
-4. Schedule your training session
+1. Click the invitation link above
+2. Create your account (or sign in with Google)
+3. Complete your profile
+4. Explore your Mission Control dashboard
+5. Schedule your training session
+
+Key features available to you:
+- Dashboard overview with real-time stats
+- Lead Engagement (Intake Engine + Nudge Campaigns)
+- AI Infrastructure (AI Agents + MCP Servers)
+- Mission Control for server toggles
 
 We're here to help you succeed. Don't hesitate to reach out!
 

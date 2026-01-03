@@ -13,7 +13,6 @@ import {
   Users,
   Mail,
   Bot,
-  Server,
   BarChart3,
   Settings,
   Menu,
@@ -47,22 +46,20 @@ interface NavItem {
 const baseNavigation: NavItem[] = [
   { name: 'Dashboard', href: '/dashboard', icon: Home },
   { name: 'Mission Control', href: '/mission-control', icon: LayoutDashboard },
-  { name: 'Intake Engine', href: '/intake', icon: Magnet },
-  { name: 'Nudge Campaigns', href: '/nudges', icon: Zap },
+  { name: 'Lead Engagement', href: '/engagement', icon: Magnet },
   { name: 'Projects', href: '/projects', icon: FolderKanban },
   { name: 'CRM', href: '/crm', icon: Users, requiresPermission: 'canViewCrm' },
   { name: 'Marketing & Social', href: '/marketing-social', icon: Mail },
-  { name: 'AI Agents & Coding', href: '/agents', icon: Bot, requiresPermission: 'canViewAiAgents' },
-  { name: 'MCP Servers', href: '/mcp', icon: Server, requiresPermission: 'canViewMcpServers' },
-  { name: 'Business Apps', href: '/business-apps', icon: Boxes, requiresPermission: 'canViewBusinessApps' },
+  { name: 'AI Infrastructure', href: '/ai-infrastructure', icon: Bot, requiresPermission: 'canViewAiAgents' },
   { name: 'Analytics', href: '/analytics', icon: BarChart3, requiresPermission: 'canViewAnalytics' },
   { name: 'Admin', href: '/admin', icon: Shield },
   { name: 'Settings', href: '/settings', icon: Settings },
 ];
 
-// Master admin only navigation
+// Master admin only navigation (GAS organization features)
 const masterNavigation: NavItem[] = [
   { name: 'GAS Mission Control', href: '/gas/mission-control', icon: Crown, masterOnly: true },
+  { name: 'Business Apps', href: '/business-apps', icon: Boxes, masterOnly: true },
   { name: 'GAS Settings', href: '/gas/settings', icon: Settings, masterOnly: true },
 ];
 
