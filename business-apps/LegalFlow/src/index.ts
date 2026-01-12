@@ -14,6 +14,10 @@ import taxInterviewRoutes from './routes/tax/interview.js';
 import taxDocumentsRoutes from './routes/tax/documents.js';
 import taxCalculationsRoutes from './routes/tax/calculations.js';
 import taxCalculatorRoutes from './routes/tax/calculator.js';
+import taxEstimateRoutes from './routes/tax/estimate.js';
+import eFilingRoutes from './routes/tax/e-filing.js';
+import businessTaxRoutes from './routes/tax/business.js';
+import priorYearRoutes from './routes/tax/prior-year.js';
 import legalDocumentsRoutes from './routes/legal/documents.js';
 import legalTemplatesRoutes from './routes/legal/templates.js';
 import legalBusinessRoutes from './routes/legal/business-formation.js';
@@ -23,6 +27,12 @@ import childSupportRoutes from './routes/child-support/calculator.js';
 import paymentsRoutes from './routes/payments.js';
 import subscriptionsRoutes from './routes/subscriptions.js';
 import adminDataRoutes from './routes/admin/data-management.js';
+import collaborationPortalRoutes from './routes/collaboration/portal.js';
+import plaidRoutes from './routes/integrations/plaid.js';
+import aiTaxAdvisorRoutes from './routes/ai/tax-advisor.js';
+import stateEFilingRoutes from './routes/tax/state-e-filing.js';
+import expandedLegalRoutes from './routes/legal/expanded-services.js';
+import technicalAdminRoutes from './routes/admin/technical.js';
 
 const app = express();
 
@@ -70,6 +80,10 @@ app.use('/api/tax/interview', taxInterviewRoutes);
 app.use('/api/tax/documents', taxDocumentsRoutes);
 app.use('/api/tax/calculations', taxCalculationsRoutes);
 app.use('/api/tax/calculator', taxCalculatorRoutes);
+app.use('/api/tax/estimate', taxEstimateRoutes);
+app.use('/api/tax/e-filing', eFilingRoutes);
+app.use('/api/tax/business', businessTaxRoutes);
+app.use('/api/tax/prior-year', priorYearRoutes);
 app.use('/api/legal/documents', legalDocumentsRoutes);
 app.use('/api/legal/templates', legalTemplatesRoutes);
 app.use('/api/legal/business', legalBusinessRoutes);
@@ -79,6 +93,12 @@ app.use('/api/child-support', childSupportRoutes);
 app.use('/api/payments', paymentsRoutes);
 app.use('/api/subscriptions', subscriptionsRoutes);
 app.use('/api/admin/data', adminDataRoutes);
+app.use('/api/collaboration', collaborationPortalRoutes);
+app.use('/api/plaid', plaidRoutes);
+app.use('/api/ai/tax-advisor', aiTaxAdvisorRoutes);
+app.use('/api/tax/state', stateEFilingRoutes);
+app.use('/api/legal/expanded', expandedLegalRoutes);
+app.use('/api/admin/technical', technicalAdminRoutes);
 
 // Legal disclaimer endpoint
 app.get('/api/disclaimer', (_req, res) => {

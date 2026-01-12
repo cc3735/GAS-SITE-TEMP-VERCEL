@@ -28,6 +28,13 @@ export const config = {
     webhookSecret: process.env.STRIPE_WEBHOOK_SECRET || '',
   },
 
+  // Google Cloud (for OCR)
+  googleCloud: {
+    keyFile: process.env.GOOGLE_CLOUD_KEY_FILE || '',
+    credentials: process.env.GOOGLE_CLOUD_CREDENTIALS || '',
+    projectId: process.env.GOOGLE_CLOUD_PROJECT_ID || '',
+  },
+
   // JWT
   jwt: {
     secret: process.env.JWT_SECRET || 'default-secret-change-in-production',

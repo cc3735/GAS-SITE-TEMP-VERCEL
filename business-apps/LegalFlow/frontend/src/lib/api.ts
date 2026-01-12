@@ -115,28 +115,48 @@ export const authApi = {
 // Tax API
 export const taxApi = {
   listReturns: () => api.get<{ returns: TaxReturn[] }>('/tax/returns'),
-  
+
   getReturn: (id: string) => api.get<TaxReturn>(`/tax/returns/${id}`),
-  
+
   createReturn: (data: { taxYear: number; filingStatus?: string }) =>
     api.post<TaxReturn>('/tax/returns', data),
-  
+
   updateReturn: (id: string, data: Partial<TaxReturn>) =>
     api.put<TaxReturn>(`/tax/returns/${id}`, data),
-  
+
   deleteReturn: (id: string) => api.delete(`/tax/returns/${id}`),
-  
+
   startInterview: (taxReturnId: string) =>
     api.post<InterviewState>('/tax/interview/start', { taxReturnId }),
-  
+
   submitAnswer: (taxReturnId: string, questionId: string, value: unknown) =>
     api.post<{ nextQuestion: InterviewQuestion; isComplete: boolean }>(
       '/tax/interview/answer',
       { taxReturnId, questionId, value }
     ),
-  
+
   getRefundEstimate: (id: string) =>
     api.get<{ estimate: RefundEstimate; calculation: TaxCalculation }>(`/tax/returns/${id}/refund-estimate`),
+
+  /** Get real-time tax estimate for dashboard */
+  getEstimate: (data: TaxEstimateInput) =>
+    api.post<TaxEstimateResponse>('/tax/estimate', data),
+
+  /** Compare what-if scenarios */
+  getWhatIfComparison: (data: { current: TaxEstimateInput; comparison: TaxEstimateInput }) =>
+    api.post<WhatIfComparison>('/tax/estimate/what-if', data),
+
+  /** Get quarterly estimated tax requirements */
+  getQuarterlyEstimates: (data: { taxYear: number; filingStatus: string; estimatedIncome: number; estimatedWithholdings: number }) =>
+    api.post<QuarterlyEstimates>('/tax/estimate/quarterly', data),
+
+  /** Scan a tax document using OCR */
+  scanDocument: (data: { taxReturnId: string; fileBase64: string; mimeType: string; autoSave?: boolean }) =>
+    api.post<DocumentScanResult>('/tax/documents/scan', data),
+
+  /** Check OCR service status */
+  getOcrStatus: () =>
+    api.get<OcrStatus>('/tax/documents/scan/status'),
 };
 
 // Legal API
@@ -389,5 +409,136 @@ export interface UsageStats {
     legalDocuments: { used: number; limit: number; unlimited: boolean };
     childSupportCalculations: { used: number; limit: number; unlimited: boolean };
   };
+}
+
+// Tax Estimate Types
+export interface TaxEstimateInput {
+  taxYear: number;
+  filingStatus: string;
+  grossIncome: number;
+  wages?: number;
+  federalWithholding?: number;
+  stateWithholding?: number;
+  dependents?: number;
+  qualifyingChildren?: number;
+  childrenUnder6?: number;
+  children6to17?: number;
+  standardDeduction?: boolean;
+  itemizedDeductions?: number;
+  stateCode?: string;
+  selfEmploymentIncome?: number;
+  earnedIncome?: number;
+  investmentIncome?: number;
+  childCareCosts?: number;
+  retirementContributions?: number;
+  educationExpenses?: number;
+  aotcEligibleStudents?: number;
+  tuitionPerStudent?: number;
+  residentialCleanEnergyExpenses?: number;
+  energyEfficientImprovements?: number;
+  evPurchasePrice?: number;
+  evVehicleType?: 'new' | 'used';
+}
+
+export interface TaxEstimateResponse {
+  estimate: {
+    federalTax: number;
+    stateTax: number;
+    totalTax: number;
+    effectiveRate: number;
+    marginalBracket: number;
+    federalRefundOrOwed: number;
+    stateRefundOrOwed: number;
+    totalRefundOrOwed: number;
+    isRefund: boolean;
+  };
+  breakdown: {
+    grossIncome: number;
+    adjustedGrossIncome: number;
+    taxableIncome: number;
+    deductionType: string;
+    deductionAmount: number;
+    credits: Array<{ name: string; amount: number; refundable: boolean }>;
+    totalCredits: number;
+  };
+  suggestions: string[];
+  confidence: 'low' | 'medium' | 'high';
+  disclaimers: string[];
+}
+
+export interface WhatIfComparison {
+  current: TaxEstimateResponse;
+  comparison: TaxEstimateResponse;
+  difference: {
+    taxDifference: number;
+    refundDifference: number;
+    effectiveRateDifference: number;
+    recommendation: string;
+  };
+}
+
+export interface QuarterlyEstimates {
+  annualEstimate: {
+    totalTax: number;
+    totalWithholdings: number;
+    remainingTax: number;
+    safeHarborAmount: number;
+  };
+  quarters: Array<{
+    quarter: number;
+    dueDate: string;
+    amount: number;
+    isPast: boolean;
+    isOverdue: boolean;
+  }>;
+  recommendations: string[];
+}
+
+export interface DocumentScanResult {
+  formType: string;
+  formTypeConfidence: number;
+  extractedData: Record<string, unknown>;
+  overallConfidence: number;
+  fieldsNeedingReview: string[];
+  suggestions: string[];
+  fieldConfidences: Array<{
+    field: string;
+    value: unknown;
+    confidence: number;
+    needsReview: boolean;
+  }>;
+  metadata: {
+    processingTimeMs: number;
+    documentLanguage: string;
+    pageCount: number;
+  };
+  documentId?: string;
+  autoSaved?: boolean;
+}
+
+export interface OcrStatus {
+  ocrAvailable: boolean;
+  supportedFormats: string[];
+  supportedDocumentTypes: string[];
+  message: string;
+}
+
+// Tax Deadline Types
+export interface TaxDeadline {
+  name: string;
+  date: Date;
+  description: string;
+  type: 'federal' | 'state' | 'quarterly';
+  urgent: boolean;
+}
+
+export interface TaxRecommendation {
+  id: string;
+  title: string;
+  description: string;
+  potentialSavings?: number;
+  action?: string;
+  actionUrl?: string;
+  priority: 'high' | 'medium' | 'low';
 }
 
