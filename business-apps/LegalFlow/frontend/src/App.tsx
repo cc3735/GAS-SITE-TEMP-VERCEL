@@ -8,6 +8,11 @@ import AuthLayout from '@/components/layout/AuthLayout';
 
 // Pages
 import Landing from '@/pages/Landing';
+import Bookkeeping from '@/pages/bookkeeping/Bookkeeping';
+import BankAccounts from '@/pages/bookkeeping/BankAccounts';
+import BankStatementUpload from '@/pages/bookkeeping/BankStatementUpload';
+import Transactions from '@/pages/bookkeeping/Transactions';
+import NotFound from '@/pages/NotFound';
 import Login from '@/pages/auth/Login';
 import Register from '@/pages/auth/Register';
 import Dashboard from '@/pages/Dashboard';
@@ -61,8 +66,8 @@ export default function App() {
           </Route>
 
           {/* Public child support calculator */}
-          <Route 
-            path="/child-support" 
+          <Route
+            path="/child-support"
             element={
               <div className="min-h-screen bg-background">
                 <nav className="sticky top-0 z-50 border-b bg-background">
@@ -92,7 +97,7 @@ export default function App() {
                   <ChildSupportCalculator />
                 </main>
               </div>
-            } 
+            }
           />
 
           {/* Protected routes */}
@@ -122,8 +127,13 @@ export default function App() {
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/terms" element={<Terms />} />
 
-          {/* Catch-all redirect */}
-          <Route path="*" element={<Navigate to="/" replace />} />
+          {/* Bookkeeping Routes */}
+          <Route path="/bookkeeping" element={<Bookkeeping />} />
+          <Route path="/bookkeeping/accounts" element={<BankAccounts />} />
+          <Route path="/bookkeeping/upload" element={<BankStatementUpload />} />
+          <Route path="/bookkeeping/transactions" element={<Transactions />} />
+
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
     </QueryClientProvider>

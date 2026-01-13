@@ -1128,6 +1128,229 @@ export class PlaidService {
       return null;
     }
   }
+
+  // ============================================================================
+  // TRANSACTION SYNCING (for Bookkeeping)
+  // ============================================================================
+
+  /**
+   * Sync transactions from Plaid for a linked account
+   */
+  async syncTransactions(
+    userId: string,
+    linkedAccountId: string,
+    startDate: Date,
+    endDate: Date
+  ): Promise<number> {
+    const linkedAccount = await this.getLinkedAccountById(linkedAccountId, userId);
+    const accessToken = this.decryptAccessToken(linkedAccount.accessToken);
+
+    logger.info('Syncing transactions', {
+      userId,
+      linkedAccountId,
+      startDate: startDate.toISOString().split('T')[0],
+      endDate: endDate.toISOString().split('T')[0],
+    });
+
+    const response = await this.plaidRequest<any>('/transactions/get', {
+      access_token: accessToken,
+      start_date: startDate.toISOString().split('T')[0],
+      end_date: endDate.toISOString().split('T')[0],
+      options: {
+        include_personal_finance_category: true,
+      },
+    });
+
+    const transactions = response.transactions || [];
+    let syncedCount = 0;
+
+    for (const txn of transactions) {
+      try {
+        // Map Plaid transaction to our schema
+        const { error } = await supabase.from('plaid_transactions').upsert({
+          user_id: userId,
+          linked_account_id: linkedAccountId,
+          transaction_id: txn.transaction_id,
+          account_id: txn.account_id,
+          amount: txn.amount,
+          date: txn.date,
+          name: txn.name,
+          merchant_name: txn.merchant_name,
+          plaid_category: txn.category,
+          pending: txn.pending,
+          payment_channel: txn.payment_channel,
+          transaction_type: txn.transaction_type,
+          location: txn.location,
+          payment_meta: txn.payment_meta,
+          tax_year: new Date(txn.date).getFullYear(),
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        });
+
+        if (!error) {
+          syncedCount++;
+        }
+      } catch (error) {
+        logger.warn('Error syncing transaction', { transactionId: txn.transaction_id, error });
+      }
+    }
+
+    // Update last sync time
+    await supabase
+      .from('plaid_linked_accounts')
+      .update({
+        last_sync: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', linkedAccountId);
+
+    logger.info('Transaction sync complete', { userId, linkedAccountId, syncedCount });
+    return syncedCount;
+  }
+
+  /**
+   * Get transactions for a user with filtering
+   */
+  async getTransactions(
+    userId: string,
+    filters: {
+      startDate?: Date;
+      endDate?: Date;
+      categoryId?: string;
+      minAmount?: number;
+      maxAmount?: number;
+      searchQuery?: string;
+      limit?: number;
+      offset?: number;
+    } = {}
+  ): Promise<{ transactions: any[]; total: number }> {
+    let query = supabase
+      .from('plaid_transactions')
+      .select('*, transaction_categories(name, category_type, tax_deductible)', { count: 'exact' })
+      .eq('user_id', userId)
+      .order('date', { ascending: false });
+
+    if (filters.startDate) {
+      query = query.gte('date', filters.startDate.toISOString().split('T')[0]);
+    }
+    if (filters.endDate) {
+      query = query.lte('date', filters.endDate.toISOString().split('T')[0]);
+    }
+    if (filters.categoryId) {
+      query = query.eq('category_id', filters.categoryId);
+    }
+    if (filters.minAmount !== undefined) {
+      query = query.gte('amount', filters.minAmount);
+    }
+    if (filters.maxAmount !== undefined) {
+      query = query.lte('amount', filters.maxAmount);
+    }
+    if (filters.searchQuery) {
+      query = query.or(`name.ilike.%${filters.searchQuery}%,merchant_name.ilike.%${filters.searchQuery}%`);
+    }
+
+    const limit = filters.limit || 50;
+    const offset = filters.offset || 0;
+    query = query.range(offset, offset + limit - 1);
+
+    const { data, error, count } = await query;
+
+    if (error) {
+      logger.error('Error fetching transactions', { error });
+      throw new Error('Failed to fetch transactions');
+    }
+
+    return {
+      transactions: data || [],
+      total: count || 0,
+    };
+  }
+
+  /**
+   * Update transaction category
+   */
+  async categorizeTransaction(
+    transactionId: string,
+    categoryId: string,
+    userId: string
+  ): Promise<void> {
+    const { error } = await supabase
+      .from('plaid_transactions')
+      .update({
+        category_id: categoryId,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', transactionId)
+      .eq('user_id', userId);
+
+    if (error) {
+      logger.error('Error categorizing transaction', { error });
+      throw new Error('Failed to categorize transaction');
+    }
+  }
+
+  /**
+   * Get bookkeeping summary for a date range
+   */
+  async getBookkeepingSummary(
+    userId: string,
+    startDate: Date,
+    endDate: Date
+  ): Promise<{
+    totalIncome: number;
+    totalExpenses: number;
+    netIncome: number;
+    totalTaxDeductible: number;
+    categoryBreakdown: Record<string, number>;
+    transactionCount: number;
+  }> {
+    // Get all transactions in date range
+    const { data: transactions, error } = await supabase
+      .from('plaid_transactions')
+      .select('amount, category_id, is_tax_deductible, transaction_categories(name, category_type)')
+      .eq('user_id', userId)
+      .gte('date', startDate.toISOString().split('T')[0])
+      .lte('date', endDate.toISOString().split('T')[0]);
+
+    if (error) {
+      logger.error('Error fetching transactions for summary', { error });
+      throw new Error('Failed to generate summary');
+    }
+
+    const summary = {
+      totalIncome: 0,
+      totalExpenses: 0,
+      netIncome: 0,
+      totalTaxDeductible: 0,
+      categoryBreakdown: {} as Record<string, number>,
+      transactionCount: transactions?.length || 0,
+    };
+
+    for (const txn of transactions || []) {
+      const amount = Math.abs(txn.amount);
+      const category = txn.transaction_categories;
+
+      // Plaid uses negative for debits (expenses), positive for credits (income)
+      if (txn.amount < 0) {
+        summary.totalExpenses += amount;
+        if (txn.is_tax_deductible) {
+          summary.totalTaxDeductible += amount;
+        }
+      } else {
+        summary.totalIncome += amount;
+      }
+
+      // Category breakdown
+      if (category?.name) {
+        summary.categoryBreakdown[category.name] =
+          (summary.categoryBreakdown[category.name] || 0) + amount;
+      }
+    }
+
+    summary.netIncome = summary.totalIncome - summary.totalExpenses;
+
+    return summary;
+  }
 }
 
 // Export singleton instance

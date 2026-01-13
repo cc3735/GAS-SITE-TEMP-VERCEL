@@ -33,6 +33,8 @@ import aiTaxAdvisorRoutes from './routes/ai/tax-advisor.js';
 import stateEFilingRoutes from './routes/tax/state-e-filing.js';
 import expandedLegalRoutes from './routes/legal/expanded-services.js';
 import technicalAdminRoutes from './routes/admin/technical.js';
+import bookkeepingRoutes from './routes/bookkeeping/bookkeeping.js';
+import bankStatementsRoutes from './routes/bookkeeping/bank-statements.js';
 
 const app = express();
 
@@ -43,8 +45,8 @@ app.use(helmet({
 
 // CORS
 app.use(cors({
-  origin: config.isDev 
-    ? ['http://localhost:5173', 'http://localhost:3000'] 
+  origin: config.isDev
+    ? ['http://localhost:5173', 'http://localhost:3000']
     : process.env.ALLOWED_ORIGINS?.split(',') || [],
   credentials: true,
 }));
@@ -64,7 +66,7 @@ app.use((req, _res, next) => {
 
 // Health check
 app.get('/health', (_req, res) => {
-  res.json({ 
+  res.json({
     status: 'healthy',
     service: 'LegalFlow API',
     version: '1.0.0',
@@ -99,6 +101,8 @@ app.use('/api/ai/tax-advisor', aiTaxAdvisorRoutes);
 app.use('/api/tax/state', stateEFilingRoutes);
 app.use('/api/legal/expanded', expandedLegalRoutes);
 app.use('/api/admin/technical', technicalAdminRoutes);
+app.use('/api/bookkeeping', bookkeepingRoutes);
+app.use('/api/bookkeeping/statements', bankStatementsRoutes);
 
 // Legal disclaimer endpoint
 app.get('/api/disclaimer', (_req, res) => {

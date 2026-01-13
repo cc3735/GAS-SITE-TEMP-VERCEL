@@ -652,7 +652,7 @@ router.get('/expense-categories', asyncHandler(async (_req, res) => {
         { key: 'repairs', name: 'Repairs and Maintenance', line: 21 },
         { key: 'supplies', name: 'Supplies', line: 22 },
         { key: 'taxes', name: 'Taxes and Licenses', line: 23 },
-        { key: 'travel', name: 'Travel', line: 24a },
+        { key: 'travel', name: 'Travel', line: '24a' },
         { key: 'deductibleMeals', name: 'Deductible Meals (50%)', line: '24b' },
         { key: 'utilities', name: 'Utilities', line: 25 },
         { key: 'wages', name: 'Wages', line: 26 },

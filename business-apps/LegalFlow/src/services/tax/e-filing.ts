@@ -12,7 +12,6 @@
  */
 
 import { supabase } from '../../lib/supabase.js';
-import { TaxCalculator, TaxCalculationInput } from './tax-calculator.js';
 import { logger } from '../../utils/logger.js';
 
 // ============================================================================
@@ -311,10 +310,8 @@ export interface GeneratedPdfResult {
  * E-Filing service for tax return submission
  */
 export class EFilingService {
-  private calculator: TaxCalculator;
-
   constructor() {
-    this.calculator = new TaxCalculator();
+    // Service initialization
   }
 
   // ==========================================================================

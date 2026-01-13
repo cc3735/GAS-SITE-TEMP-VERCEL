@@ -1,0 +1,13 @@
+
+> legalflow@1.0.0 dev
+> tsx watch src/index.ts
+
+2026-01-12 22:09:19 [[32minfo[39m]: Google Cloud Vision client initialized
+2026-01-12 22:09:19 [[32minfo[39m]: OpenAI client initialized for document parsing
+(node:86779) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+2026-01-12 22:09:19 [[32minfo[39m]: 🚀 LegalFlow API server running on port 3002
+2026-01-12 22:09:19 [[32minfo[39m]: 📚 Environment: development
+2026-01-12 22:09:19 [[32minfo[39m]: 🔐 Auth: Supabase + JWT
+2026-01-12 22:09:19 [[32minfo[39m]: 💳 Payments: Stripe
+2026-01-12 22:09:19 [[32minfo[39m]: 🤖 AI: OpenAI gpt-4-turbo-preview

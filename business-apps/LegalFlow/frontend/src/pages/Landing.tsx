@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight, Check, FileText, Scale, Calculator, Shield, Zap, Users } from 'lucide-react';
+import { ArrowRight, Check, FileText, Scale, Calculator, Shield, Zap, Users, PieChart } from 'lucide-react';
 
 export default function Landing() {
   return (
@@ -14,7 +14,7 @@ export default function Landing() {
               </div>
               <span className="text-xl font-semibold">LegalFlow</span>
             </Link>
-            
+
             <div className="hidden md:flex items-center gap-8">
               <a href="#features" className="text-gray-300 hover:text-white transition">Features</a>
               <a href="#pricing" className="text-gray-300 hover:text-white transition">Pricing</a>
@@ -44,23 +44,23 @@ export default function Landing() {
       {/* Hero */}
       <section className="relative overflow-hidden pt-24 pb-32">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-teal-900/20 via-transparent to-transparent" />
-        
+
         <div className="relative mx-auto max-w-7xl px-6">
           <div className="text-center">
             <div className="inline-flex items-center gap-2 rounded-full border border-teal-500/30 bg-teal-500/10 px-4 py-1.5 text-sm text-teal-400 mb-8">
               <Zap className="h-4 w-4" />
               AI-Powered Legal & Tax Platform
             </div>
-            
+
             <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-6">
               Your Legal & Tax<br />
               <span className="bg-gradient-to-r from-teal-400 to-teal-200 bg-clip-text text-transparent">
                 Simplified
               </span>
             </h1>
-            
+
             <p className="mx-auto max-w-2xl text-xl text-gray-400 mb-10">
-              File your taxes, create legal documents, and handle court filings—all in one place. 
+              File your taxes, create legal documents, and handle court filings—all in one place.
               AI-powered assistance helps you every step of the way.
             </p>
 
@@ -99,7 +99,31 @@ export default function Landing() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-8 hover:bg-white/10 transition">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-teal-500/20 text-teal-400 mb-6">
+                <PieChart className="h-6 w-6" />
+              </div>
+              <h3 className="text-xl font-semibold mb-3">Bookkeeping</h3>
+              <p className="text-gray-400 mb-4">
+                Automated transaction tracking and categorization for stress-free tax season.
+              </p>
+              <ul className="space-y-2 text-sm text-gray-400">
+                <li className="flex items-center gap-2">
+                  <Check className="h-4 w-4 text-teal-400" />
+                  Connect bank accounts
+                </li>
+                <li className="flex items-center gap-2">
+                  <Check className="h-4 w-4 text-teal-400" />
+                  AI auto-categorization
+                </li>
+                <li className="flex items-center gap-2">
+                  <Check className="h-4 w-4 text-teal-400" />
+                  Financial reports
+                </li>
+              </ul>
+            </div>
+
             <div className="rounded-2xl border border-white/10 bg-white/5 p-8 hover:bg-white/10 transition">
               <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-teal-500/20 text-teal-400 mb-6">
                 <FileText className="h-6 w-6" />
@@ -337,11 +361,11 @@ export default function Landing() {
               </div>
               <span className="font-semibold">LegalFlow</span>
             </div>
-            
+
             <p className="text-sm text-gray-400 text-center">
               ⚠️ LegalFlow provides document preparation services only. This is not legal or tax advice.
             </p>
-            
+
             <div className="flex items-center gap-6 text-sm text-gray-400">
               <a href="#" className="hover:text-white">Privacy</a>
               <a href="#" className="hover:text-white">Terms</a>
