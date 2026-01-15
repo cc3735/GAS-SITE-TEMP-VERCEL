@@ -35,6 +35,7 @@ import expandedLegalRoutes from './routes/legal/expanded-services.js';
 import technicalAdminRoutes from './routes/admin/technical.js';
 import bookkeepingRoutes from './routes/bookkeeping/bookkeeping.js';
 import bankStatementsRoutes from './routes/bookkeeping/bank-statements.js';
+import trademarkRoutes from './routes/legal/trademark.js';
 
 const app = express();
 
@@ -103,6 +104,7 @@ app.use('/api/legal/expanded', expandedLegalRoutes);
 app.use('/api/admin/technical', technicalAdminRoutes);
 app.use('/api/bookkeeping', bookkeepingRoutes);
 app.use('/api/bookkeeping/statements', bankStatementsRoutes);
+app.use('/api/legal/trademark', trademarkRoutes);
 
 // Legal disclaimer endpoint
 app.get('/api/disclaimer', (_req, res) => {

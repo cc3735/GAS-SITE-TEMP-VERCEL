@@ -97,6 +97,22 @@ export const config = {
     childSupport: ['CA', 'TX', 'FL', 'NY', 'IL'],
     legalFiling: ['CA', 'TX', 'FL'],
   },
+
+  // Trademark APIs
+  trademark: {
+    uspto: {
+      apiUrl: process.env.USPTO_API_URL || 'https://tsdrapi.uspto.gov',
+      apiKey: process.env.USPTO_API_KEY || '',
+    },
+    trademarknow: {
+      apiUrl: process.env.TRADEMARKNOW_API_URL || 'https://api.trademarknow.com',
+      apiKey: process.env.TRADEMARKNOW_API_KEY || '',
+    },
+    corsearch: {
+      apiUrl: process.env.CORSEARCH_API_URL || 'https://api.corsearch.com',
+      apiKey: process.env.CORSEARCH_API_KEY || '',
+    },
+  },
 } as const;
 
 export type Config = typeof config;

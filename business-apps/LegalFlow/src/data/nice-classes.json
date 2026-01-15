@@ -1,0 +1,321 @@
+{
+  "version": "12-2024",
+  "source": "WIPO Nice Classification",
+  "classes": [
+    {
+      "classNumber": 1,
+      "title": "Chemicals",
+      "category": "goods",
+      "description": "Chemicals for use in industry, science and photography, as well as in agriculture, horticulture and forestry; unprocessed artificial resins, unprocessed plastics; fire extinguishing and fire prevention compositions; tempering and soldering preparations; substances for tanning animal skins and hides; adhesives for use in industry; putties and other paste fillers; compost, manures, fertilizers; biological preparations for use in industry and science.",
+      "examples": ["Industrial chemicals", "Fertilizers", "Adhesives for industrial purposes", "Photographic chemicals", "Fire extinguishing compositions", "Tempering preparations", "Unprocessed plastics", "Manure for agriculture"]
+    },
+    {
+      "classNumber": 2,
+      "title": "Paints",
+      "category": "goods",
+      "description": "Paints, varnishes, lacquers; preservatives against rust and against deterioration of wood; colorants, dyes; inks for printing, marking and engraving; raw natural resins; metals in foil and powder form for use in painting, decorating, printing and art.",
+      "examples": ["Paints", "Varnishes", "Lacquers", "Wood preservatives", "Dyes", "Printing inks", "Raw natural resins", "Metal foil for painters"]
+    },
+    {
+      "classNumber": 3,
+      "title": "Cosmetics and Cleaning Preparations",
+      "category": "goods",
+      "description": "Non-medicated cosmetics and toiletry preparations; non-medicated dentifrices; perfumery, essential oils; bleaching preparations and other substances for laundry use; cleaning, polishing, scouring and abrasive preparations.",
+      "examples": ["Cosmetics", "Perfumes", "Essential oils", "Soaps", "Toothpaste", "Cleaning preparations", "Laundry detergent", "Shoe polish", "Shampoos", "Skincare products"]
+    },
+    {
+      "classNumber": 4,
+      "title": "Lubricants and Fuels",
+      "category": "goods",
+      "description": "Industrial oils and greases, wax; lubricants; dust absorbing, wetting and binding compositions; fuels and illuminants; candles and wicks for lighting.",
+      "examples": ["Industrial oils", "Lubricants", "Motor oil", "Fuels", "Candles", "Wicks", "Grease", "Wax"]
+    },
+    {
+      "classNumber": 5,
+      "title": "Pharmaceuticals",
+      "category": "goods",
+      "description": "Pharmaceuticals, medical and veterinary preparations; sanitary preparations for medical purposes; dietetic food and substances adapted for medical or veterinary use, food for babies; dietary supplements for human beings and animals; plasters, materials for dressings; material for stopping teeth, dental wax; disinfectants; preparations for destroying vermin; fungicides, herbicides.",
+      "examples": ["Pharmaceuticals", "Vitamins", "Dietary supplements", "Medical plasters", "Disinfectants", "Baby food", "Veterinary preparations", "Herbicides", "Sanitary pads"]
+    },
+    {
+      "classNumber": 6,
+      "title": "Metal Goods",
+      "category": "goods",
+      "description": "Common metals and their alloys, ores; metal materials for building and construction; transportable buildings of metal; non-electric cables and wires of common metal; small items of metal hardware; metal containers for storage or transport; safes.",
+      "examples": ["Metal building materials", "Metal pipes", "Metal hardware", "Safes", "Metal containers", "Wire of common metal", "Metal doors", "Metal fences"]
+    },
+    {
+      "classNumber": 7,
+      "title": "Machinery",
+      "category": "goods",
+      "description": "Machines, machine tools, power-operated tools; motors and engines, except for land vehicles; machine coupling and transmission components, except for land vehicles; agricultural implements, other than hand-operated hand tools; incubators for eggs; automatic vending machines.",
+      "examples": ["Industrial machines", "Motors", "Engines", "Machine tools", "Agricultural machines", "Printing machines", "Textile machines", "Vending machines", "Pumps", "Compressors"]
+    },
+    {
+      "classNumber": 8,
+      "title": "Hand Tools",
+      "category": "goods",
+      "description": "Hand tools and implements, hand-operated; cutlery; side arms, except firearms; razors.",
+      "examples": ["Hand tools", "Knives", "Forks", "Spoons", "Razors", "Scissors", "Garden tools", "Manicure implements", "Swords"]
+    },
+    {
+      "classNumber": 9,
+      "title": "Computers and Scientific Devices",
+      "category": "goods",
+      "description": "Scientific, research, navigation, surveying, photographic, cinematographic, audiovisual, optical, weighing, measuring, signalling, detecting, testing, inspecting, life-saving and teaching apparatus and instruments; apparatus and instruments for conducting, switching, transforming, accumulating, regulating or controlling the distribution or use of electricity; apparatus and instruments for recording, transmitting, reproducing or processing sound, images or data; recorded and downloadable media, computer software, blank digital or analogue recording and storage media; mechanisms for coin-operated apparatus; cash registers, calculating devices; computers and computer peripheral devices; diving suits, divers' masks, ear plugs for divers, nose clips for divers and swimmers, gloves for divers, breathing apparatus for underwater swimming; fire-extinguishing apparatus.",
+      "examples": ["Computers", "Software", "Mobile apps", "Smartphones", "Tablets", "Computer peripherals", "Electronic publications", "Downloadable software", "Scientific instruments", "Laboratory apparatus", "GPS devices", "Cameras", "Audio equipment"]
+    },
+    {
+      "classNumber": 10,
+      "title": "Medical Apparatus",
+      "category": "goods",
+      "description": "Surgical, medical, dental and veterinary apparatus and instruments; artificial limbs, eyes and teeth; orthopaedic articles; suture materials; therapeutic and assistive devices adapted for persons with disabilities; massage apparatus; apparatus, devices and articles for nursing infants; sexual activity apparatus, devices and articles.",
+      "examples": ["Medical instruments", "Surgical apparatus", "Dental apparatus", "Prosthetics", "Orthopedic articles", "Hearing aids", "Medical furniture", "Massage apparatus"]
+    },
+    {
+      "classNumber": 11,
+      "title": "Environmental Control Apparatus",
+      "category": "goods",
+      "description": "Apparatus and installations for lighting, heating, cooling, steam generating, cooking, drying, ventilating, water supply and sanitary purposes.",
+      "examples": ["Lighting apparatus", "Heating equipment", "Air conditioners", "Refrigerators", "Cooking apparatus", "Water heaters", "Sanitary installations", "Lamps", "Stoves", "Ovens"]
+    },
+    {
+      "classNumber": 12,
+      "title": "Vehicles",
+      "category": "goods",
+      "description": "Vehicles; apparatus for locomotion by land, air or water.",
+      "examples": ["Automobiles", "Motorcycles", "Bicycles", "Boats", "Aircraft", "Tires", "Vehicle parts", "Strollers", "Shopping carts"]
+    },
+    {
+      "classNumber": 13,
+      "title": "Firearms",
+      "category": "goods",
+      "description": "Firearms; ammunition and projectiles; explosives; fireworks.",
+      "examples": ["Firearms", "Ammunition", "Explosives", "Fireworks", "Guns", "Rifles", "Cartridges"]
+    },
+    {
+      "classNumber": 14,
+      "title": "Jewelry",
+      "category": "goods",
+      "description": "Precious metals and their alloys; jewellery, precious and semi-precious stones; horological and chronometric instruments.",
+      "examples": ["Jewelry", "Watches", "Clocks", "Precious metals", "Precious stones", "Cufflinks", "Tie pins", "Key rings"]
+    },
+    {
+      "classNumber": 15,
+      "title": "Musical Instruments",
+      "category": "goods",
+      "description": "Musical instruments; music stands and stands for musical instruments; conductors' batons.",
+      "examples": ["Musical instruments", "Guitars", "Pianos", "Drums", "Violins", "Music stands", "Electronic musical instruments"]
+    },
+    {
+      "classNumber": 16,
+      "title": "Paper Goods and Printed Matter",
+      "category": "goods",
+      "description": "Paper and cardboard; printed matter; bookbinding material; photographs; stationery and office requisites, except furniture; adhesives for stationery or household purposes; drawing materials and materials for artists; paintbrushes; instructional and teaching materials; plastic sheets, films and bags for wrapping and packaging; printers' type, printing blocks.",
+      "examples": ["Paper", "Printed publications", "Books", "Magazines", "Stationery", "Office supplies", "Photographs", "Calendars", "Posters", "Greeting cards"]
+    },
+    {
+      "classNumber": 17,
+      "title": "Rubber Goods",
+      "category": "goods",
+      "description": "Unprocessed and semi-processed rubber, gutta-percha, gum, asbestos, mica and substitutes for all these materials; plastics and resins in extruded form for use in manufacture; packing, stopping and insulating materials; flexible pipes, tubes and hoses, not of metal.",
+      "examples": ["Rubber", "Plastic materials", "Insulating materials", "Flexible hoses", "Packing materials", "Gaskets", "Seals"]
+    },
+    {
+      "classNumber": 18,
+      "title": "Leather Goods",
+      "category": "goods",
+      "description": "Leather and imitations of leather; animal skins and hides; luggage and carrying bags; umbrellas and parasols; walking sticks; whips, harness and saddlery; collars, leashes and clothing for animals.",
+      "examples": ["Leather goods", "Handbags", "Luggage", "Wallets", "Umbrellas", "Backpacks", "Purses", "Briefcases", "Pet accessories"]
+    },
+    {
+      "classNumber": 19,
+      "title": "Non-metallic Building Materials",
+      "category": "goods",
+      "description": "Materials, not of metal, for building and construction; rigid pipes, not of metal, for building; asphalt, pitch, tar and bitumen; transportable buildings, not of metal; monuments, not of metal.",
+      "examples": ["Building materials", "Concrete", "Cement", "Wood", "Glass", "Stone", "Bricks", "Tiles", "Asphalt"]
+    },
+    {
+      "classNumber": 20,
+      "title": "Furniture and Articles Not Otherwise Classified",
+      "category": "goods",
+      "description": "Furniture, mirrors, picture frames; containers, not of metal, for storage or transport; unworked or semi-worked bone, horn, whalebone or mother-of-pearl; shells; meerschaum; yellow amber.",
+      "examples": ["Furniture", "Chairs", "Tables", "Beds", "Mattresses", "Mirrors", "Picture frames", "Plastic containers", "Coat hangers"]
+    },
+    {
+      "classNumber": 21,
+      "title": "Housewares and Glass",
+      "category": "goods",
+      "description": "Household or kitchen utensils and containers; cookware and tableware, except forks, knives and spoons; combs and sponges; brushes, except paintbrushes; brush-making materials; articles for cleaning purposes; unworked or semi-worked glass, except building glass; glassware, porcelain and earthenware.",
+      "examples": ["Household utensils", "Kitchen containers", "Cookware", "Glassware", "Porcelain", "Brushes", "Cleaning tools", "Toothbrushes", "Bottles"]
+    },
+    {
+      "classNumber": 22,
+      "title": "Cordage and Fibers",
+      "category": "goods",
+      "description": "Ropes and string; nets; tents and tarpaulins; awnings of textile or synthetic materials; sails; sacks for the transport and storage of materials in bulk; padding, cushioning and stuffing materials, except of paper, cardboard, rubber or plastics; raw fibrous textile materials and substitutes therefor.",
+      "examples": ["Ropes", "String", "Nets", "Tents", "Awnings", "Sails", "Bags for storage", "Raw textile fibers"]
+    },
+    {
+      "classNumber": 23,
+      "title": "Yarns and Threads",
+      "category": "goods",
+      "description": "Yarns and threads for textile use.",
+      "examples": ["Yarn", "Thread", "Sewing thread", "Embroidery thread", "Knitting yarn"]
+    },
+    {
+      "classNumber": 24,
+      "title": "Fabrics",
+      "category": "goods",
+      "description": "Textiles and substitutes for textiles; household linen; curtains of textile or plastic.",
+      "examples": ["Fabrics", "Textiles", "Bed linen", "Table linen", "Curtains", "Towels", "Blankets", "Pillowcases"]
+    },
+    {
+      "classNumber": 25,
+      "title": "Clothing",
+      "category": "goods",
+      "description": "Clothing, footwear, headwear.",
+      "examples": ["Clothing", "Shoes", "Hats", "T-shirts", "Pants", "Dresses", "Jackets", "Socks", "Underwear", "Athletic wear", "Swimwear"]
+    },
+    {
+      "classNumber": 26,
+      "title": "Fancy Goods",
+      "category": "goods",
+      "description": "Lace, braid and embroidery, and haberdashery ribbons and bows; buttons, hooks and eyes, pins and needles; artificial flowers; hair decorations; false hair.",
+      "examples": ["Lace", "Ribbons", "Buttons", "Zippers", "Pins", "Artificial flowers", "Hair accessories", "Wigs"]
+    },
+    {
+      "classNumber": 27,
+      "title": "Floor Coverings",
+      "category": "goods",
+      "description": "Carpets, rugs, mats and matting, linoleum and other materials for covering existing floors; wall hangings, not of textile.",
+      "examples": ["Carpets", "Rugs", "Floor mats", "Linoleum", "Wall hangings", "Yoga mats"]
+    },
+    {
+      "classNumber": 28,
+      "title": "Toys and Sporting Goods",
+      "category": "goods",
+      "description": "Games, toys and playthings; video game apparatus; gymnastic and sporting articles; decorations for Christmas trees.",
+      "examples": ["Toys", "Games", "Video game consoles", "Sports equipment", "Exercise equipment", "Dolls", "Board games", "Playing cards", "Fishing tackle"]
+    },
+    {
+      "classNumber": 29,
+      "title": "Meats and Processed Foods",
+      "category": "goods",
+      "description": "Meat, fish, poultry and game; meat extracts; preserved, frozen, dried and cooked fruits and vegetables; jellies, jams, compotes; eggs; milk, cheese, butter, yogurt and other milk products; oils and fats for food.",
+      "examples": ["Meat", "Fish", "Poultry", "Preserved vegetables", "Dairy products", "Eggs", "Edible oils", "Nuts", "Dried fruit"]
+    },
+    {
+      "classNumber": 30,
+      "title": "Staple Foods",
+      "category": "goods",
+      "description": "Coffee, tea, cocoa and artificial coffee; rice, pasta and noodles; tapioca and sago; flour and preparations made from cereals; bread, pastries and confectionery; chocolate; ice cream, sorbets and other edible ices; sugar, honey, treacle; yeast, baking-powder; salt, seasonings, spices, preserved herbs; vinegar, sauces and other condiments; ice.",
+      "examples": ["Coffee", "Tea", "Rice", "Pasta", "Bread", "Pastries", "Chocolate", "Candy", "Ice cream", "Spices", "Sauces", "Condiments"]
+    },
+    {
+      "classNumber": 31,
+      "title": "Natural Agricultural Products",
+      "category": "goods",
+      "description": "Raw and unprocessed agricultural, aquacultural, horticultural and forestry products; raw and unprocessed grains and seeds; fresh fruits and vegetables, fresh herbs; natural plants and flowers; bulbs, seedlings and seeds for planting; live animals; foodstuffs and beverages for animals; malt.",
+      "examples": ["Fresh fruits", "Fresh vegetables", "Live plants", "Seeds", "Flowers", "Live animals", "Animal feed", "Fresh herbs"]
+    },
+    {
+      "classNumber": 32,
+      "title": "Light Beverages",
+      "category": "goods",
+      "description": "Beers; non-alcoholic beverages; mineral and aerated waters; fruit beverages and fruit juices; syrups and other non-alcoholic preparations for making beverages.",
+      "examples": ["Beer", "Soft drinks", "Mineral water", "Fruit juice", "Energy drinks", "Sports drinks", "Non-alcoholic beverages"]
+    },
+    {
+      "classNumber": 33,
+      "title": "Wine and Spirits",
+      "category": "goods",
+      "description": "Alcoholic beverages, except beers; alcoholic preparations for making beverages.",
+      "examples": ["Wine", "Spirits", "Liquor", "Whiskey", "Vodka", "Rum", "Gin", "Tequila", "Liqueurs", "Cocktails"]
+    },
+    {
+      "classNumber": 34,
+      "title": "Smokers' Articles",
+      "category": "goods",
+      "description": "Tobacco and tobacco substitutes; cigarettes, cigars and cigarillos; electronic cigarettes and oral vaporizers for smokers; smokers' articles; matches.",
+      "examples": ["Tobacco", "Cigarettes", "Cigars", "E-cigarettes", "Lighters", "Matches", "Ashtrays", "Pipes"]
+    },
+    {
+      "classNumber": 35,
+      "title": "Advertising and Business",
+      "category": "services",
+      "description": "Advertising; business management, organization and administration; office functions.",
+      "examples": ["Advertising services", "Marketing services", "Business management", "Retail store services", "Online retail services", "Business consulting", "Employment agencies", "Market research", "Public relations"]
+    },
+    {
+      "classNumber": 36,
+      "title": "Insurance and Financial",
+      "category": "services",
+      "description": "Financial, monetary and banking services; insurance services; real estate services.",
+      "examples": ["Banking services", "Insurance", "Financial services", "Investment services", "Real estate services", "Credit card services", "Loan services", "Mortgage services"]
+    },
+    {
+      "classNumber": 37,
+      "title": "Building Construction and Repair",
+      "category": "services",
+      "description": "Construction services; installation and repair services; mining extraction, oil and gas drilling.",
+      "examples": ["Construction", "Building repair", "Installation services", "Maintenance services", "Cleaning services", "Vehicle repair", "Computer repair", "Painting services"]
+    },
+    {
+      "classNumber": 38,
+      "title": "Telecommunications",
+      "category": "services",
+      "description": "Telecommunications services.",
+      "examples": ["Telecommunications", "Broadcasting", "Internet services", "Telephone services", "Television broadcasting", "Radio broadcasting", "Streaming services", "Data transmission"]
+    },
+    {
+      "classNumber": 39,
+      "title": "Transportation and Storage",
+      "category": "services",
+      "description": "Transport; packaging and storage of goods; travel arrangement.",
+      "examples": ["Transportation", "Shipping", "Delivery services", "Storage", "Travel arrangement", "Courier services", "Freight services", "Moving services"]
+    },
+    {
+      "classNumber": 40,
+      "title": "Treatment of Materials",
+      "category": "services",
+      "description": "Treatment of materials; recycling of waste and trash; air purification and treatment of water; printing services; food and drink preservation.",
+      "examples": ["Custom manufacturing", "Printing services", "Recycling", "Water treatment", "Food processing", "Metal treatment", "Textile treatment"]
+    },
+    {
+      "classNumber": 41,
+      "title": "Education and Entertainment",
+      "category": "services",
+      "description": "Education; providing of training; entertainment; sporting and cultural activities.",
+      "examples": ["Education services", "Training", "Entertainment", "Sporting activities", "Publishing", "Film production", "Music production", "Amusement parks", "Coaching"]
+    },
+    {
+      "classNumber": 42,
+      "title": "Computer and Scientific Services",
+      "category": "services",
+      "description": "Scientific and technological services and research and design relating thereto; industrial analysis, industrial research and industrial design services; quality control and authentication services; design and development of computer hardware and software.",
+      "examples": ["Software development", "Computer programming", "Website design", "Cloud computing", "Scientific research", "Engineering services", "IT consulting", "Data hosting", "SaaS services"]
+    },
+    {
+      "classNumber": 43,
+      "title": "Hotels and Restaurants",
+      "category": "services",
+      "description": "Services for providing food and drink; temporary accommodation.",
+      "examples": ["Restaurant services", "Hotel services", "Catering", "Bar services", "Cafe services", "Food truck services", "Temporary accommodation", "Reservation services"]
+    },
+    {
+      "classNumber": 44,
+      "title": "Medical, Beauty, and Agricultural",
+      "category": "services",
+      "description": "Medical services; veterinary services; hygienic and beauty care for human beings or animals; agriculture, aquaculture, horticulture and forestry services.",
+      "examples": ["Medical services", "Dental services", "Veterinary services", "Beauty salon services", "Spa services", "Health care", "Gardening services", "Landscaping"]
+    },
+    {
+      "classNumber": 45,
+      "title": "Legal and Security",
+      "category": "services",
+      "description": "Legal services; security services for the physical protection of tangible property and individuals; personal and social services rendered by others to meet the needs of individuals.",
+      "examples": ["Legal services", "Security services", "Private investigation", "Dating services", "Funeral services", "Licensing of intellectual property", "Personal shopping", "Wedding planning"]
+    }
+  ]
+}
