@@ -34,7 +34,7 @@ class ApiClient {
     options: RequestInit = {}
   ): Promise<ApiResponse<T>> {
     const url = `${this.baseUrl}${endpoint}`;
-    
+
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
       ...options.headers,
@@ -103,12 +103,12 @@ export const api = new ApiClient(API_BASE_URL);
 export const authApi = {
   signup: (data: { email: string; password: string; firstName?: string; lastName?: string }) =>
     api.post<{ user: User; token: string }>('/auth/signup', data),
-  
+
   signin: (data: { email: string; password: string }) =>
     api.post<{ user: User; token: string }>('/auth/signin', data),
-  
+
   signout: () => api.post('/auth/signout'),
-  
+
   getMe: () => api.get<User>('/auth/me'),
 };
 
@@ -165,20 +165,20 @@ export const legalApi = {
     const query = params ? `?${new URLSearchParams(params as Record<string, string>)}` : '';
     return api.get<{ documents: LegalDocument[] }>(`/legal/documents${query}`);
   },
-  
+
   getDocument: (id: string) => api.get<LegalDocument>(`/legal/documents/${id}`),
-  
+
   createDocument: (data: { documentType: string; documentCategory: string; title: string; templateId?: string }) =>
     api.post<LegalDocument>('/legal/documents', data),
-  
+
   updateDocument: (id: string, data: Partial<LegalDocument>) =>
     api.put<LegalDocument>(`/legal/documents/${id}`, data),
-  
+
   deleteDocument: (id: string) => api.delete(`/legal/documents/${id}`),
-  
+
   generatePdf: (id: string) =>
     api.post<{ pdfBase64: string; filename: string }>(`/legal/documents/${id}/generate-pdf`),
-  
+
   listTemplates: (params?: { category?: string; search?: string }) => {
     const query = params ? `?${new URLSearchParams(params as Record<string, string>)}` : '';
     return api.get<{ templates: LegalTemplate[] }>(`/legal/templates${query}`);
@@ -188,17 +188,17 @@ export const legalApi = {
 // Filing API
 export const filingApi = {
   listFilings: () => api.get<{ filings: LegalFiling[] }>('/filing'),
-  
+
   getFilingTypes: () => api.get<{ filingTypes: FilingType[] }>('/filing/types'),
-  
+
   startFiling: (data: { filingType: string; jurisdictionState: string; jurisdictionCounty?: string }) =>
     api.post<LegalFiling>('/filing/start', data),
-  
+
   getFiling: (id: string) => api.get<LegalFiling>(`/filing/${id}`),
-  
+
   startInterview: (filingId: string) =>
     api.get<FilingInterviewState>(`/filing/interview/${filingId}/start`),
-  
+
   submitAnswer: (filingId: string, questionId: string, value: unknown) =>
     api.post<{ nextQuestion: FilingQuestion; isComplete: boolean }>(
       `/filing/interview/${filingId}/answer`,
@@ -210,13 +210,13 @@ export const filingApi = {
 export const childSupportApi = {
   calculate: (data: ChildSupportInput) =>
     api.post<{ result: ChildSupportResult; guidelines: StateGuidelines }>('/child-support/calculate', data),
-  
+
   getCalculations: () =>
     api.get<{ calculations: ChildSupportCalculation[] }>('/child-support/calculations'),
-  
+
   getGuidelines: (state: string) =>
     api.get<StateGuidelines>(`/child-support/guidelines/${state}`),
-  
+
   getSupportedStates: () =>
     api.get<{ states: SupportedState[] }>('/child-support/states'),
 };
@@ -224,13 +224,13 @@ export const childSupportApi = {
 // Subscription API
 export const subscriptionApi = {
   getCurrent: () => api.get<Subscription>('/subscriptions/current'),
-  
+
   getPlans: () => api.get<{ plans: Plan[] }>('/subscriptions/plans'),
-  
+
   getUsage: () => api.get<UsageStats>('/subscriptions/usage'),
-  
+
   cancel: () => api.post('/subscriptions/cancel'),
-  
+
   resume: () => api.post('/subscriptions/resume'),
 };
 
@@ -251,6 +251,8 @@ export interface TaxReturn {
   status: string;
   totalIncome?: number;
   refundAmount?: number;
+  federalForms?: string[];
+  stateReturns?: Record<string, any>;
   createdAt: string;
 }
 

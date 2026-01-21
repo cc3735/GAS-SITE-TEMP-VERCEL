@@ -11,7 +11,6 @@ import {
   ArrowRight,
   Users,
   Heart,
-  Scale,
   DollarSign,
 } from 'lucide-react';
 
@@ -105,8 +104,8 @@ export default function FilingDashboard() {
           <div className="text-sm text-yellow-800 dark:text-yellow-200">
             <p className="font-medium mb-1">Document Preparation Service</p>
             <p>
-              LegalFlow provides document preparation assistance for pro se (self-represented) filers. 
-              We are not a law firm and do not provide legal advice. Complex cases should be reviewed 
+              LegalFlow provides document preparation assistance for pro se (self-represented) filers.
+              We are not a law firm and do not provide legal advice. Complex cases should be reviewed
               by an attorney.
             </p>
           </div>
@@ -163,7 +162,7 @@ export default function FilingDashboard() {
                       {filing.filingType.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      {filing.jurisdiction} • {new Date(filing.createdAt).toLocaleDateString()}
+                      {filing.jurisdictionState} • {new Date(filing.createdAt).toLocaleDateString()}
                     </p>
                   </div>
                 </div>

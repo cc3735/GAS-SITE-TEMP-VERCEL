@@ -6,7 +6,7 @@
 
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Search, Filter, Download, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Search, Download } from 'lucide-react';
 
 interface Transaction {
     id: string;

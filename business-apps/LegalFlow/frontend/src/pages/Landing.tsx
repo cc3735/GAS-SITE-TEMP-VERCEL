@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight, Check, FileText, Scale, Calculator, Shield, Zap, Users, PieChart } from 'lucide-react';
+import { ArrowRight, Check, FileText, Scale, Calculator, Zap, PieChart } from 'lucide-react';
 
 export default function Landing() {
   return (

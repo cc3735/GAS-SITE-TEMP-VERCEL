@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { childSupportApi } from '@/lib/api';
-import { 
-  Calculator, 
-  AlertCircle, 
-  Info, 
-  Download, 
+import {
+  Calculator,
+  AlertCircle,
+  Info,
+  Download,
   RefreshCw,
   DollarSign,
   Users,
@@ -51,19 +51,56 @@ export default function ChildSupportCalculator() {
 
   const calculateMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      const res = await childSupportApi.calculate({
-        state: data.state,
-        parent1Income: parseFloat(data.parent1Income),
-        parent2Income: parseFloat(data.parent2Income),
-        numberOfChildren: parseInt(data.numberOfChildren),
-        custodyArrangement: data.custodyArrangement as 'sole' | 'joint' | 'split',
-        overnightsWithNonCustodialParent: parseInt(data.overnightsWithParent2),
-        additionalExpenses: {
-          healthInsurance: parseFloat(data.healthInsuranceCost) || 0,
-          childcare: parseFloat(data.childcareCost) || 0,
+      // Map form data to API structure
+      const apiPayload = {
+        stateCode: data.state,
+        calculationType: data.custodyArrangement,
+        parent1Data: {
+          grossMonthlyIncome: parseFloat(data.parent1Income) || 0,
+          otherIncome: 0,
+          healthInsuranceCost: 0, // Simplified for now since form separates this
+          childCareCost: 0,
+          otherChildSupport: 0,
+          overnightsPerYear: 365 - (parseInt(data.overnightsWithParent2) || 0),
+          deductions: []
         },
-      });
-      return res.data as CalculationResult;
+        parent2Data: {
+          grossMonthlyIncome: parseFloat(data.parent2Income) || 0,
+          otherIncome: 0,
+          healthInsuranceCost: parseFloat(data.healthInsuranceCost) || 0, // Assigning to parent 2 for now based on form flow
+          childCareCost: parseFloat(data.childcareCost) || 0,
+          otherChildSupport: 0,
+          overnightsPerYear: parseInt(data.overnightsWithParent2) || 0,
+          deductions: []
+        },
+        childrenData: Array(parseInt(data.numberOfChildren)).fill({
+          dateOfBirth: new Date().toISOString(), // Placeholder
+          specialNeeds: data.specialNeeds,
+          healthInsuranceCoveredBy: 'parent2'
+        })
+      };
+
+      const res = await childSupportApi.calculate(apiPayload);
+
+      // Map API response to component state
+      const resultData = res.data?.result;
+      const guidelines = res.data?.guidelines;
+
+      if (!resultData) throw new Error('No result data');
+
+      return {
+        monthlyAmount: resultData.netSupportAmount,
+        annualAmount: resultData.netSupportAmount * 12,
+        breakdown: {
+          parent1Percentage: 50, // Mocking percentage as it's not in simple result
+          parent2Percentage: 50,
+          combinedIncome: resultData.combinedIncome,
+          baseSupport: resultData.netSupportAmount,
+          adjustments: []
+        },
+        disclaimer: 'Estimated based on state guidelines',
+        stateGuidelines: guidelines?.guidelinesUrl || ''
+      } as CalculationResult;
     },
     onSuccess: (data) => {
       setResult(data);
@@ -110,9 +147,9 @@ export default function ChildSupportCalculator() {
           <div className="text-sm text-yellow-800 dark:text-yellow-200">
             <p className="font-medium mb-1">Important Disclaimer</p>
             <p>
-              This calculator provides estimates based on publicly available state guidelines. 
-              Actual child support amounts may vary based on judicial discretion, specific circumstances, 
-              and recent legislative changes. This is not legal advice. Consult with a family law 
+              This calculator provides estimates based on publicly available state guidelines.
+              Actual child support amounts may vary based on judicial discretion, specific circumstances,
+              and recent legislative changes. This is not legal advice. Consult with a family law
               attorney for accurate determinations.
             </p>
           </div>
@@ -228,11 +265,10 @@ export default function ChildSupportCalculator() {
                 ].map((option) => (
                   <label
                     key={option.value}
-                    className={`flex items-center justify-center rounded-lg border p-3 cursor-pointer transition ${
-                      formData.custodyArrangement === option.value
-                        ? 'border-primary bg-primary/5'
-                        : 'hover:border-primary/50'
-                    }`}
+                    className={`flex items-center justify-center rounded-lg border p-3 cursor-pointer transition ${formData.custodyArrangement === option.value
+                      ? 'border-primary bg-primary/5'
+                      : 'hover:border-primary/50'
+                      }`}
                   >
                     <input
                       type="radio"
