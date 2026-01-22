@@ -40,6 +40,7 @@ import { trackFormStarted, trackFormCompleted, trackFormAbandoned, trackServiceS
  * Service options for the form
  */
 const serviceOptions = [
+  'Voice Agent',
   'Email Automation',
   'Data Entry Automation',
   'AI Chatbot Development',
