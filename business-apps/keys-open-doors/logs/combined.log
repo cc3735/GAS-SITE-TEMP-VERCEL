@@ -1,0 +1,10 @@
+{"level":"info","message":"Initializing scheduled jobs...","timestamp":"2026-01-21T23:20:13.565Z"}
+{"level":"info","message":"Scheduled job \"monday-scrape\" with cron: 0 6 * * 1","timestamp":"2026-01-21T23:20:13.597Z"}
+{"level":"info","message":"Scheduled job \"thursday-scrape\" with cron: 0 6 * * 4","timestamp":"2026-01-21T23:20:13.598Z"}
+{"level":"info","message":"Scheduled job \"daily-post\" with cron: 0 10 * * *","timestamp":"2026-01-21T23:20:13.598Z"}
+{"level":"info","message":"3 jobs scheduled successfully","timestamp":"2026-01-21T23:20:13.598Z"}
+{"level":"info","message":"Scheduled jobs initialized","timestamp":"2026-01-21T23:20:13.599Z"}
+{"level":"info","message":"🚀 Keys Open Doors server running on port 3001","timestamp":"2026-01-21T23:20:13.601Z"}
+{"level":"info","message":"📊 API documentation: http://localhost:3001/api","timestamp":"2026-01-21T23:20:13.601Z"}
+{"level":"info","message":"🔍 Health check: http://localhost:3001/health","timestamp":"2026-01-21T23:20:13.601Z"}
+{"ip":"::1","level":"info","message":"GET /health","query":{},"timestamp":"2026-01-21T23:20:27.569Z"}
