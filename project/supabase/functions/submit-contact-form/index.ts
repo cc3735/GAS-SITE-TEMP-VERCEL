@@ -27,7 +27,7 @@ const CRM_URL = Deno.env.get('CRM_URL') || 'https://your-crm.com';
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-application-name',
 };
 
 // Interfaces
@@ -89,22 +89,22 @@ function calculateLeadScore(formData: ContactFormData, existingScore: number): n
 
   // +10 if company provided
   if (formData.company && formData.company.trim()) score += 10;
-  
+
   // +5 if phone provided
   if (formData.phone && formData.phone.trim()) score += 5;
-  
+
   // +10 if message > 100 characters
   if (formData.message && formData.message.length > 100) score += 10;
-  
+
   // +15 if service is not General Inquiry
   if (formData.service && formData.service !== 'General Inquiry') score += 15;
-  
+
   // +5 if pain point provided
   if (formData.painPoint && formData.painPoint.trim()) score += 5;
-  
+
   // +20 if timeline is Immediate
   if (formData.timeline && formData.timeline.includes('Immediate')) score += 20;
-  
+
   // +10 if timeline is Short-term
   else if (formData.timeline && formData.timeline.includes('Short-term')) score += 10;
 
@@ -124,14 +124,14 @@ async function getGeolocation(ip: string): Promise<GeolocationData> {
     const response = await fetch(`https://ipapi.co/${ip}/json/`, {
       signal: AbortSignal.timeout(5000), // 5 second timeout
     });
-    
+
     if (!response.ok) {
       console.warn('Geolocation API returned non-OK status:', response.status);
       return {};
     }
-    
+
     const data = await response.json();
-    
+
     return {
       city: data.city || null,
       state: data.region || null,
@@ -276,10 +276,10 @@ serve(async (req: Request) => {
 
     // Get real IP address from headers (Vercel/Cloudflare provide these)
     const realIP = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-                   req.headers.get('x-real-ip') ||
-                   req.headers.get('cf-connecting-ip') ||
-                   metadata.ipAddress ||
-                   'unknown';
+      req.headers.get('x-real-ip') ||
+      req.headers.get('cf-connecting-ip') ||
+      metadata.ipAddress ||
+      'unknown';
 
     // Get geolocation
     const geolocation = await getGeolocation(realIP);
@@ -360,7 +360,7 @@ serve(async (req: Request) => {
 
       // Merge custom fields
       const existingCustomFields = (existingContact.custom_fields as Record<string, unknown>) || {};
-      
+
       const { error: updateError } = await supabase
         .from('contacts')
         .update({
@@ -575,7 +575,7 @@ ${formData.message}
     );
   } catch (error) {
     console.error('Error processing form submission:', error);
-    
+
     return new Response(
       JSON.stringify({
         success: false,

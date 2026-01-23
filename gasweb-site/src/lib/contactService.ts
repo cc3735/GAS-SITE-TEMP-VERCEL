@@ -116,8 +116,17 @@ export async function submitContactForm(
     };
 
     // Call Supabase Edge Function
+    const functionName = 'submit-contact-form';
+    console.log(`[ContactService] Invoking Edge Function: ${functionName}`);
+
+    // Debug: Log the configured Supabase URL to verify .env loading
+    // We can access it via the internal 'supabaseUrl' property if available, 
+    // or just assume based on the client configuration.
+    // Note: The specific URL structure depends on the client version, but we can log that we are starting.
+    console.log('[ContactService] Attempting invocation...');
+
     const { data: result, error } = await supabase.functions.invoke(
-      'submit-contact-form',
+      functionName,
       {
         body: {
           formData: data,
@@ -127,12 +136,16 @@ export async function submitContactForm(
     );
 
     if (error) {
-      console.error('Edge Function error:', error);
+      console.error('Edge Function invocation failed:', error);
+      console.error('Error details:', JSON.stringify(error, null, 2));
       return {
         success: false,
-        error: error.message || 'Failed to submit form. Please try again.',
+        error: `Connection Error: ${error.message}. Check console for details.`,
       };
     }
+
+    console.log('[ContactService] Invocation successful. Result:', result);
+
 
     if (!result?.success) {
       return {
