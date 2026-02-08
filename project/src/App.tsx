@@ -18,6 +18,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import MissionControl from './pages/MissionControl';
 import GasAdminMissionControl from './pages/GasAdminMissionControl';
 import GasAdminSettings from './pages/GasAdminSettings';
+import ClientManagement from './pages/ClientManagement';
 import CustomerProfile from './pages/CustomerProfile';
 import Diagnostics from './pages/Diagnostics';
 import WebOS from './pages/WebOS';
@@ -134,20 +135,21 @@ function App() {
                 <Route path="diagnostics" element={<Diagnostics />} />
                 <Route path="admin" element={<AdminDashboard />} />
                 <Route path="settings" element={<Settings />} />
-                
+
                 {/* Merged pages */}
                 <Route path="engagement" element={<LeadEngagement />} />
                 <Route path="ai-infrastructure" element={<AIInfrastructure />} />
-                
+
                 {/* Legacy redirects for backward compatibility */}
                 <Route path="intake" element={<Navigate to="/engagement" replace />} />
                 <Route path="nudges" element={<Navigate to="/engagement" replace />} />
                 <Route path="agents" element={<Navigate to="/ai-infrastructure" replace />} />
                 <Route path="mcp" element={<Navigate to="/ai-infrastructure" replace />} />
-                
+
                 {/* GAS Master Admin Routes */}
                 <Route path="gas/mission-control" element={<GasAdminMissionControl />} />
                 <Route path="gas/settings" element={<GasAdminSettings />} />
+                <Route path="gas/clients" element={<ClientManagement />} />
               </Route>
             </Routes>
           </ToastProvider>

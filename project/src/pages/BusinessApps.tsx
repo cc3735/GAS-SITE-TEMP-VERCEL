@@ -8,7 +8,6 @@ import { supabase } from '../lib/supabase';
 import { useOrganization } from '../contexts/OrganizationContext';
 import { useToast } from '../contexts/ToastContext';
 import {
-  Building2,
   Utensils,
   HardHat,
   RefreshCw,
@@ -21,7 +20,12 @@ import {
   ArrowUpRight,
   Activity,
   Database,
+  GraduationCap,
+  Scale,
+  Key,
 } from 'lucide-react';
+
+
 
 interface BusinessApp {
   id: string;
@@ -55,10 +59,13 @@ interface AppInstance {
 }
 
 const APP_ICONS: Record<string, React.ReactNode> = {
-  'keys-open-doors': <Building2 className="w-8 h-8" />,
+  'keys-open-doors': <Key className="w-8 h-8" />,
   'food-truck': <Utensils className="w-8 h-8" />,
   'construction-mgmt': <HardHat className="w-8 h-8" />,
+  'courseflow': <GraduationCap className="w-8 h-8" />,
+  'legalflow': <Scale className="w-8 h-8" />,
 };
+
 
 const STATUS_COLORS: Record<string, string> = {
   active: 'bg-green-100 text-green-800',
@@ -168,7 +175,7 @@ export default function BusinessApps() {
   const handleAddApp = async (appId: string) => {
     try {
       const app = availableApps.find(a => a.id === appId);
-      
+
       await supabase.from('app_instances').insert({
         organization_id: currentOrganization?.id,
         app_id: appId,
@@ -262,7 +269,7 @@ export default function BusinessApps() {
       {/* Installed Apps */}
       <div>
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Your Apps</h2>
-        
+
         {instances.length === 0 ? (
           <div className="bg-white rounded-xl p-8 text-center border border-gray-100">
             <Database className="w-12 h-12 text-gray-300 mx-auto mb-4" />
@@ -294,9 +301,8 @@ export default function BusinessApps() {
                       </div>
                     </div>
                     <span
-                      className={`px-3 py-1 rounded-full text-xs font-medium ${
-                        STATUS_COLORS[instance.status] || 'bg-gray-100 text-gray-800'
-                      }`}
+                      className={`px-3 py-1 rounded-full text-xs font-medium ${STATUS_COLORS[instance.status] || 'bg-gray-100 text-gray-800'
+                        }`}
                     >
                       {instance.status.replace('_', ' ')}
                     </span>
