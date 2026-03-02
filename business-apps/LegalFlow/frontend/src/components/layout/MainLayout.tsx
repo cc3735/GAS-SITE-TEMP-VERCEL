@@ -11,6 +11,9 @@ import {
   X,
   Home,
   ChevronDown,
+  Briefcase,
+  BookCopy,
+  Book,
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -19,7 +22,11 @@ const navigation = [
   { name: 'Tax Filing', href: '/tax', icon: FileText },
   { name: 'Legal Documents', href: '/legal', icon: Scale },
   { name: 'Legal Filings', href: '/filing', icon: FolderOpen },
+  { name: 'Bookkeeping', href: '/bookkeeping', icon: BookCopy },
+  { name: 'Businesses', href: '/businesses', icon: Briefcase },
+  { name: 'Accounting', href: '/accounting/chart-of-accounts', icon: Book },
   { name: 'Child Support Calculator', href: '/child-support', icon: Calculator },
+  { name: 'Settings', href: '/settings', icon: Settings },
 ];
 
 export default function MainLayout() {

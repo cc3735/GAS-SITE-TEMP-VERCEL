@@ -2,35 +2,128 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/lib/store';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
+import { api } from '@/lib/api';
+
+interface MfaFactor {
+    id: string;
+    friendly_name: string;
+}
 
 export default function Login() {
   const navigate = useNavigate();
-  const { login } = useAuthStore();
+  const { loginWithToken } = useAuthStore();
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  
+  // MFA state
+  const [mfaRequired, setMfaRequired] = useState(false);
+  const [mfaFactors, setMfaFactors] = useState<MfaFactor[]>([]);
+  const [selectedFactor, setSelectedFactor] = useState('');
+  const [mfaCode, setMfaCode] = useState('');
+  const [intermediateToken, setIntermediateToken] = useState('');
 
-  const handleSubmit = async (e: React.FormEvent) => {
+
+  const handlePasswordLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
 
     try {
-      const success = await login(email, password);
-      if (success) {
+      // We don't use the store's login directly anymore for the first step
+      const response = await api.post<any>('/auth/signin', { email, password });
+
+      if (response.success && response.data?.mfaRequired) {
+        setMfaRequired(true);
+        setMfaFactors(response.data.factors);
+        setSelectedFactor(response.data.factors[0]?.id || '');
+        setIntermediateToken(response.data.intermediateSessionToken);
+      } else if (response.success && response.data?.token) {
+        loginWithToken(response.data.token);
         navigate('/dashboard');
       } else {
-        setError('Invalid email or password');
+        setError(response.error?.message || 'Invalid email or password');
       }
-    } catch {
-      setError('An error occurred. Please try again.');
+    } catch (err: any) {
+      setError(err.message || 'An error occurred. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
+
+  const handleMfaLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setIsLoading(true);
+
+    try {
+        const response = await api.post<any>('/auth/signin/mfa', {
+            factorId: selectedFactor,
+            code: mfaCode,
+            intermediateSessionToken: intermediateToken,
+        });
+
+        if (response.success && response.data?.token) {
+            loginWithToken(response.data.token);
+            navigate('/dashboard');
+        } else {
+            setError(response.error?.message || 'Invalid verification code');
+        }
+    } catch (err: any) {
+        setError(err.message || 'An error occurred. Please try again.');
+    } finally {
+        setIsLoading(false);
+    }
+  };
+
+  if (mfaRequired) {
+    return (
+        <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-8">
+            <div className="text-center mb-8">
+                <h1 className="text-2xl font-bold text-white mb-2">Two-Factor Authentication</h1>
+                <p className="text-gray-400">Enter the code from your authenticator app.</p>
+            </div>
+            <form onSubmit={handleMfaLogin} className="space-y-6">
+                {error && (
+                    <div className="rounded-lg bg-red-500/10 border border-red-500/20 px-4 py-3 text-sm text-red-400">
+                        {error}
+                    </div>
+                )}
+                <div>
+                    <label htmlFor="mfaCode" className="block text-sm font-medium text-gray-300 mb-2">
+                        Verification Code
+                    </label>
+                    <input
+                        id="mfaCode"
+                        type="text"
+                        value={mfaCode}
+                        onChange={(e) => setMfaCode(e.target.value)}
+                        required
+                        className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-white placeholder:text-gray-500 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                        placeholder="123456"
+                    />
+                </div>
+                <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="w-full rounded-lg bg-teal-500 py-3 font-medium text-navy-950 hover:bg-teal-400 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
+                >
+                    {isLoading ? (
+                        <>
+                            <Loader2 className="h-5 w-5 animate-spin" />
+                            Verifying...
+                        </>
+                    ) : (
+                        'Verify & Sign In'
+                    )}
+                </button>
+            </form>
+        </div>
+    );
+  }
 
   return (
     <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-8">
@@ -39,7 +132,7 @@ export default function Login() {
         <p className="text-gray-400">Sign in to your LegalFlow account</p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handlePasswordLogin} className="space-y-6">
         {error && (
           <div className="rounded-lg bg-red-500/10 border border-red-500/20 px-4 py-3 text-sm text-red-400">
             {error}

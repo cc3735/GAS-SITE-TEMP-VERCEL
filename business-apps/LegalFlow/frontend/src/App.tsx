@@ -12,6 +12,7 @@ import Bookkeeping from '@/pages/bookkeeping/Bookkeeping';
 import BankAccounts from '@/pages/bookkeeping/BankAccounts';
 import BankStatementUpload from '@/pages/bookkeeping/BankStatementUpload';
 import Transactions from '@/pages/bookkeeping/Transactions';
+import Reports from '@/pages/bookkeeping/Reports';
 import NotFound from '@/pages/NotFound';
 import Login from '@/pages/auth/Login';
 import Register from '@/pages/auth/Register';
@@ -23,6 +24,10 @@ import ChildSupportCalculator from '@/pages/child-support/Calculator';
 import Disclaimer from '@/pages/Disclaimer';
 import Privacy from '@/pages/Privacy';
 import Terms from '@/pages/Terms';
+import Businesses from '@/pages/Businesses';
+import Settings from '@/pages/Settings';
+import ChartOfAccounts from '@/pages/accounting/ChartOfAccounts';
+import JournalEntries from '@/pages/accounting/JournalEntries';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -118,20 +123,25 @@ export default function App() {
             <Route path="/filing" element={<FilingDashboard />} />
             <Route path="/filing/:id" element={<FilingDashboard />} />
             <Route path="/filing/new" element={<FilingDashboard />} />
-            <Route path="/settings" element={<Dashboard />} />
+            <Route path="/settings" element={<Settings />} />
             <Route path="/pricing" element={<Dashboard />} />
+
+            {/* Bookkeeping Routes */}
+            <Route path="/bookkeeping" element={<Bookkeeping />} />
+            <Route path="/bookkeeping/accounts" element={<BankAccounts />} />
+            <Route path="/bookkeeping/upload" element={<BankStatementUpload />} />
+            <Route path="/bookkeeping/transactions" element={<Transactions />} />
+            <Route path="/bookkeeping/reports" element={<Reports />} />
+            <Route path="/businesses" element={<Businesses />} />
+            <Route path="/accounting/chart-of-accounts" element={<ChartOfAccounts />} />
+            <Route path="/accounting/journal-entries" element={<JournalEntries />} />
+
           </Route>
 
           {/* Legal pages */}
           <Route path="/disclaimer" element={<Disclaimer />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/terms" element={<Terms />} />
-
-          {/* Bookkeeping Routes */}
-          <Route path="/bookkeeping" element={<Bookkeeping />} />
-          <Route path="/bookkeeping/accounts" element={<BankAccounts />} />
-          <Route path="/bookkeeping/upload" element={<BankStatementUpload />} />
-          <Route path="/bookkeeping/transactions" element={<Transactions />} />
 
           <Route path="*" element={<NotFound />} />
         </Routes>
