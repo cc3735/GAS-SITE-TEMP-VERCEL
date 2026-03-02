@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { api, authApi, type User } from './api';
+import { supabase } from './supabase';
 
 interface AuthState {
   user: User | null;
@@ -11,6 +12,7 @@ interface AuthState {
   // Actions
   login: (email: string, password: string) => Promise<boolean>;
   register: (email: string, password: string, firstName?: string, lastName?: string) => Promise<boolean>;
+  loginWithToken: (token: string) => void;
   logout: () => void;
   checkAuth: () => Promise<void>;
   setUser: (user: User | null) => void;
@@ -50,6 +52,11 @@ export const useAuthStore = create<AuthState>()(
         return false;
       },
 
+      loginWithToken: (token: string) => {
+        api.setToken(token);
+        set({ token, isAuthenticated: true });
+      },
+
       logout: () => {
         api.setToken(null);
         set({ user: null, token: null, isAuthenticated: false });
@@ -57,21 +64,37 @@ export const useAuthStore = create<AuthState>()(
 
       checkAuth: async () => {
         const { token } = get();
-        
-        if (!token) {
-          set({ isLoading: false });
-          return;
+
+        // First try the stored custom JWT
+        if (token) {
+          api.setToken(token);
+          const response = await authApi.getMe();
+          if (response.success && response.data) {
+            set({ user: response.data, isAuthenticated: true, isLoading: false });
+            return;
+          }
+          // Token invalid — clear it and fall through to Supabase check
+          api.setToken(null);
+          set({ token: null });
         }
 
-        api.setToken(token);
-        const response = await authApi.getMe();
-        
-        if (response.success && response.data) {
-          set({ user: response.data, isAuthenticated: true, isLoading: false });
-        } else {
-          api.setToken(null);
-          set({ user: null, token: null, isAuthenticated: false, isLoading: false });
+        // Fall back to Supabase session (enables SSO when projects are merged)
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session?.access_token) {
+            api.setToken(session.access_token);
+            const response = await authApi.getMe();
+            if (response.success && response.data) {
+              set({ user: response.data, token: session.access_token, isAuthenticated: true, isLoading: false });
+              return;
+            }
+            api.setToken(null);
+          }
+        } catch {
+          // Supabase unavailable — continue to unauthenticated state
         }
+
+        set({ user: null, token: null, isAuthenticated: false, isLoading: false });
       },
 
       setUser: (user: User | null) => {

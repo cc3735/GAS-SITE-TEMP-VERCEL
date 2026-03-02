@@ -9,10 +9,9 @@
 
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { 
-  Menu, 
-  X, 
-  Zap, 
+import {
+  Menu,
+  X,
   Mail,
   Phone,
   MapPin,
@@ -20,8 +19,11 @@ import {
   Twitter,
   Instagram,
   Youtube,
-  ChevronUp
+  ChevronUp,
+  LayoutDashboard,
+  LogOut,
 } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 
 /**
  * Navigation link data
@@ -56,6 +58,7 @@ export default function Layout(): JSX.Element {
   const [isScrolled, setIsScrolled] = useState(false);
   const [showBackToTop, setShowBackToTop] = useState(false);
   const location = useLocation();
+  const { user, signOut } = useAuth();
 
   // Handle scroll events for header styling and back-to-top button
   useEffect(() => {
@@ -113,9 +116,30 @@ export default function Layout(): JSX.Element {
                   {link.name}
                 </Link>
               ))}
-              <Link to="/contact" className="btn-primary">
-                Get Started
-              </Link>
+              {user ? (
+                <div className="flex items-center gap-3">
+                  <Link to="/portal" className="flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-primary-600 transition-colors">
+                    <LayoutDashboard className="w-4 h-4" />
+                    My Apps
+                  </Link>
+                  <button
+                    onClick={signOut}
+                    className="flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-red-600 transition-colors"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    Sign out
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-3">
+                  <Link to="/login" className="text-sm font-medium text-slate-600 hover:text-primary-600 transition-colors">
+                    Sign in
+                  </Link>
+                  <Link to="/contact" className="btn-primary">
+                    Get Started
+                  </Link>
+                </div>
+              )}
             </div>
 
             {/* Mobile Menu Button */}
@@ -146,9 +170,28 @@ export default function Layout(): JSX.Element {
                   {link.name}
                 </Link>
               ))}
-              <Link to="/contact" className="btn-primary w-full mt-4 text-center">
-                Get Started
-              </Link>
+              {user ? (
+                <>
+                  <Link to="/portal" className="flex items-center gap-2 py-3 font-medium text-slate-600 hover:text-primary-600 transition-colors">
+                    <LayoutDashboard className="w-4 h-4" /> My Apps
+                  </Link>
+                  <button
+                    onClick={signOut}
+                    className="flex items-center gap-2 py-3 font-medium text-slate-600 hover:text-red-600 transition-colors w-full text-left"
+                  >
+                    <LogOut className="w-4 h-4" /> Sign out
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link to="/login" className="block py-3 font-medium text-slate-600 hover:text-primary-600 transition-colors">
+                    Sign in
+                  </Link>
+                  <Link to="/contact" className="btn-primary w-full mt-2 text-center">
+                    Get Started
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         )}
