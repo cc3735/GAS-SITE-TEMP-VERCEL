@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { Plus, ExternalLink, Lock } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
@@ -95,23 +96,39 @@ export default function MyApps() {
                 </div>
 
                 {isActive ? (
-                  <a
-                    href={app.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={`inline-flex items-center gap-1.5 text-sm font-medium ${app.textColor} hover:underline`}
-                  >
-                    Open app <ExternalLink className="w-3.5 h-3.5" />
-                  </a>
+                  <div className="flex items-center justify-between">
+                    <a
+                      href={app.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`inline-flex items-center gap-1.5 text-sm font-medium ${app.textColor} hover:underline`}
+                    >
+                      Open app <ExternalLink className="w-3.5 h-3.5" />
+                    </a>
+                    <Link
+                      to={`/portal/overview#${app.id}`}
+                      className="text-xs text-slate-400 hover:text-slate-600 transition-colors"
+                    >
+                      Learn more
+                    </Link>
+                  </div>
                 ) : (
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-semibold text-slate-700">{INDIVIDUAL_PRICE}</span>
-                    <button
-                      onClick={() => setShowModal(true)}
-                      className="inline-flex items-center gap-1.5 text-sm font-medium text-primary-600 hover:text-primary-700"
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm font-semibold text-slate-700">{INDIVIDUAL_PRICE}</span>
+                      <button
+                        onClick={() => setShowModal(true)}
+                        className="inline-flex items-center gap-1.5 text-sm font-medium text-primary-600 hover:text-primary-700"
+                      >
+                        <Plus className="w-3.5 h-3.5" /> Add
+                      </button>
+                    </div>
+                    <Link
+                      to={`/portal/overview#${app.id}`}
+                      className="text-xs text-slate-400 hover:text-slate-600 transition-colors"
                     >
-                      <Plus className="w-3.5 h-3.5" /> Add
-                    </button>
+                      Learn more
+                    </Link>
                   </div>
                 )}
               </div>

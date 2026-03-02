@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Outlet, NavLink, useNavigate, Navigate } from 'react-router-dom';
+import { Outlet, NavLink, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import {
   LayoutGrid,
   User,
@@ -26,51 +26,20 @@ const settingsNavItems = [
   { to: '/portal/settings/security', icon: Shield, label: 'Security' },
 ];
 
-function NavItem({ to, icon: Icon, label }: { to: string; icon: React.ElementType; label: string }) {
-  return (
-    <NavLink
-      to={to}
-      className={({ isActive }) =>
-        `flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-          isActive
-            ? 'bg-primary-50 text-primary-700'
-            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-        }`
-      }
-    >
-      <Icon className="w-4 h-4 flex-shrink-0" />
-      {label}
-    </NavLink>
-  );
+interface SidebarContentProps {
+  initials: string;
+  user: { email?: string; user_metadata?: Record<string, unknown> };
+  isSettingsOpen: boolean;
+  setIsSettingsOpen: (open: boolean) => void;
+  handleSignOut: () => void;
 }
 
-export default function Portal() {
-  const { user, signOut } = useAuth();
-  const navigate = useNavigate();
-  const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(
-    window.location.pathname.startsWith('/portal/settings')
-  );
-
-  if (!user) return <Navigate to="/login" replace />;
-
-  const initials = (user.user_metadata?.full_name as string | undefined)
-    ?.split(' ')
-    .map((n: string) => n[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2) || user.email?.[0].toUpperCase() || '?';
-
-  const handleSignOut = async () => {
-    await signOut();
-    navigate('/login');
-  };
-
-  const SidebarContent = () => (
+function SidebarContent({ initials, user, isSettingsOpen, setIsSettingsOpen, handleSignOut }: SidebarContentProps) {
+  return (
     <div className="flex flex-col h-full">
       {/* Logo */}
       <div className="px-4 py-5 border-b border-slate-200">
-        <NavLink to="/portal/apps" className="flex items-center gap-2">
+        <NavLink to="/portal/overview" className="flex items-center gap-2">
           <img src="/logo.png" alt="GAS" className="h-8 w-auto" />
           <span className="font-semibold text-slate-900 text-sm">GAS Portal</span>
         </NavLink>
@@ -129,12 +98,62 @@ export default function Portal() {
       </div>
     </div>
   );
+}
+
+function NavItem({ to, icon: Icon, label }: { to: string; icon: React.ElementType; label: string }) {
+  return (
+    <NavLink
+      to={to}
+      className={({ isActive }) =>
+        `flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+          isActive
+            ? 'bg-primary-50 text-primary-700'
+            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+        }`
+      }
+    >
+      <Icon className="w-4 h-4 flex-shrink-0" />
+      {label}
+    </NavLink>
+  );
+}
+
+export default function Portal() {
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(
+    location.pathname.startsWith('/portal/settings')
+  );
+
+  if (!user) return <Navigate to="/login" replace />;
+
+  const initials = (user.user_metadata?.full_name as string | undefined)
+    ?.split(' ')
+    .map((n: string) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2) || user.email?.[0].toUpperCase() || '?';
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/login');
+  };
+
+  const sidebarProps: SidebarContentProps = {
+    initials,
+    user,
+    isSettingsOpen,
+    setIsSettingsOpen,
+    handleSignOut,
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 flex">
       {/* Desktop sidebar */}
       <aside className="hidden md:flex w-60 flex-col bg-white border-r border-slate-200 fixed inset-y-0 left-0 z-30">
-        <SidebarContent />
+        <SidebarContent {...sidebarProps} />
       </aside>
 
       {/* Mobile sidebar overlay */}
@@ -153,7 +172,7 @@ export default function Portal() {
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <SidebarContent />
+            <SidebarContent {...sidebarProps} />
           </aside>
         </div>
       )}

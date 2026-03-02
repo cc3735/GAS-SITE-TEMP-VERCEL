@@ -16,6 +16,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Portal from './pages/Portal';
 import MyApps from './pages/portal/MyApps';
+import Overview from './pages/portal/Overview';
 import Settings from './pages/portal/Settings';
 import Profile from './pages/portal/settings/Profile';
 import Billing from './pages/portal/settings/Billing';
@@ -44,6 +45,7 @@ function App(): JSX.Element {
           <Route path="/portal" element={<ProtectedRoute><Portal /></ProtectedRoute>}>
             <Route index element={<Navigate to="/portal/apps" replace />} />
             <Route path="apps" element={<MyApps />} />
+            <Route path="overview" element={<Overview />} />
             <Route path="settings" element={<Settings />}>
               <Route index element={<Navigate to="/portal/settings/profile" replace />} />
               <Route path="profile" element={<Profile />} />

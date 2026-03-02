@@ -13,6 +13,7 @@ export interface AppDef {
   icon: React.ElementType;
   lightColor: string;
   textColor: string;
+  dotColor: string;
   url: string;
 }
 
@@ -24,6 +25,7 @@ export const ALL_APPS: AppDef[] = [
     icon: Scale,
     lightColor: 'bg-blue-50',
     textColor: 'text-blue-600',
+    dotColor: 'bg-blue-600',
     url: 'http://localhost:5173',
   },
   {
@@ -33,6 +35,7 @@ export const ALL_APPS: AppDef[] = [
     icon: BookOpen,
     lightColor: 'bg-emerald-50',
     textColor: 'text-emerald-600',
+    dotColor: 'bg-emerald-600',
     url: '#',
   },
   {
@@ -42,6 +45,7 @@ export const ALL_APPS: AppDef[] = [
     icon: Truck,
     lightColor: 'bg-orange-50',
     textColor: 'text-orange-600',
+    dotColor: 'bg-orange-600',
     url: '#',
   },
   {
@@ -51,6 +55,7 @@ export const ALL_APPS: AppDef[] = [
     icon: Building2,
     lightColor: 'bg-yellow-50',
     textColor: 'text-yellow-700',
+    dotColor: 'bg-yellow-700',
     url: '#',
   },
   {
@@ -60,6 +65,7 @@ export const ALL_APPS: AppDef[] = [
     icon: Key,
     lightColor: 'bg-purple-50',
     textColor: 'text-purple-600',
+    dotColor: 'bg-purple-600',
     url: '#',
   },
 ];
