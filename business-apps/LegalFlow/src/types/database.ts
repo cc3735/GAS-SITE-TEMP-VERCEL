@@ -671,4 +671,8 @@ export type UserBusiness = Database['public']['Tables']['user_businesses']['Row'
 export type ChartOfAccount = Database['public']['Tables']['chart_of_accounts']['Row'];
 export type JournalEntry = Database['public']['Tables']['journal_entries']['Row'];
 export type JournalEntryItem = Database['public']['Tables']['journal_entry_items']['Row'];
+export type UserBusiness = Database['public']['Tables']['user_businesses']['Row'];
+export type ChartOfAccount = Database['public']['Tables']['chart_of_accounts']['Row'];
+export type JournalEntry = Database['public']['Tables']['journal_entries']['Row'];
+export type JournalEntryItem = Database['public']['Tables']['journal_entry_items']['Row'];
 

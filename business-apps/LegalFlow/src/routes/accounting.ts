@@ -4,14 +4,10 @@ import { authenticate } from '../middleware/auth.js';
 import { asyncHandler } from '../middleware/error-handler.js';
 import { z } from 'zod';
 import { ValidationError } from '../utils/errors.js';
-import type { Database } from '../types/database.js';
+import type { Database, ChartOfAccount, JournalEntry, JournalEntryItem } from '../types/database.js';
 
 const router = Router();
 router.use(authenticate);
-
-type ChartOfAccount = Database['public']['Tables']['chart_of_accounts']['Row'];
-type JournalEntry = Database['public']['Tables']['journal_entries']['Row'];
-type JournalEntryItem = Database['public']['Tables']['journal_entry_items']['Row'];
 
 // --- Chart of Accounts ---
 
