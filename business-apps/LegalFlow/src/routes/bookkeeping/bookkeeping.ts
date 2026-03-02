@@ -12,7 +12,7 @@ import { plaidService } from '../../services/integrations/plaid.js';
 import { transactionCategorizer } from '../../services/bookkeeping/transaction-categorizer.js';
 import { authenticate } from '../../middleware/auth.js';
 import { logger } from '../../utils/logger.js';
-import { supabase } from '../../lib/supabase.js';
+import { supabase, supabaseAdmin } from '../../lib/supabase.js';
 
 const router = Router();
 
@@ -177,7 +177,7 @@ router.post(
             const { id } = req.params;
 
             // Get transaction
-            const { data: transaction, error } = await supabase
+            const { data: transaction, error } = await supabaseAdmin
                 .from('plaid_transactions')
                 .select('*')
                 .eq('id', id)

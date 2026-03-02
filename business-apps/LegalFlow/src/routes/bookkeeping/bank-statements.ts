@@ -13,7 +13,7 @@ import { bankStatementParser } from '../../services/bookkeeping/bank-statement-p
 import { transactionCategorizer } from '../../services/bookkeeping/transaction-categorizer.js';
 import { authenticate } from '../../middleware/auth.js';
 import { logger } from '../../utils/logger.js';
-import { supabase } from '../../lib/supabase.js';
+import { supabase, supabaseAdmin } from '../../lib/supabase.js';
 import { promises as fs } from 'fs';
 import path from 'path';
 
@@ -51,6 +51,7 @@ router.post(
     upload.single('file'),
     async (req: Request, res: Response, next: NextFunction) => {
         try {
+            logger.info('*** upload endpoint reached ***');
             const userId = req.user!.id;
             const file = req.file;
 
@@ -71,7 +72,8 @@ router.post(
             const fileType = file.originalname.endsWith('.csv') ? 'csv' : 'pdf';
 
             // Create bank statement record
-            const { data: bankStatement, error: createError } = await supabase
+            // use admin client for writes so RLS doesn't block us on server-side
+            const { data: bankStatement, error: createError } = await supabaseAdmin
                 .from('bank_statements')
                 .insert({
                     user_id: userId,
@@ -86,6 +88,9 @@ router.post(
                 .single();
 
             if (createError || !bankStatement) {
+                logger.error('Failed to insert bank statement record', { createError, bankStatement });
+                // also output to console for immediate developer visibility
+                console.error('insert result', { createError, bankStatement });
                 throw new Error('Failed to create bank statement record');
             }
 
@@ -136,7 +141,7 @@ router.post(
                 .eq('id', bankStatement.id);
 
             // Auto-categorize transactions (async, don't wait)
-            this.autoCategorizeTransactions(bankStatement.id, userId).catch((error) => {
+            autoCategorizeTransactions(bankStatement.id, userId).catch((error) => {
                 logger.error('Error auto-categorizing transactions', { error });
             });
 
@@ -174,7 +179,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
     try {
         const userId = req.user!.id;
 
-        const { data: statements, error } = await supabase
+        const { data: statements, error } = await supabaseAdmin
             .from('bank_statements')
             .select('*')
             .eq('user_id', userId)
@@ -202,7 +207,7 @@ router.get('/:id/transactions', async (req: Request, res: Response, next: NextFu
         const userId = req.user!.id;
         const { id } = req.params;
 
-        const { data: transactions, error } = await supabase
+        const { data: transactions, error } = await supabaseAdmin
             .from('bank_statement_transactions')
             .select('*, transaction_categories(name, category_type, tax_deductible)')
             .eq('bank_statement_id', id)
@@ -232,7 +237,7 @@ router.delete('/:id', async (req: Request, res: Response, next: NextFunction) =>
         const { id } = req.params;
 
         // Verify ownership
-        const { data: statement, error: fetchError } = await supabase
+        const { data: statement, error: fetchError } = await supabaseAdmin
             .from('bank_statements')
             .select('file_url')
             .eq('id', id)
@@ -254,7 +259,7 @@ router.delete('/:id', async (req: Request, res: Response, next: NextFunction) =>
         }
 
         // Delete from database (transactions will be cascade deleted)
-        const { error: deleteError } = await supabase
+        const { error: deleteError } = await supabaseAdmin
             .from('bank_statements')
             .delete()
             .eq('id', id)
@@ -283,7 +288,7 @@ router.delete('/:id', async (req: Request, res: Response, next: NextFunction) =>
 async function autoCategorizeTransactions(bankStatementId: string, userId: string): Promise<void> {
     try {
         // Get uncategorized transactions
-        const { data: transactions, error } = await supabase
+        const { data: transactions, error } = await supabaseAdmin
             .from('bank_statement_transactions')
             .select('id, description, amount')
             .eq('bank_statement_id', bankStatementId)

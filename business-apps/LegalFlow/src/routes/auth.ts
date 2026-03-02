@@ -1,5 +1,7 @@
 import { Router } from 'express';
-import { supabaseAdmin } from '../utils/supabase.js';
+import { createClient } from '@supabase/supabase-js';
+import { supabase, supabaseAdmin } from '../utils/supabase.js';
+import { config } from '../config/index.js';
 import { asyncHandler } from '../middleware/error-handler.js';
 import { authLimiter } from '../middleware/rate-limit.js';
 import { authenticate, generateToken } from '../middleware/auth.js';
@@ -11,19 +13,23 @@ const router = Router();
 
 // Sign up with email and password
 router.post('/signup', authLimiter, asyncHandler(async (req, res) => {
+  logger.info('Signup attempt started');
   const { email, password, firstName, lastName } = req.body;
 
   if (!email || !password) {
+    logger.warn('Signup attempt failed: Email or password missing');
     throw new ValidationError('Email and password are required');
   }
 
   // Validate email format
   const validation = createUserProfileSchema.safeParse({ email, firstName, lastName });
   if (!validation.success) {
+    logger.warn(`Signup validation failed for email ${email}: ${validation.error.errors[0].message}`);
     throw new ValidationError(validation.error.errors[0].message);
   }
 
   // Create auth user
+  logger.info(`Creating auth user for ${email}`);
   const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
     email,
     password,
@@ -31,35 +37,41 @@ router.post('/signup', authLimiter, asyncHandler(async (req, res) => {
   });
 
   if (authError) {
-    logger.error('Signup error:', authError);
+    logger.error(`Supabase auth error during signup for ${email}:`, authError);
     throw new ValidationError(authError.message);
   }
 
   if (!authData.user) {
+    logger.error(`User object not returned from Supabase after creation for ${email}`);
     throw new ValidationError('Failed to create user');
   }
+  logger.info(`Auth user created successfully for ${email} with id ${authData.user.id}`);
 
   // Create user profile
-  const { error: profileError } = await supabaseAdmin
+  logger.info(`Creating user profile for ${authData.user.id}`);
+  const { data: profile, error: profileError } = await supabaseAdmin
     .from('user_profiles')
     .insert({
       id: authData.user.id,
       email,
-      first_name: firstName || null,
-      last_name: lastName || null,
-      subscription_tier: 'free',
-      subscription_status: 'active',
-    });
+      first_name: firstName,
+      last_name: lastName,
+    })
+    .select()
+    .single();
 
   if (profileError) {
     // Rollback: delete auth user if profile creation fails
+    logger.error(`Profile creation error for ${authData.user.id}:`, profileError);
+    logger.info(`Rolling back auth user creation for ${authData.user.id}`);
     await supabaseAdmin.auth.admin.deleteUser(authData.user.id);
-    logger.error('Profile creation error:', profileError);
     throw new ValidationError('Failed to create user profile');
   }
+  logger.info(`User profile created successfully for ${authData.user.id}`);
 
   // Generate token
   const token = generateToken(authData.user.id, email);
+  logger.info(`Token generated for ${authData.user.id}`);
 
   res.status(201).json({
     success: true,
@@ -76,6 +88,7 @@ router.post('/signup', authLimiter, asyncHandler(async (req, res) => {
   });
 }));
 
+
 // Sign in with email and password
 router.post('/signin', authLimiter, asyncHandler(async (req, res) => {
   const { email, password } = req.body;
@@ -84,12 +97,56 @@ router.post('/signin', authLimiter, asyncHandler(async (req, res) => {
     throw new ValidationError('Email and password are required');
   }
 
-  const { data, error } = await supabaseAdmin.auth.signInWithPassword({
+  // Use the public client for sign-in to initiate MFA flow if needed
+  const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password,
   });
 
-  if (error || !data.user) {
+  if (error) {
+    throw new AuthenticationError(error.message || 'Invalid email or password');
+  }
+
+  // If MFA is enabled, the session will be null but the user object will be present
+  if (data.user && !data.session) {
+    logger.info(`MFA required for user ${data.user.id}`);
+    
+    // The user needs to complete the MFA challenge.
+    // The client now has an 'aal1' authenticated session internally.
+    // We need to get the list of factors to send to the client.
+    
+    // To call listFactors, we need an authenticated client.
+    // signInWithPassword does not return a session token directly if MFA is needed.
+    // The access_token is available on the client instance after the call.
+    // This is a bit of a workaround for server-side.
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (!session?.access_token) {
+      throw new AuthenticationError('Could not get intermediate session for MFA.');
+    }
+
+    const tempUserClient = createClient(config.supabase.url, config.supabase.anonKey, {
+      global: { headers: { Authorization: `Bearer ${session.access_token}` } },
+    });
+    
+    const { data: factors, error: factorsError } = await tempUserClient.auth.mfa.listFactors();
+
+    if (factorsError) {
+      throw new AuthenticationError(`Could not list MFA factors: ${factorsError.message}`);
+    }
+
+    return res.json({
+      success: true,
+      data: {
+        mfaRequired: true,
+        factors: factors.all,
+        // Send the intermediate token to the client to use for the verification step
+        intermediateSessionToken: session.access_token,
+      },
+    });
+  }
+
+  if (error || !data.user || !data.session) {
     throw new AuthenticationError('Invalid email or password');
   }
 
@@ -100,7 +157,7 @@ router.post('/signin', authLimiter, asyncHandler(async (req, res) => {
     .eq('id', data.user.id)
     .single();
 
-  // Generate token
+  // Generate our app-specific token
   const token = generateToken(data.user.id, email);
 
   res.json({
@@ -119,6 +176,62 @@ router.post('/signin', authLimiter, asyncHandler(async (req, res) => {
     },
   });
 }));
+
+// Verify MFA code and complete sign-in
+router.post('/signin/mfa', authLimiter, asyncHandler(async (req, res) => {
+  const { factorId, code, intermediateSessionToken } = req.body;
+
+  if (!factorId || !code || !intermediateSessionToken) {
+    throw new ValidationError('factorId, code, and intermediateSessionToken are required');
+  }
+
+  // Create a temporary client authenticated with the intermediate token
+  const tempUserClient = createClient(config.supabase.url, config.supabase.anonKey, {
+    global: { headers: { Authorization: `Bearer ${intermediateSessionToken}` } },
+  });
+
+  const { data, error } = await tempUserClient.auth.mfa.challengeAndVerify({
+    factorId,
+    code,
+  });
+
+  if (error) {
+    throw new AuthenticationError(`MFA verification failed: ${error.message}`);
+  }
+
+  const { session, user } = data;
+
+  if (!session || !user) {
+    throw new AuthenticationError('MFA verification did not return a valid session.');
+  }
+  
+  // Get user profile
+  const { data: profile } = await supabaseAdmin
+    .from('user_profiles')
+    .select('*')
+    .eq('id', user.id)
+    .single();
+
+  // Generate our app-specific token
+  const token = generateToken(user.id, user.email!);
+
+  res.json({
+    success: true,
+    data: {
+      user: {
+        id: user.id,
+        email: user.email,
+        firstName: profile?.first_name,
+        lastName: profile?.last_name,
+        subscriptionTier: profile?.subscription_tier || 'free',
+        subscriptionStatus: profile?.subscription_status || 'active',
+      },
+      token,
+      supabaseToken: session.access_token,
+    },
+  });
+}));
+
 
 // Sign out
 router.post('/signout', authenticate, asyncHandler(async (req, res) => {
@@ -233,4 +346,3 @@ router.post('/reset-password', authLimiter, asyncHandler(async (req, res) => {
 }));
 
 export default router;
-

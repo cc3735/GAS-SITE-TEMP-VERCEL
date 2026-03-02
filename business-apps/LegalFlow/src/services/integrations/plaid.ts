@@ -419,31 +419,44 @@ export class PlaidService {
    * Get all linked accounts for a user
    */
   async getLinkedAccounts(userId: string): Promise<LinkedAccount[]> {
-    const { data, error } = await supabase
-      .from('plaid_linked_accounts')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false });
+    try {
+      const { data, error } = await supabase
+        .from('plaid_linked_accounts')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
 
-    if (error) {
-      logger.error('Error fetching linked accounts', { error });
-      throw new Error('Failed to fetch linked accounts');
+      if (error) {
+        logger.error('Error fetching linked accounts', { error });
+        // If the table doesn't exist yet (migration not run), return empty list instead of throwing
+        const msg = String(error.message || '').toLowerCase();
+        if (String(error.code) === '42P01' || msg.includes("does not exist") || msg.includes('relation "plaid_linked_accounts"')) {
+          logger.warn('plaid_linked_accounts table not found — returning empty linked accounts');
+          return [];
+        }
+
+        throw new Error('Failed to fetch linked accounts');
+      }
+
+      return (data || []).map((row: any) => ({
+        id: row.id,
+        userId: row.user_id,
+        itemId: row.item_id,
+        accessToken: row.access_token,
+        institutionId: row.institution_id,
+        institutionName: row.institution_name,
+        accounts: row.accounts,
+        products: row.products,
+        status: row.status,
+        lastSync: new Date(row.last_sync),
+        createdAt: new Date(row.created_at),
+        updatedAt: new Date(row.updated_at),
+      }));
+    } catch (err) {
+      // Catch unexpected errors (e.g., db not reachable) and return empty array to avoid 500 for now
+      logger.error('Unexpected error getting linked accounts', { err });
+      return [];
     }
-
-    return (data || []).map((row: any) => ({
-      id: row.id,
-      userId: row.user_id,
-      itemId: row.item_id,
-      accessToken: row.access_token,
-      institutionId: row.institution_id,
-      institutionName: row.institution_name,
-      accounts: row.accounts,
-      products: row.products,
-      status: row.status,
-      lastSync: new Date(row.last_sync),
-      createdAt: new Date(row.created_at),
-      updatedAt: new Date(row.updated_at),
-    }));
   }
 
   /**

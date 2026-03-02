@@ -1,0 +1,37 @@
+# dependencies
+node_modules
+npm-debug.log
+yarn-error.log
+
+# production
+/dist
+/coverage
+
+# misc
+.env
+.env.local
+.env.*.local
+.DS_Store
+.vscode
+.idea
+
+# temporary files
+/tmp
+*.log
+.cache
+
+# git
+.git
+.gitignore
+
+# test
+.test
+__tests__
+
+# backend source (frontend only builds needed)
+src/
+migrations/
+scripts/
+docs/
+tsconfig.json
+package.json (except frontend's package.json)

@@ -36,14 +36,17 @@ export async function authenticate(
   next: NextFunction
 ): Promise<void> {
   try {
+    logger.info(`authenticate middleware: ${req.method} ${req.path}`);
     const authHeader = req.headers.authorization;
     
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      logger.warn(`No bearer token for: ${req.method} ${req.path}`);
       throw new AuthenticationError('No authentication token provided');
     }
 
     const token = authHeader.substring(7);
     req.token = token;
+    logger.info(`Token received for ${req.path}`);
 
     // First try to verify as Supabase JWT
     try {
@@ -67,6 +70,11 @@ export async function authenticate(
         subscriptionStatus: profile?.subscription_status || 'active',
       };
 
+      // set the anon client auth so RLS policies see this user
+      // note: supabase was imported later so we use dynamic import to avoid cycles
+      const { supabase } = await import('../utils/supabase.js');
+      supabase.auth.setAuth(token);
+
       return next();
     } catch {
       // If Supabase auth fails, try custom JWT
@@ -85,6 +93,9 @@ export async function authenticate(
         subscriptionTier: profile?.subscription_tier || 'free',
         subscriptionStatus: profile?.subscription_status || 'active',
       };
+
+      // Token is already extracted and verified; middleware will use it for RLS
+      logger.info(`User authenticated: ${decoded.sub}`);
 
       return next();
     }

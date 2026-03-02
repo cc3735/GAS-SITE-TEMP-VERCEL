@@ -41,5 +41,15 @@ if (!config.isDev) {
   );
 }
 
+// During development also write to a temp file to make it easier to inspect
+if (config.isDev) {
+  logger.add(
+    new winston.transports.File({
+      filename: '/tmp/legalflow-dev.log',
+      level: 'debug',
+    })
+  );
+}
+
 export default logger;
 

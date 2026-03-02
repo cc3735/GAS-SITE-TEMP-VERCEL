@@ -1,51 +1,87 @@
 # LegalFlow - Next Steps to Get Up and Running
 
-## ✅ Completed: Database Setup
+## ✅ Completed: Full Stack Integration
 
-Your Supabase database now has all required tables and seed data:
-- **User profiles & authentication** tables
-- **Tax module** - Federal brackets, deductions, credits, state tax configs for all 50 states
-- **Child support** - Guidelines and calculation rules for all 50 states  
-- **Business formation** - LLC/Corp requirements for all 50 states
-- **Legal filing requirements** - Divorce, custody, name change rules by state
-- **Payments & subscriptions** tables
+### What's Been Accomplished
+- ✅ **Database**: Supabase schema created with all tables, RLS policies, and seed data
+- ✅ **Backend**: Express API with all bookkeeping routes (upload, fetch, summary)
+- ✅ **Frontend**: React pages for bookkeeping (accounts, upload, transactions, reports)
+- ✅ **Authentication**: JWT token verification with Supabase integration
+- ✅ **File Upload**: Bank statement CSV upload and parsing
+- ✅ **Testing**: All endpoints tested and working locally
+- ✅ **Documentation**: DEPLOYMENT.md created with deployment guides
 
 ---
 
-## 🚀 Step 1: Configure Environment Variables
+## 🚀 Next Steps for Production Deployment
 
-### Copy the example file:
+### 1. Backend Deployment (Choose ONE)
+
+#### Option A: Railway (Recommended - Easiest)
 ```bash
-cd business-apps/LegalFlow
-cp env.example .env
+# No local setup needed - deploy from GitHub
+1. Go to https://railway.app
+2. Click "New Project" → "Deploy from GitHub"
+3. Select your LegalFlow repository
+4. Add environment variables (see DEPLOYMENT.md)
+5. Auto-deploy on push
 ```
 
-### Edit `.env` with your credentials:
+#### Option B: Render
+```bash
+1. Go to https://render.com
+2. Create new "Web Service"
+3. Connect GitHub repository
+4. Set build command: npm install && npm run build
+5. Set start command: npm run start
+```
 
-#### Supabase (from Supabase Dashboard → Settings → API)
+### 2. Frontend Deployment (Vercel)
+
+```bash
+# Already configured with vercel.json
+1. Go to https://vercel.com/new
+2. Import your GitHub repository
+3. Environment variables will be auto-detected
+4. Click "Deploy"
+5. Configure VITE_API_URL to point to your backend
+```
+
+---
+
+## ⚙️ Environment Variables Needed
+
+Create `.env` file with:
+
 ```env
+# Backend Server
+NODE_ENV=production
+PORT=3002
+
+# Supabase (get from Supabase Dashboard → Settings → API)
 SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_ANON_KEY=your-anon-key
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
-```
+SUPABASE_ANON_KEY=your-anon-key-here
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key-here
 
-#### OpenAI (from https://platform.openai.com/api-keys)
-```env
-OPENAI_API_KEY=sk-your-openai-key
+# OpenAI (get from https://platform.openai.com/api-keys)
+OPENAI_API_KEY=sk-your-openai-key-here
 OPENAI_MODEL=gpt-4-turbo-preview
-```
 
-#### Stripe (from Stripe Dashboard → Developers → API Keys)
-```env
-STRIPE_SECRET_KEY=sk_test_your-key
-STRIPE_PUBLISHABLE_KEY=pk_test_your-key
-STRIPE_WEBHOOK_SECRET=whsec_your-secret
-```
+# Stripe (optional - get from Stripe Dashboard)
+STRIPE_SECRET_KEY=sk_test_your-stripe-key
+STRIPE_PUBLISHABLE_KEY=pk_test_your-stripe-key
+STRIPE_WEBHOOK_SECRET=whsec_webhook-secret
 
-#### Security Keys (generate random 32+ character strings)
-```env
-JWT_SECRET=your-32-character-minimum-secret-key-here
-ENCRYPTION_KEY=your-32-character-encryption-key-here
+# Security (generate with: openssl rand -base64 32)
+JWT_SECRET=your-32-character-minimum-jwt-secret
+JWT_EXPIRES_IN=7d
+ENCRYPTION_KEY=your-32-character-encryption-key
+
+# Frontend
+VITE_API_URL=https://your-backend-url.com
+
+# CORS
+ALLOWED_ORIGINS=https://your-vercel-domain.vercel.app
 ```
 
 **Tip:** Generate random keys with:

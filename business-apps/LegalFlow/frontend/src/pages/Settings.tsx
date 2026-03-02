@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 
@@ -80,9 +80,9 @@ export default function Settings() {
                                     <button
                                         onClick={() => disableMutation.mutate(factor.id)}
                                         className="px-4 py-2 rounded bg-red-500 text-white"
-                                        disabled={disableMutation.isLoading}
+                                        disabled={disableMutation.isPending}
                                     >
-                                        {disableMutation.isLoading ? 'Disabling...' : 'Disable'}
+                                        {disableMutation.isPending ? 'Disabling...' : 'Disable'}
                                     </button>
                                 </li>
                             ))}
@@ -95,9 +95,9 @@ export default function Settings() {
                             <button
                                 onClick={() => enrollMutation.mutate()}
                                 className="mt-2 px-4 py-2 rounded bg-blue-500 text-white"
-                                disabled={enrollMutation.isLoading}
+                                disabled={enrollMutation.isPending}
                             >
-                                {enrollMutation.isLoading ? 'Starting...' : 'Enable MFA'}
+                                {enrollMutation.isPending ? 'Starting...' : 'Enable MFA'}
                             </button>
                         ) : (
                             <div className="mt-4">
@@ -115,9 +115,9 @@ export default function Settings() {
                                     <button
                                         onClick={handleEnable}
                                         className="mt-2 px-4 py-2 rounded bg-green-500 text-white"
-                                        disabled={enableMutation.isLoading}
+                                        disabled={enableMutation.isPending}
                                     >
-                                        {enableMutation.isLoading ? 'Verifying...' : 'Verify & Enable'}
+                                        {enableMutation.isPending ? 'Verifying...' : 'Verify & Enable'}
                                     </button>
                                 </div>
                             </div>

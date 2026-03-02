@@ -528,6 +528,125 @@ export interface Database {
           created_at?: string;
         };
       };
+      user_businesses: {
+        Row: {
+          id: string;
+          user_id: string;
+          name: string;
+          industry: string | null;
+          metadata: Json | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          name: string;
+          industry?: string | null;
+          metadata?: Json | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          name?: string;
+          industry?: string | null;
+          metadata?: Json | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      chart_of_accounts: {
+        Row: {
+          id: string;
+          business_id: string;
+          account_number: string | null;
+          name: string;
+          type: 'asset' | 'liability' | 'equity' | 'revenue' | 'expense';
+          description: string | null;
+          balance: number;
+          is_active: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          business_id: string;
+          account_number?: string | null;
+          name: string;
+          type: 'asset' | 'liability' | 'equity' | 'revenue' | 'expense';
+          description?: string | null;
+          balance?: number;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          business_id?: string;
+          account_number?: string | null;
+          name?: string;
+          type?: 'asset' | 'liability' | 'equity' | 'revenue' | 'expense';
+          description?: string | null;
+          balance?: number;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      journal_entries: {
+        Row: {
+          id: string;
+          business_id: string;
+          date: string;
+          description: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          business_id: string;
+          date: string;
+          description: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          business_id?: string;
+          date?: string;
+          description?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      journal_entry_items: {
+        Row: {
+          id: string;
+          journal_entry_id: string;
+          account_id: string;
+          type: 'debit' | 'credit';
+          amount: number;
+          description: string | null;
+        };
+        Insert: {
+          id?: string;
+          journal_entry_id: string;
+          account_id: string;
+          type: 'debit' | 'credit';
+          amount: number;
+          description?: string | null;
+        };
+        Update: {
+          id?: string;
+          journal_entry_id?: string;
+          account_id?: string;
+          type?: 'debit' | 'credit';
+          amount?: number;
+          description?: string | null;
+        };
+      };
     };
     Views: {};
     Functions: {};
@@ -548,4 +667,8 @@ export type ChildSupportCalculation = Database['public']['Tables']['child_suppor
 export type Subscription = Database['public']['Tables']['subscriptions']['Row'];
 export type Transaction = Database['public']['Tables']['transactions']['Row'];
 export type AIUsageLog = Database['public']['Tables']['ai_usage_logs']['Row'];
+export type UserBusiness = Database['public']['Tables']['user_businesses']['Row'];
+export type ChartOfAccount = Database['public']['Tables']['chart_of_accounts']['Row'];
+export type JournalEntry = Database['public']['Tables']['journal_entries']['Row'];
+export type JournalEntryItem = Database['public']['Tables']['journal_entry_items']['Row'];
 

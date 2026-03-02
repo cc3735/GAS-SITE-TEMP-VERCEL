@@ -16,6 +16,7 @@ import taxCalculationsRoutes from './routes/tax/calculations.js';
 import taxCalculatorRoutes from './routes/tax/calculator.js';
 import taxEstimateRoutes from './routes/tax/estimate.js';
 import eFilingRoutes from './routes/tax/e-filing.js';
+import mfaRoutes from './routes/mfa.js';
 import businessTaxRoutes from './routes/tax/business.js';
 import priorYearRoutes from './routes/tax/prior-year.js';
 import legalDocumentsRoutes from './routes/legal/documents.js';
@@ -36,6 +37,7 @@ import technicalAdminRoutes from './routes/admin/technical.js';
 import bookkeepingRoutes from './routes/bookkeeping/bookkeeping.js';
 import bankStatementsRoutes from './routes/bookkeeping/bank-statements.js';
 import trademarkRoutes from './routes/legal/trademark.js';
+import accountingRoutes from './routes/accounting.js';
 
 const app = express();
 
@@ -77,6 +79,7 @@ app.get('/health', (_req, res) => {
 
 // API Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/mfa', mfaRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/tax/returns', taxReturnsRoutes);
 app.use('/api/tax/interview', taxInterviewRoutes);
@@ -105,6 +108,7 @@ app.use('/api/admin/technical', technicalAdminRoutes);
 app.use('/api/bookkeeping', bookkeepingRoutes);
 app.use('/api/bookkeeping/statements', bankStatementsRoutes);
 app.use('/api/legal/trademark', trademarkRoutes);
+app.use('/api/accounting', accountingRoutes);
 
 // Legal disclaimer endpoint
 app.get('/api/disclaimer', (_req, res) => {

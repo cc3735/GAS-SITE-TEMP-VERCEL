@@ -4,7 +4,9 @@ import { asyncHandler } from '../middleware/error-handler.js';
 import { authenticate } from '../middleware/auth.js';
 import { ValidationError, NotFoundError } from '../utils/errors.js';
 import { updateUserProfileSchema, addressSchema } from '../utils/validation.js';
+import { z } from 'zod';
 import { encrypt, decrypt, maskSSN, isValidSSN, formatSSN } from '../services/encryption.js';
+import type { UserProfile, Database } from '../types/database.js';
 
 const router = Router();
 
@@ -17,7 +19,7 @@ router.get('/profile', asyncHandler(async (req, res) => {
     .from('user_profiles')
     .select('*')
     .eq('id', req.user!.id)
-    .single();
+    .single<UserProfile>();
 
   if (error || !profile) {
     throw new NotFoundError('User profile');
@@ -70,7 +72,7 @@ router.put('/profile', asyncHandler(async (req, res) => {
     }
   }
 
-  const updateData: Record<string, unknown> = {
+  const updateData: Partial<UserProfile> = {
     updated_at: new Date().toISOString(),
   };
 
@@ -85,7 +87,7 @@ router.put('/profile', asyncHandler(async (req, res) => {
     .update(updateData)
     .eq('id', req.user!.id)
     .select()
-    .single();
+    .single<UserProfile>();
 
   if (error) {
     throw new ValidationError('Failed to update profile');
@@ -219,6 +221,123 @@ router.delete('/account', asyncHandler(async (req, res) => {
     success: true,
     message: 'Account deleted successfully',
   });
+}));
+
+// --- User Businesses ---
+
+// Validation schema for creating/updating a business
+const businessSchema = z.object({
+  name: z.string().min(1, "Business name is required"),
+  industry: z.string().optional(),
+  metadata: z.record(z.any()).optional(),
+});
+
+type Business = Database['public']['Tables']['user_businesses']['Row'];
+
+// Get all businesses for a user
+router.get('/businesses', asyncHandler(async (req, res) => {
+  const { data: businesses, error } = await supabaseAdmin
+    .from('user_businesses')
+    .select('*')
+    .eq('user_id', req.user!.id)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    throw new Error("Failed to fetch businesses");
+  }
+
+  res.json({ success: true, data: businesses });
+}));
+
+// Get a single business by ID
+router.get('/businesses/:id', asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const { data: business, error } = await supabaseAdmin
+        .from('user_businesses')
+        .select('*')
+        .eq('id', id)
+        .eq('user_id', req.user!.id)
+        .single<Business>();
+
+    if (error || !business) {
+        throw new NotFoundError('Business');
+    }
+
+    res.json({ success: true, data: business });
+}));
+
+
+// Create a new business
+router.post('/businesses', asyncHandler(async (req, res) => {
+  const validation = businessSchema.safeParse(req.body);
+  if (!validation.success) {
+    throw new ValidationError(validation.error.errors[0].message);
+  }
+
+  const { name, industry, metadata } = validation.data;
+
+  const { data: newBusiness, error } = await supabaseAdmin
+    .from('user_businesses')
+    .insert({
+      user_id: req.user!.id,
+      name,
+      industry,
+      metadata,
+    })
+    .select()
+    .single<Business>();
+
+  if (error) {
+    throw new Error("Failed to create business");
+  }
+
+  res.status(201).json({ success: true, data: newBusiness });
+}));
+
+// Update a business
+router.put('/businesses/:id', asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const validation = businessSchema.partial().safeParse(req.body);
+  if (!validation.success) {
+    throw new ValidationError(validation.error.errors[0].message);
+  }
+
+  const { name, industry, metadata } = validation.data;
+    if (!name && !industry && !metadata) {
+    throw new ValidationError("No fields to update");
+    }
+
+
+  const { data: updatedBusiness, error } = await supabaseAdmin
+    .from('user_businesses')
+    .update({ name, industry, metadata, updated_at: new Date().toISOString() })
+    .eq('id', id)
+    .eq('user_id', req.user!.id)
+    .select()
+    .single<Business>();
+
+  if (error) {
+    throw new NotFoundError('Business');
+  }
+
+  res.json({ success: true, data: updatedBusiness });
+}));
+
+// Delete a business
+router.delete('/businesses/:id', asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  const { error } = await supabaseAdmin
+    .from('user_businesses')
+    .delete()
+    .eq('id', id)
+    .eq('user_id', req.user!.id);
+
+  if (error) {
+    throw new NotFoundError('Business');
+  }
+
+  res.status(204).send();
 }));
 
 export default router;
