@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import { Scale, BookOpen, Truck, Building2, Key, Plus } from 'lucide-react';
 import { useAuth } from '../../../contexts/AuthContext';
 import { supabase } from '../../../lib/supabase';
+import AddAppsModal from '../../../components/AddAppsModal';
 
 const APP_META: Record<string, { name: string; icon: React.ElementType; color: string }> = {
   legalflow:  { name: 'LegalFlow',  icon: Scale,      color: 'text-blue-600 bg-blue-50' },
@@ -32,6 +32,7 @@ export default function Billing() {
   const [subs, setSubs] = useState<Subscription[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [cancelling, setCancelling] = useState<string | null>(null);
+  const [showModal, setShowModal] = useState(false);
 
   const fetchSubs = async () => {
     if (!user) return;
@@ -62,9 +63,12 @@ export default function Billing() {
       <section className="bg-white rounded-2xl border border-slate-200 p-6">
         <div className="flex items-center justify-between mb-5">
           <h2 className="font-semibold text-slate-900">Active Subscriptions</h2>
-          <Link to="/portal/apps" className="flex items-center gap-1 text-sm text-primary-600 hover:text-primary-700 font-medium">
+          <button
+            onClick={() => setShowModal(true)}
+            className="flex items-center gap-1 text-sm text-primary-600 hover:text-primary-700 font-medium"
+          >
             <Plus className="w-4 h-4" /> Add More Apps
-          </Link>
+          </button>
         </div>
 
         {isLoading ? (
@@ -76,9 +80,12 @@ export default function Billing() {
         ) : subs.length === 0 ? (
           <div className="text-center py-10">
             <p className="text-slate-500 mb-4">You don't have any active subscriptions yet.</p>
-            <Link to="/portal/apps" className="btn-primary inline-flex items-center gap-2">
+            <button
+              onClick={() => setShowModal(true)}
+              className="btn-primary inline-flex items-center gap-2"
+            >
               <Plus className="w-4 h-4" /> Browse Apps
-            </Link>
+            </button>
           </div>
         ) : (
           <div className="space-y-3">
@@ -132,6 +139,13 @@ export default function Billing() {
           for invoices, refunds, or plan changes.
         </p>
       </section>
+
+      {showModal && (
+        <AddAppsModal
+          onClose={() => setShowModal(false)}
+          onSubscribed={fetchSubs}
+        />
+      )}
     </div>
   );
 }
