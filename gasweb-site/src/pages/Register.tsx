@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Zap } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../lib/supabase';
 
 export default function Register() {
   const { signUp } = useAuth();
@@ -22,13 +23,44 @@ export default function Register() {
     const { error, needsVerification } = await signUp(email, password, fullName);
 
     if (error) {
-      setError(error);
+      setError(
+        error.toLowerCase().includes('rate limit')
+          ? 'Too many requests. Please wait a few minutes and try again.'
+          : error
+      );
       setIsSubmitting(false);
     } else if (needsVerification) {
       setNeedsVerification(true);
       setIsSubmitting(false);
     } else {
       navigate('/portal');
+    }
+  };
+
+  const [resendError, setResendError] = useState('');
+  const [resendSuccess, setResendSuccess] = useState(false);
+  const [isResending, setIsResending] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const timer = setTimeout(() => setResendCooldown(resendCooldown - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [resendCooldown]);
+
+  const handleResend = async () => {
+    setResendError('');
+    setResendSuccess(false);
+    setIsResending(true);
+
+    const { error } = await supabase.auth.resend({ type: 'signup', email });
+
+    setIsResending(false);
+    if (error) {
+      setResendError(error.message);
+    } else {
+      setResendSuccess(true);
+      setResendCooldown(60);
     }
   };
 
@@ -43,7 +75,31 @@ export default function Register() {
           <p className="text-slate-600 mb-6">
             We sent a confirmation link to <strong>{email}</strong>. Click it to activate your account and access your services.
           </p>
-          <Link to="/login" className="btn-primary inline-flex justify-center">
+
+          {resendError && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+              {resendError}
+            </div>
+          )}
+          {resendSuccess && (
+            <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">
+              Confirmation email resent. Please check your inbox and spam folder.
+            </div>
+          )}
+
+          <button
+            onClick={handleResend}
+            disabled={isResending || resendCooldown > 0}
+            className="w-full mb-3 px-4 py-2.5 border border-slate-300 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            {isResending
+              ? 'Sending…'
+              : resendCooldown > 0
+                ? `Resend available in ${resendCooldown}s`
+                : 'Resend confirmation email'}
+          </button>
+
+          <Link to="/login" className="btn-primary inline-flex justify-center w-full">
             Back to Sign In
           </Link>
         </div>

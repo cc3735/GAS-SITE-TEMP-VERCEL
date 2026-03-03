@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { OrganizationProvider } from './contexts/OrganizationContext';
 
 // Layout components
 import Layout from './components/Layout';
@@ -31,12 +32,29 @@ import OSDashboard from './pages/os/OSDashboard';
 import OSClients from './pages/os/OSClients';
 import OSClientDetail from './pages/os/OSClientDetail';
 import OSApps from './pages/os/OSApps';
+import OSLogin from './pages/os/OSLogin';
+import OSAuthCallback from './pages/os/OSAuthCallback';
+import OSProjects from './pages/os/OSProjects';
+import OSCRM from './pages/os/OSCRM';
+import OSMarketing from './pages/os/OSMarketing';
+import OSAgents from './pages/os/OSAgents';
+import OSMCP from './pages/os/OSMCP';
+import OSAnalytics from './pages/os/OSAnalytics';
+import OSSettings from './pages/os/OSSettings';
 
 // Redirect already-authenticated users away from auth pages
 function AuthRoute({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth();
   if (isLoading) return null;
   if (user) return <Navigate to="/portal" replace />;
+  return <>{children}</>;
+}
+
+// Redirect already-authenticated users away from /os/login
+function OSAuthRoute({ children }: { children: React.ReactNode }) {
+  const { user, isLoading } = useAuth();
+  if (isLoading) return null;
+  if (user) return <Navigate to="/os" replace />;
   return <>{children}</>;
 }
 
@@ -74,12 +92,25 @@ function App(): JSX.Element {
             <Route path="contact" element={<Contact />} />
           </Route>
 
-          {/* GAS Operating System — staff only */}
-          <Route path="/os" element={<GasStaffRoute><OSLayout /></GasStaffRoute>}>
+          {/* GAS-OS login — standalone, no layout */}
+          <Route path="/os/login" element={<OSAuthRoute><OSLogin /></OSAuthRoute>} />
+
+          {/* GAS-OS OAuth callback — standalone, handles mid-auth */}
+          <Route path="/os/auth/callback" element={<OSAuthCallback />} />
+
+          {/* GAS Operating System — staff only, org-scoped */}
+          <Route path="/os" element={<GasStaffRoute><OrganizationProvider><OSLayout /></OrganizationProvider></GasStaffRoute>}>
             <Route index element={<OSDashboard />} />
+            <Route path="projects" element={<OSProjects />} />
+            <Route path="crm" element={<OSCRM />} />
+            <Route path="marketing" element={<OSMarketing />} />
+            <Route path="agents" element={<OSAgents />} />
+            <Route path="mcp" element={<OSMCP />} />
+            <Route path="analytics" element={<OSAnalytics />} />
             <Route path="clients" element={<OSClients />} />
             <Route path="clients/:id" element={<OSClientDetail />} />
             <Route path="apps" element={<OSApps />} />
+            <Route path="settings" element={<OSSettings />} />
           </Route>
 
           {/* Landing page — standalone, no nav */}

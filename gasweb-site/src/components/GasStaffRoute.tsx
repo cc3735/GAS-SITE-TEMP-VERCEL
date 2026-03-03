@@ -27,7 +27,7 @@ export default function GasStaffRoute({ children }: { children: React.ReactNode 
     );
   }
 
-  if (!user) return <Navigate to="/login" replace />;
+  if (!user) return <Navigate to="/os/login" replace />;
   if (!isStaff) return <Navigate to="/portal/apps" replace />;
 
   return <>{children}</>;
