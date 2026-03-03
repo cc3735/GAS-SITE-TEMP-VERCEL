@@ -103,7 +103,7 @@ export default function OSClientDetail() {
       <div className="p-8 text-center">
         <User className="mx-auto w-12 h-12 text-gray-700 mb-3" />
         <p className="text-gray-400">Client not found.</p>
-        <Link to="/os/clients" className="mt-4 inline-flex items-center gap-1 text-sm text-primary-400 hover:text-primary-300">
+        <Link to="/os/crm?tab=clients" className="mt-4 inline-flex items-center gap-1 text-sm text-primary-400 hover:text-primary-300">
           <ArrowLeft className="w-3 h-3" /> Back to Clients
         </Link>
       </div>
@@ -113,7 +113,7 @@ export default function OSClientDetail() {
   return (
     <div className="p-8 space-y-6 max-w-4xl">
       {/* Breadcrumb */}
-      <Link to="/os/clients" className="inline-flex items-center gap-1.5 text-sm text-gray-400 hover:text-white">
+      <Link to="/os/crm?tab=clients" className="inline-flex items-center gap-1.5 text-sm text-gray-400 hover:text-white">
         <ArrowLeft className="w-3.5 h-3.5" />
         Back to Clients
       </Link>

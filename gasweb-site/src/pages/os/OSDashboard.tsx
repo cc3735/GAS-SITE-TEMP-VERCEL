@@ -3,7 +3,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import {
   Users,
   CheckCircle2,
-  LayoutGrid,
   LifeBuoy,
   ArrowRight,
   FolderKanban,
@@ -14,6 +13,7 @@ import {
   Plus,
   X,
   Loader2,
+  BarChart3,
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useOrganization } from '../../contexts/OrganizationContext';
@@ -49,7 +49,7 @@ export default function OSDashboard() {
   const { user } = useAuth();
   const { createCompany } = useCompanies();
   const { contacts } = useContacts();
-  const { createProject } = useProjects();
+  const { projects, createProject } = useProjects();
   const navigate = useNavigate();
 
   // GAS Admin stats
@@ -243,10 +243,10 @@ export default function OSDashboard() {
 
   // Main dashboard stats
   const gasStats = [
-    { label: 'Total Clients', value: totalClients, icon: Users, color: 'text-blue-400' },
-    { label: 'Active Subscriptions', value: activeSubscriptions, icon: CheckCircle2, color: 'text-green-400' },
-    { label: 'Apps Offered', value: Object.keys(APP_LABELS).length, icon: LayoutGrid, color: 'text-purple-400' },
-    { label: 'Open Tickets', value: openTickets, icon: LifeBuoy, color: 'text-yellow-400' },
+    { label: 'Total Clients', value: totalClients, icon: Users, color: 'text-blue-400', to: '/os/crm?tab=clients' },
+    { label: 'Active Subscriptions', value: activeSubscriptions, icon: CheckCircle2, color: 'text-green-400', to: '/os/subscriptions' },
+    { label: 'Open Projects', value: projects.filter(p => p.status === 'planning' || p.status === 'active').length, icon: FolderKanban, color: 'text-purple-400', to: '/os/projects' },
+    { label: 'Open Tickets', value: openTickets, icon: LifeBuoy, color: 'text-yellow-400', to: '/os/support-tickets' },
   ];
 
   return (
@@ -261,8 +261,8 @@ export default function OSDashboard() {
 
       {/* GAS Admin Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {gasStats.map(({ label, value, icon: Icon, color }) => (
-          <div key={label} className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+        {gasStats.map(({ label, value, icon: Icon, color, to }) => (
+          <Link key={label} to={to} className="bg-gray-900 border border-gray-800 rounded-xl p-5 hover:border-gray-700 hover:bg-gray-800/50 transition-colors cursor-pointer block">
             <div className="flex items-center justify-between mb-3">
               <p className="text-xs text-gray-500 uppercase tracking-wide">{label}</p>
               <Icon className={`w-4 h-4 ${color}`} />
@@ -270,7 +270,7 @@ export default function OSDashboard() {
             <p className="text-3xl font-bold text-white">
               {isLoading ? <span className="text-gray-600">—</span> : value ?? '—'}
             </p>
-          </div>
+          </Link>
         ))}
       </div>
 
@@ -353,7 +353,7 @@ export default function OSDashboard() {
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
           <div className="flex items-center justify-between mb-5">
             <h2 className="font-semibold text-white">Recent Signups</h2>
-            <Link to="/os/clients" className="text-xs text-primary-400 hover:text-primary-300 flex items-center gap-1">
+            <Link to="/os/crm?tab=clients" className="text-xs text-primary-400 hover:text-primary-300 flex items-center gap-1">
               View all <ArrowRight className="w-3 h-3" />
             </Link>
           </div>
@@ -388,6 +388,23 @@ export default function OSDashboard() {
               ))}
             </div>
           )}
+        </div>
+      </div>
+
+      {/* Analytics */}
+      <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-10 h-10 bg-blue-900/20 rounded-lg flex items-center justify-center">
+            <BarChart3 className="w-5 h-5 text-blue-400" />
+          </div>
+          <div>
+            <h2 className="font-semibold text-white">Analytics</h2>
+            <p className="text-sm text-gray-400">Track key business metrics and trends</p>
+          </div>
+        </div>
+        <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-8 text-center">
+          <BarChart3 className="w-12 h-12 text-gray-600 mx-auto mb-3" />
+          <p className="text-gray-400 text-sm">Analytics dashboard coming soon</p>
         </div>
       </div>
 

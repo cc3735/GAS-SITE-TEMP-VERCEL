@@ -6,10 +6,9 @@ import {
   Users,
   Mail,
   Bot,
-  Server,
-  BarChart3,
   Settings,
   AppWindow,
+  LifeBuoy,
   LogOut,
   ChevronRight,
   ChevronDown,
@@ -26,14 +25,9 @@ const MAIN_NAV = [
   { to: '/os/projects', label: 'Projects', icon: FolderKanban, end: false },
   { to: '/os/crm', label: 'CRM', icon: Users, end: false },
   { to: '/os/marketing', label: 'Marketing & Social', icon: Mail, end: false },
-  { to: '/os/agents', label: 'AI Agents', icon: Bot, end: false },
-  { to: '/os/mcp', label: 'MCP Servers', icon: Server, end: false },
-  { to: '/os/analytics', label: 'Analytics', icon: BarChart3, end: false },
-];
-
-const ADMIN_NAV = [
-  { to: '/os/clients', label: 'Clients', icon: Users, end: false },
+  { to: '/os/agents', label: 'AI & Automation', icon: Bot, end: false },
   { to: '/os/apps', label: 'App Catalog', icon: AppWindow, end: false },
+  { to: '/os/support-tickets', label: 'Support Tickets', icon: LifeBuoy, end: false },
 ];
 
 const BOTTOM_NAV = [
@@ -107,26 +101,6 @@ export default function OSLayout() {
       {/* Main Nav */}
       <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
         {MAIN_NAV.map(({ to, label, icon: Icon, end }) => (
-          <NavLink
-            key={to}
-            to={to}
-            end={end}
-            onClick={() => setSidebarOpen(false)}
-            className={navLinkClass}
-          >
-            <Icon className="w-4 h-4 flex-shrink-0" />
-            {label}
-          </NavLink>
-        ))}
-
-        {/* GAS Admin Divider */}
-        <div className="pt-4 pb-2">
-          <p className="px-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">
-            GAS Admin
-          </p>
-        </div>
-
-        {ADMIN_NAV.map(({ to, label, icon: Icon, end }) => (
           <NavLink
             key={to}
             to={to}

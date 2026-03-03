@@ -119,7 +119,7 @@ export default function OSApps() {
                   )}
                 </div>
                 <Link
-                  to={`/os/clients?app=${app.slug}`}
+                  to={`/os/crm?tab=clients&app=${app.slug}`}
                   className="inline-flex items-center gap-1 text-xs text-primary-400 hover:text-primary-300"
                 >
                   View clients <ArrowRight className="w-3 h-3" />

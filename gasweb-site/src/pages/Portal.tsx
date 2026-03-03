@@ -3,6 +3,7 @@ import { Outlet, NavLink, useNavigate, useLocation, Navigate } from 'react-route
 import {
   LayoutGrid,
   User,
+  Users,
   CreditCard,
   Bell,
   Shield,
@@ -24,6 +25,7 @@ import PortalChatBot from '../components/portal/PortalChatBot';
 
 const appNavItems = [
   { to: '/portal/apps', icon: LayoutGrid, label: 'My Apps' },
+  { to: '/portal/crm', icon: Users, label: 'CRM' },
 ];
 
 const settingsNavItems = [

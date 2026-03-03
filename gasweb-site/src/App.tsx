@@ -21,6 +21,7 @@ import Overview from './pages/portal/Overview';
 import Settings from './pages/portal/Settings';
 import LegalFlowHub from './pages/portal/legalflow/LegalFlowHub';
 import LegalFlowFrame from './pages/portal/legalflow/LegalFlowFrame';
+import PortalCRM from './pages/portal/PortalCRM';
 import Profile from './pages/portal/settings/Profile';
 import Billing from './pages/portal/settings/Billing';
 import Notifications from './pages/portal/settings/Notifications';
@@ -41,6 +42,8 @@ import OSAgents from './pages/os/OSAgents';
 import OSMCP from './pages/os/OSMCP';
 import OSAnalytics from './pages/os/OSAnalytics';
 import OSSettings from './pages/os/OSSettings';
+import OSSubscriptions from './pages/os/OSSubscriptions';
+import OSSupportTickets from './pages/os/OSSupportTickets';
 
 // Redirect already-authenticated users away from auth pages
 function AuthRoute({ children }: { children: React.ReactNode }) {
@@ -68,7 +71,7 @@ function App(): JSX.Element {
           <Route path="/register" element={<AuthRoute><Register /></AuthRoute>} />
 
           {/* Protected portal — nested routes */}
-          <Route path="/portal" element={<ProtectedRoute><Portal /></ProtectedRoute>}>
+          <Route path="/portal" element={<ProtectedRoute><OrganizationProvider><Portal /></OrganizationProvider></ProtectedRoute>}>
             <Route index element={<Navigate to="/portal/apps" replace />} />
             <Route path="apps" element={<MyApps />} />
             <Route path="overview" element={<Overview />} />
@@ -81,6 +84,7 @@ function App(): JSX.Element {
             </Route>
             <Route path="legalflow" element={<LegalFlowHub />} />
             <Route path="legalflow/:section" element={<LegalFlowFrame />} />
+            <Route path="crm" element={<PortalCRM />} />
           </Route>
 
           {/* Main layout wrapper */}
@@ -110,6 +114,8 @@ function App(): JSX.Element {
             <Route path="clients" element={<OSClients />} />
             <Route path="clients/:id" element={<OSClientDetail />} />
             <Route path="apps" element={<OSApps />} />
+            <Route path="subscriptions" element={<OSSubscriptions />} />
+            <Route path="support-tickets" element={<OSSupportTickets />} />
             <Route path="settings" element={<OSSettings />} />
           </Route>
 
