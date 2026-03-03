@@ -23,6 +23,7 @@ import {
   X,
   Loader2,
   TrendingUp,
+  Trash2,
 } from 'lucide-react';
 import { useOrganization } from '../../contexts/OrganizationContext';
 import { useContacts } from '../../hooks/useContacts';
@@ -108,7 +109,7 @@ export default function PortalCRM() {
   const [activeTab, setActiveTab] = useState<TabType>(initialTab);
 
   const { currentOrganization, loading: orgLoading } = useOrganization();
-  const { contacts, loading, createContact, updateContact } = useContacts();
+  const { contacts, loading, createContact, updateContact, deleteContact } = useContacts();
 
   // CRM state
   const [searchQuery, setSearchQuery] = useState('');
@@ -457,26 +458,39 @@ export default function PortalCRM() {
                             </span>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setEditingContact(contact);
-                                setEditFormData({
-                                  first_name: contact.first_name,
-                                  last_name: contact.last_name || '',
-                                  email: contact.email || '',
-                                  phone: contact.phone || '',
-                                  title: contact.title || '',
-                                  company_name: contact.company_name || '',
-                                  date_of_birth: contact.date_of_birth || '',
-                                  notes: contact.notes || '',
-                                });
-                                setShowEditContact(true);
-                              }}
-                              className="text-primary-600 hover:text-primary-700 p-2 rounded-lg hover:bg-primary-50 transition"
-                            >
-                              <Edit2 className="w-4 h-4" />
-                            </button>
+                            <div className="flex items-center gap-1">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setEditingContact(contact);
+                                  setEditFormData({
+                                    first_name: contact.first_name,
+                                    last_name: contact.last_name || '',
+                                    email: contact.email || '',
+                                    phone: contact.phone || '',
+                                    title: contact.title || '',
+                                    company_name: contact.company_name || '',
+                                    date_of_birth: contact.date_of_birth || '',
+                                    notes: contact.notes || '',
+                                  });
+                                  setShowEditContact(true);
+                                }}
+                                className="text-primary-600 hover:text-primary-700 p-2 rounded-lg hover:bg-primary-50 transition"
+                              >
+                                <Edit2 className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (window.confirm(`Delete contact ${contact.first_name}${contact.last_name ? ' ' + contact.last_name : ''}?`)) {
+                                    deleteContact(contact.id);
+                                  }
+                                }}
+                                className="text-red-400 hover:text-red-500 p-2 rounded-lg hover:bg-red-50 transition"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))}

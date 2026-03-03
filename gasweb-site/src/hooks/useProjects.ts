@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { useOrganization } from '../contexts/OrganizationContext';
+import { useAuth } from '../contexts/AuthContext';
 
 export interface Project {
   id: string;
@@ -33,6 +34,7 @@ export function useProjects() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { currentOrganization } = useOrganization();
+  const { user } = useAuth();
 
   const fetchProjects = useCallback(async () => {
     if (!currentOrganization) {
@@ -42,39 +44,25 @@ export function useProjects() {
     }
 
     setLoading(true);
-    setTimeout(() => {
-      // Mock data filtered by organization_id to demonstrate tenant isolation
-      // Only projects belonging to the current organization are returned
-      setProjects([
-        {
-          id: 'demo-1',
-          organization_id: currentOrganization.id, // Key: only current org's projects
-          name: 'Website Redesign',
-          description: 'Complete overhaul of company website',
-          status: 'planning',
-          estimated_completion: '1-3-months',
-          tools_used: ['React', 'Next.js'],
-          proposed_tech: ['Tailwind CSS'],
-          project_details: 'Modern, responsive website with improved UX',
-          cost_to_operate: 2500.00,
-          gas_fee: 150.00,
-          budget: 10000.00,
-          priority: 'high',
-          created_by: 'demo-user',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          start_date: null,
-          end_date: null,
-          assigned_to: null,
-          color: null,
-          icon: null,
-          owner_id: null,
-          workspace_id: null
-        }
-      ]);
+    setError(null);
+
+    try {
+      const { data, error: fetchError } = await supabase
+        .from('projects')
+        .select('*')
+        .eq('organization_id', currentOrganization.id)
+        .is('deleted_at', null)
+        .order('created_at', { ascending: false });
+
+      if (fetchError) throw fetchError;
+
+      setProjects((data ?? []) as Project[]);
+    } catch (err) {
+      console.error('Error fetching projects:', err);
+      setError((err as Error).message);
+    } finally {
       setLoading(false);
-      setError(null);
-    }, 500);
+    }
   }, [currentOrganization]);
 
   useEffect(() => {
@@ -96,54 +84,68 @@ export function useProjects() {
     priority?: string;
     assigned_to?: string;
   }) => {
-    // Mock successful creation
-    if (!currentOrganization) {
-      throw new Error('No organization selected');
-    }
+    if (!currentOrganization) throw new Error('No organization selected');
+    if (!user) throw new Error('Not authenticated');
 
-    const newProject: Project = {
-      id: `project-${Date.now()}`,
-      organization_id: currentOrganization.id,
-      name: projectData.name,
-      description: projectData.description || null,
-      status: 'planning',
-      estimated_completion: projectData.estimated_completion || null,
-      tools_used: projectData.tools_used || null,
-      proposed_tech: projectData.proposed_tech || null,
-      project_details: projectData.project_details || null,
-      cost_to_operate: projectData.cost_to_operate || null,
-      gas_fee: projectData.gas_fee || null,
-      budget: projectData.budget || null,
-      priority: projectData.priority || 'medium',
-      assigned_to: null,
-      created_by: 'demo-user',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      start_date: null,
-      end_date: null,
-      color: null,
-      icon: null,
-      owner_id: null,
-      workspace_id: null
-    };
+    const { data: row, error: insertError } = await supabase
+      .from('projects')
+      .insert({
+        organization_id: currentOrganization.id,
+        name: projectData.name,
+        description: projectData.description || null,
+        status: 'planning',
+        estimated_completion: projectData.estimated_completion || null,
+        tools_used: projectData.tools_used || null,
+        proposed_tech: projectData.proposed_tech || null,
+        project_details: projectData.project_details || null,
+        cost_to_operate: projectData.cost_to_operate || null,
+        gas_fee: projectData.gas_fee || null,
+        budget: projectData.budget || null,
+        priority: projectData.priority || 'medium',
+        assigned_to: projectData.assigned_to || null,
+        start_date: projectData.start_date || null,
+        end_date: projectData.end_date || null,
+        created_by: user.id,
+        owner_id: user.id,
+      })
+      .select()
+      .single();
 
-    setProjects(prev => [newProject, ...prev]);
+    if (insertError) throw insertError;
 
+    const newProject = row as Project;
+    setProjects((prev) => [newProject, ...prev]);
     return newProject;
   };
 
   const updateProject = async (projectId: string, updates: Partial<Project>) => {
-    // Mock update
-    const updatedProject = { ...projects.find(p => p.id === projectId), ...updates } as Project;
-    setProjects(prev => prev.map(project =>
-      project.id === projectId ? updatedProject : project
-    ));
-    return updatedProject;
+    const payload = { ...updates, updated_at: new Date().toISOString() };
+
+    const { error: updateError } = await supabase
+      .from('projects')
+      .update(payload)
+      .eq('id', projectId);
+
+    if (updateError) throw updateError;
+
+    setProjects((prev) =>
+      prev.map((p) => (p.id === projectId ? { ...p, ...payload } as Project : p))
+    );
+
+    return { ...projects.find((p) => p.id === projectId), ...payload } as Project;
   };
 
   const deleteProject = async (projectId: string) => {
-    // Mock delete
-    setProjects(prev => prev.filter(project => project.id !== projectId));
+    // Soft delete — set deleted_at, item stays in DB for 60 days
+    const { error: deleteError } = await supabase
+      .from('projects')
+      .update({ deleted_at: new Date().toISOString() })
+      .eq('id', projectId);
+
+    if (deleteError) throw deleteError;
+
+    // Remove from local state immediately
+    setProjects((prev) => prev.filter((p) => p.id !== projectId));
   };
 
   return {

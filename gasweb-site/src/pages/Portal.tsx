@@ -19,6 +19,7 @@ import {
   Award,
   Calculator,
   Briefcase,
+  FolderKanban,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import PortalChatBot from '../components/portal/PortalChatBot';
@@ -26,6 +27,7 @@ import PortalChatBot from '../components/portal/PortalChatBot';
 const appNavItems = [
   { to: '/portal/apps', icon: LayoutGrid, label: 'My Apps' },
   { to: '/portal/crm', icon: Users, label: 'CRM' },
+  { to: '/portal/projects', icon: FolderKanban, label: 'Projects' },
 ];
 
 const settingsNavItems = [

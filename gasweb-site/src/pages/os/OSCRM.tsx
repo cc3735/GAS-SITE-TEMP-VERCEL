@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { useContacts } from '../../hooks/useContacts';
-import { Users, Plus, Search, Mail, Phone, Building2, X, Loader2, Filter, Edit2, Calendar, MessageCircle, Clock, Send, Inbox, ChevronRight } from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
+import { Users, Plus, Search, Mail, Phone, Building2, X, Loader2, Filter, Edit2, Calendar, MessageCircle, Clock, Send, Inbox, ChevronRight, Trash2 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
 interface ClientRow {
@@ -27,7 +28,8 @@ const APP_LABELS: Record<string, string> = {
 const APP_OPTIONS = Object.entries(APP_LABELS).map(([id, label]) => ({ id, label }));
 
 export default function OSCRM() {
-  const { contacts, loading, createContact, updateContact } = useContacts();
+  const { contacts, loading, createContact, updateContact, deleteContact } = useContacts();
+  const { user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
 
@@ -73,27 +75,39 @@ export default function OSCRM() {
   useEffect(() => {
     async function loadClients() {
       setClientsLoading(true);
-      const { data: profiles } = await supabase
-        .from('user_profiles')
-        .select('id, email, full_name, phone, subscription_tier, subscription_status, created_at')
-        .order('created_at', { ascending: false });
 
-      const { data: subs } = await supabase
-        .from('user_app_subscriptions')
-        .select('user_id, app_id')
-        .eq('status', 'active');
+      // Fetch profiles, subscriptions, and hidden client IDs in parallel
+      const [profilesRes, subsRes, hiddenRes] = await Promise.all([
+        supabase
+          .from('user_profiles')
+          .select('id, email, full_name, phone, subscription_tier, subscription_status, created_at')
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('user_app_subscriptions')
+          .select('user_id, app_id')
+          .eq('status', 'active'),
+        supabase
+          .from('crm_hidden_clients')
+          .select('user_profile_id'),
+      ]);
+
+      const hiddenSet = new Set(
+        (hiddenRes.data ?? []).map((h: { user_profile_id: string }) => h.user_profile_id)
+      );
 
       const subMap: Record<string, string[]> = {};
-      (subs ?? []).forEach((s: { user_id: string; app_id: string }) => {
+      (subsRes.data ?? []).forEach((s: { user_id: string; app_id: string }) => {
         if (!subMap[s.user_id]) subMap[s.user_id] = [];
         subMap[s.user_id].push(s.app_id);
       });
 
-      const rows: ClientRow[] = (profiles ?? []).map((p: ClientRow) => ({
-        ...p,
-        app_ids: subMap[p.id] ?? [],
-        app_count: (subMap[p.id] ?? []).length,
-      }));
+      const rows: ClientRow[] = (profilesRes.data ?? [])
+        .filter((p: ClientRow) => !hiddenSet.has(p.id))
+        .map((p: ClientRow) => ({
+          ...p,
+          app_ids: subMap[p.id] ?? [],
+          app_count: (subMap[p.id] ?? []).length,
+        }));
 
       setClients(rows);
       setClientsLoading(false);
@@ -463,36 +477,65 @@ export default function OSCRM() {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        {contact._source === 'client' ? (
-                          <Link
-                            to={`/os/clients/${contact.id}`}
-                            onClick={(e) => e.stopPropagation()}
-                            className="text-primary-400 hover:text-primary-300 p-2 rounded-lg hover:bg-primary-900/20 transition inline-flex"
-                          >
-                            <ChevronRight className="w-4 h-4" />
-                          </Link>
-                        ) : (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setEditingContact(contact);
-                              setEditFormData({
-                                first_name: contact.first_name,
-                                last_name: contact.last_name || '',
-                                email: contact.email || '',
-                                phone: contact.phone || '',
-                                title: contact.title || '',
-                                company_name: contact.company_name || '',
-                                date_of_birth: contact.date_of_birth || '',
-                                notes: contact.notes || '',
-                              });
-                              setShowEditContact(true);
-                            }}
-                            className="text-indigo-400 hover:text-indigo-300 p-2 rounded-lg hover:bg-indigo-900/20 transition"
-                          >
-                            <Edit2 className="w-4 h-4" />
-                          </button>
-                        )}
+                        <div className="flex items-center justify-end gap-1">
+                          {contact._source === 'client' ? (
+                            <>
+                              <Link
+                                to={`/os/clients/${contact.id}`}
+                                onClick={(e) => e.stopPropagation()}
+                                className="text-primary-400 hover:text-primary-300 p-2 rounded-lg hover:bg-primary-900/20 transition inline-flex"
+                              >
+                                <ChevronRight className="w-4 h-4" />
+                              </Link>
+                              <button
+                                onClick={async (e) => {
+                                  e.stopPropagation();
+                                  if (window.confirm(`Remove ${contact.first_name}${contact.last_name ? ' ' + contact.last_name : ''} from clients?`)) {
+                                    await supabase.from('crm_hidden_clients').insert({ user_profile_id: contact.id, hidden_by: user?.id });
+                                    setClients(prev => prev.filter(c => c.id !== contact.id));
+                                  }
+                                }}
+                                className="text-red-400 hover:text-red-300 p-2 rounded-lg hover:bg-red-900/20 transition"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setEditingContact(contact);
+                                  setEditFormData({
+                                    first_name: contact.first_name,
+                                    last_name: contact.last_name || '',
+                                    email: contact.email || '',
+                                    phone: contact.phone || '',
+                                    title: contact.title || '',
+                                    company_name: contact.company_name || '',
+                                    date_of_birth: contact.date_of_birth || '',
+                                    notes: contact.notes || '',
+                                  });
+                                  setShowEditContact(true);
+                                }}
+                                className="text-indigo-400 hover:text-indigo-300 p-2 rounded-lg hover:bg-indigo-900/20 transition"
+                              >
+                                <Edit2 className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (window.confirm(`Delete contact ${contact.first_name}${contact.last_name ? ' ' + contact.last_name : ''}?`)) {
+                                    deleteContact(contact.id);
+                                  }
+                                }}
+                                className="text-red-400 hover:text-red-300 p-2 rounded-lg hover:bg-red-900/20 transition"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -728,12 +771,25 @@ export default function OSCRM() {
                         {new Date(client.created_at).toLocaleDateString()}
                       </td>
                       <td className="px-5 py-3.5 text-right">
-                        <Link
-                          to={`/os/clients/${client.id}`}
-                          className="inline-flex items-center gap-1 text-xs text-primary-400 hover:text-primary-300"
-                        >
-                          View <ChevronRight className="w-3 h-3" />
-                        </Link>
+                        <div className="flex items-center justify-end gap-2">
+                          <Link
+                            to={`/os/clients/${client.id}`}
+                            className="inline-flex items-center gap-1 text-xs text-primary-400 hover:text-primary-300"
+                          >
+                            View <ChevronRight className="w-3 h-3" />
+                          </Link>
+                          <button
+                            onClick={async () => {
+                              if (window.confirm(`Remove ${client.full_name || client.email} from clients?`)) {
+                                await supabase.from('crm_hidden_clients').insert({ user_profile_id: client.id, hidden_by: user?.id });
+                                setClients(prev => prev.filter(c => c.id !== client.id));
+                              }
+                            }}
+                            className="text-red-400 hover:text-red-300 p-1 rounded-lg hover:bg-red-900/20 transition"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Search, LifeBuoy } from 'lucide-react';
+import { Search, LifeBuoy, Send, MessageSquare } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
 interface TicketRow {
@@ -14,6 +14,8 @@ interface TicketRow {
   created_at: string;
   email: string;
   full_name: string | null;
+  admin_response: string | null;
+  admin_responded_at: string | null;
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -52,6 +54,8 @@ export default function OSSupportTickets() {
   const [search, setSearch] = useState('');
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [responseText, setResponseText] = useState<Record<string, string>>({});
+  const [savingResponseId, setSavingResponseId] = useState<string | null>(null);
   const filterStatus = searchParams.get('status') ?? '';
   const filterPriority = searchParams.get('priority') ?? '';
 
@@ -64,7 +68,7 @@ export default function OSSupportTickets() {
 
     const { data: tix } = await supabase
       .from('support_tickets')
-      .select('id, user_id, subject, description, category, status, priority, created_at')
+      .select('id, user_id, subject, description, category, status, priority, created_at, admin_response, admin_responded_at')
       .order('created_at', { ascending: false });
 
     const userIds = [...new Set((tix ?? []).map((t: { user_id: string }) => t.user_id))];
@@ -81,7 +85,7 @@ export default function OSSupportTickets() {
     const profileMap = new Map(profiles.map((p) => [p.id, p]));
 
     const rows: TicketRow[] = (tix ?? []).map(
-      (t: { id: string; user_id: string; subject: string; description: string; category: string; status: string; priority: string; created_at: string }) => ({
+      (t: { id: string; user_id: string; subject: string; description: string; category: string; status: string; priority: string; created_at: string; admin_response: string | null; admin_responded_at: string | null }) => ({
         ...t,
         email: profileMap.get(t.user_id)?.email ?? 'Unknown',
         full_name: profileMap.get(t.user_id)?.full_name ?? null,
@@ -121,6 +125,28 @@ export default function OSSupportTickets() {
       prev.map((t) => (t.id === ticketId ? { ...t, status: newStatus } : t))
     );
     setUpdatingId(null);
+  };
+
+  const saveAdminResponse = async (ticketId: string) => {
+    const text = responseText[ticketId];
+    if (!text?.trim()) return;
+    setSavingResponseId(ticketId);
+    await supabase
+      .from('support_tickets')
+      .update({
+        admin_response: text.trim(),
+        admin_responded_at: new Date().toISOString(),
+      })
+      .eq('id', ticketId);
+
+    setTickets((prev) =>
+      prev.map((t) =>
+        t.id === ticketId
+          ? { ...t, admin_response: text.trim(), admin_responded_at: new Date().toISOString() }
+          : t
+      )
+    );
+    setSavingResponseId(null);
   };
 
   return (
@@ -263,6 +289,41 @@ export default function OSSupportTickets() {
                                 {STATUS_LABELS[s]}
                               </button>
                             ))}
+                          </div>
+                          {/* Admin Response */}
+                          <div>
+                            <p className="text-xs text-gray-500 uppercase tracking-wide mb-2">
+                              <MessageSquare className="w-3 h-3 inline mr-1" />
+                              Admin Response
+                            </p>
+                            <textarea
+                              value={responseText[ticket.id] ?? ticket.admin_response ?? ''}
+                              onChange={(e) =>
+                                setResponseText((prev) => ({ ...prev, [ticket.id]: e.target.value }))
+                              }
+                              onClick={(e) => e.stopPropagation()}
+                              rows={3}
+                              className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
+                              placeholder="Write a response to the client..."
+                            />
+                            <div className="flex items-center gap-3 mt-2">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  saveAdminResponse(ticket.id);
+                                }}
+                                disabled={savingResponseId === ticket.id}
+                                className="flex items-center gap-2 px-3 py-1.5 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-xs transition disabled:opacity-50"
+                              >
+                                <Send className="w-3 h-3" />
+                                Save Response
+                              </button>
+                              {ticket.admin_responded_at && (
+                                <span className="text-xs text-gray-500">
+                                  Last responded: {new Date(ticket.admin_responded_at).toLocaleDateString()}
+                                </span>
+                              )}
+                            </div>
                           </div>
                           <div className="md:hidden">
                             <p className="text-xs text-gray-500">

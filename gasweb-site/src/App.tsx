@@ -22,6 +22,7 @@ import Settings from './pages/portal/Settings';
 import LegalFlowHub from './pages/portal/legalflow/LegalFlowHub';
 import LegalFlowFrame from './pages/portal/legalflow/LegalFlowFrame';
 import PortalCRM from './pages/portal/PortalCRM';
+import PortalProjects from './pages/portal/PortalProjects';
 import Profile from './pages/portal/settings/Profile';
 import Billing from './pages/portal/settings/Billing';
 import Notifications from './pages/portal/settings/Notifications';
@@ -85,6 +86,7 @@ function App(): JSX.Element {
             <Route path="legalflow" element={<LegalFlowHub />} />
             <Route path="legalflow/:section" element={<LegalFlowFrame />} />
             <Route path="crm" element={<PortalCRM />} />
+            <Route path="projects" element={<PortalProjects />} />
           </Route>
 
           {/* Main layout wrapper */}
