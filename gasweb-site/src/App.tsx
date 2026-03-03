@@ -25,6 +25,12 @@ import Billing from './pages/portal/settings/Billing';
 import Notifications from './pages/portal/settings/Notifications';
 import Security from './pages/portal/settings/Security';
 import NotFound from './pages/NotFound';
+import GasStaffRoute from './components/GasStaffRoute';
+import OSLayout from './pages/os/OSLayout';
+import OSDashboard from './pages/os/OSDashboard';
+import OSClients from './pages/os/OSClients';
+import OSClientDetail from './pages/os/OSClientDetail';
+import OSApps from './pages/os/OSApps';
 
 // Redirect already-authenticated users away from auth pages
 function AuthRoute({ children }: { children: React.ReactNode }) {
@@ -66,6 +72,14 @@ function App(): JSX.Element {
             <Route path="education" element={<Education />} />
             <Route path="case-studies" element={<CaseStudies />} />
             <Route path="contact" element={<Contact />} />
+          </Route>
+
+          {/* GAS Operating System — staff only */}
+          <Route path="/os" element={<GasStaffRoute><OSLayout /></GasStaffRoute>}>
+            <Route index element={<OSDashboard />} />
+            <Route path="clients" element={<OSClients />} />
+            <Route path="clients/:id" element={<OSClientDetail />} />
+            <Route path="apps" element={<OSApps />} />
           </Route>
 
           {/* Landing page — standalone, no nav */}
