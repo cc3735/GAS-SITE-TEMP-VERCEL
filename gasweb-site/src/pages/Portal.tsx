@@ -20,6 +20,7 @@ import {
   Briefcase,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import PortalChatBot from '../components/portal/PortalChatBot';
 
 const appNavItems = [
   { to: '/portal/apps', icon: LayoutGrid, label: 'My Apps' },
@@ -243,6 +244,9 @@ export default function Portal() {
           <Outlet />
         </main>
       </div>
+
+      {/* Support ChatBot */}
+      <PortalChatBot />
     </div>
   );
 }

@@ -4,7 +4,7 @@ import {
   Users,
   CheckCircle2,
   LayoutGrid,
-  TrendingUp,
+  LifeBuoy,
   ArrowRight,
   FolderKanban,
   Mail,
@@ -57,6 +57,7 @@ export default function OSDashboard() {
   const [activeSubscriptions, setActiveSubscriptions] = useState<number | null>(null);
   const [appCounts, setAppCounts] = useState<AppCount[]>([]);
   const [recentClients, setRecentClients] = useState<RecentClient[]>([]);
+  const [openTickets, setOpenTickets] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   // Quick action modals
@@ -80,13 +81,14 @@ export default function OSDashboard() {
 
   useEffect(() => {
     async function load() {
-      const [profilesRes, subsRes, recentRes] = await Promise.all([
+      const [profilesRes, subsRes, recentRes, ticketRes] = await Promise.all([
         supabase.from('user_profiles').select('*', { count: 'exact', head: true }),
         supabase.from('user_app_subscriptions').select('app_id').eq('status', 'active'),
         supabase.from('user_profiles')
           .select('id, email, full_name, subscription_tier, created_at')
           .order('created_at', { ascending: false })
           .limit(10),
+        supabase.from('support_tickets').select('*', { count: 'exact', head: true }).eq('status', 'open'),
       ]);
 
       setTotalClients(profilesRes.count ?? 0);
@@ -102,6 +104,7 @@ export default function OSDashboard() {
       );
 
       setRecentClients((recentRes.data ?? []) as RecentClient[]);
+      setOpenTickets(ticketRes.count ?? 0);
       setIsLoading(false);
     }
     load();
@@ -243,7 +246,7 @@ export default function OSDashboard() {
     { label: 'Total Clients', value: totalClients, icon: Users, color: 'text-blue-400' },
     { label: 'Active Subscriptions', value: activeSubscriptions, icon: CheckCircle2, color: 'text-green-400' },
     { label: 'Apps Offered', value: Object.keys(APP_LABELS).length, icon: LayoutGrid, color: 'text-purple-400' },
-    { label: 'Avg Apps / Client', value: totalClients ? ((activeSubscriptions ?? 0) / totalClients).toFixed(1) : '—', icon: TrendingUp, color: 'text-yellow-400' },
+    { label: 'Open Tickets', value: openTickets, icon: LifeBuoy, color: 'text-yellow-400' },
   ];
 
   return (
