@@ -10,16 +10,14 @@ const SECTION_MAP: Record<string, string> = {
   legal:       '/legal',
   trademark:   '/trademark',
   tax:         '/tax',
-  accounting:  '/accounting/chart-of-accounts',
   businesses:  '/businesses',
 };
 
 const SECTION_LABELS: Record<string, string> = {
-  bookkeeping: 'Bookkeeping',
+  bookkeeping: 'Bookkeeping & Accounting',
   legal:       'Legal Documents',
   trademark:   'Trademark',
   tax:         'Tax Filing',
-  accounting:  'Accounting',
   businesses:  'Businesses',
 };
 

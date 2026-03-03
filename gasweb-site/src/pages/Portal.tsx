@@ -17,7 +17,6 @@ import {
   FileText,
   Award,
   Calculator,
-  BarChart3,
   Briefcase,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
@@ -35,11 +34,10 @@ const settingsNavItems = [
 
 const legalFlowNavItems = [
   { to: '/portal/legalflow',             icon: LayoutGrid,  label: 'Overview',        end: true },
-  { to: '/portal/legalflow/bookkeeping', icon: DollarSign,  label: 'Bookkeeping' },
+  { to: '/portal/legalflow/bookkeeping', icon: DollarSign,  label: 'Bookkeeping & Accounting' },
   { to: '/portal/legalflow/legal',       icon: FileText,    label: 'Legal Documents' },
   { to: '/portal/legalflow/trademark',   icon: Award,       label: 'Trademark' },
   { to: '/portal/legalflow/tax',         icon: Calculator,  label: 'Tax Filing' },
-  { to: '/portal/legalflow/accounting',  icon: BarChart3,   label: 'Accounting' },
   { to: '/portal/legalflow/businesses',  icon: Briefcase,   label: 'Businesses' },
 ];
 

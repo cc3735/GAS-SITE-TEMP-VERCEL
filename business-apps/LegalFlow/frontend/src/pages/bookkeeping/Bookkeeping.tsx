@@ -7,7 +7,7 @@
 
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { DollarSign, TrendingUp, TrendingDown, Plus, Upload, RefreshCw, BarChart3, ArrowLeftRight } from 'lucide-react';
+import { DollarSign, TrendingUp, TrendingDown, Plus, Upload, RefreshCw, BarChart3, ArrowLeftRight, BookOpen, FileText } from 'lucide-react';
 
 interface FinancialSummary {
     totalIncome: number;
@@ -70,7 +70,7 @@ export default function Bookkeeping() {
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
                 <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-gray-900">Bookkeeping</h1>
+                    <h1 className="text-3xl font-bold text-gray-900">Bookkeeping & Accounting</h1>
                     <p className="text-gray-600 mt-2">
                         Organize your finances for tax preparation
                     </p>
@@ -152,6 +152,42 @@ export default function Bookkeeping() {
                             </div>
                         </div>
                     </Link>
+                </div>
+
+                {/* Accounting */}
+                <div className="mb-8">
+                    <h2 className="text-xl font-semibold text-gray-900 mb-4">Accounting</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <Link
+                            to="/accounting/chart-of-accounts"
+                            className="bg-white p-6 rounded-lg shadow hover:shadow-md transition-shadow border border-gray-200"
+                        >
+                            <div className="flex items-center gap-3">
+                                <div className="p-3 bg-indigo-100 rounded-lg">
+                                    <BookOpen className="w-6 h-6 text-indigo-600" />
+                                </div>
+                                <div>
+                                    <h3 className="font-semibold text-gray-900">Chart of Accounts</h3>
+                                    <p className="text-sm text-gray-600">Manage accounts</p>
+                                </div>
+                            </div>
+                        </Link>
+
+                        <Link
+                            to="/accounting/journal-entries"
+                            className="bg-white p-6 rounded-lg shadow hover:shadow-md transition-shadow border border-gray-200"
+                        >
+                            <div className="flex items-center gap-3">
+                                <div className="p-3 bg-violet-100 rounded-lg">
+                                    <FileText className="w-6 h-6 text-violet-600" />
+                                </div>
+                                <div>
+                                    <h3 className="font-semibold text-gray-900">Journal Entries</h3>
+                                    <p className="text-sm text-gray-600">Record transactions</p>
+                                </div>
+                            </div>
+                        </Link>
+                    </div>
                 </div>
 
                 {/* Financial Summary */}

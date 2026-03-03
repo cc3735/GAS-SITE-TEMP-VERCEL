@@ -4,7 +4,6 @@ import {
   FileText,
   Award,
   Calculator,
-  BarChart3,
   Briefcase,
   ArrowRight,
 } from 'lucide-react';
@@ -12,8 +11,8 @@ import {
 const FEATURES = [
   {
     slug: 'bookkeeping',
-    label: 'Bookkeeping',
-    description: 'Track income, expenses, AP/AR, and bank transactions.',
+    label: 'Bookkeeping & Accounting',
+    description: 'Track income, expenses, AP/AR, bank transactions, chart of accounts, and journal entries.',
     icon: DollarSign,
     color: 'bg-blue-50',
     textColor: 'text-blue-600',
@@ -45,15 +44,6 @@ const FEATURES = [
     color: 'bg-green-50',
     textColor: 'text-green-600',
     dotColor: 'bg-green-600',
-  },
-  {
-    slug: 'accounting',
-    label: 'Accounting',
-    description: 'Chart of accounts, journal entries, and financial reports.',
-    icon: BarChart3,
-    color: 'bg-teal-50',
-    textColor: 'text-teal-600',
-    dotColor: 'bg-teal-600',
   },
   {
     slug: 'businesses',

@@ -229,6 +229,14 @@ router.delete('/account', asyncHandler(async (req, res) => {
 const businessSchema = z.object({
   name: z.string().min(1, "Business name is required"),
   industry: z.string().optional(),
+  ein: z.string().optional(),
+  address: z.string().optional(),
+  phone: z.string().optional(),
+  email: z.string().email().optional().or(z.literal('')),
+  state_of_registration: z.string().optional(),
+  point_of_contact: z.string().optional(),
+  registered_agent_name: z.string().optional(),
+  registered_agent_address: z.string().optional(),
   metadata: z.record(z.any()).optional(),
 });
 
@@ -274,7 +282,7 @@ router.post('/businesses', asyncHandler(async (req, res) => {
     throw new ValidationError(validation.error.errors[0].message);
   }
 
-  const { name, industry, metadata } = validation.data;
+  const { name, industry, ein, address, phone, email, state_of_registration, point_of_contact, registered_agent_name, registered_agent_address, metadata } = validation.data;
 
   const { data: newBusiness, error } = await supabaseAdmin
     .from('user_businesses')
@@ -282,6 +290,14 @@ router.post('/businesses', asyncHandler(async (req, res) => {
       user_id: req.user!.id,
       name,
       industry,
+      ein,
+      address,
+      phone,
+      email: email || null,
+      state_of_registration,
+      point_of_contact,
+      registered_agent_name,
+      registered_agent_address,
       metadata,
     })
     .select()
@@ -302,15 +318,14 @@ router.put('/businesses/:id', asyncHandler(async (req, res) => {
     throw new ValidationError(validation.error.errors[0].message);
   }
 
-  const { name, industry, metadata } = validation.data;
-    if (!name && !industry && !metadata) {
+  const { name, industry, ein, address, phone, email, state_of_registration, point_of_contact, registered_agent_name, registered_agent_address, metadata } = validation.data;
+  if (!name && !industry && !ein && !address && !phone && !email && !state_of_registration && !point_of_contact && !registered_agent_name && !registered_agent_address && !metadata) {
     throw new ValidationError("No fields to update");
-    }
-
+  }
 
   const { data: updatedBusiness, error } = await supabaseAdmin
     .from('user_businesses')
-    .update({ name, industry, metadata, updated_at: new Date().toISOString() })
+    .update({ name, industry, ein, address, phone, email: email || null, state_of_registration, point_of_contact, registered_agent_name, registered_agent_address, metadata, updated_at: new Date().toISOString() })
     .eq('id', id)
     .eq('user_id', req.user!.id)
     .select()

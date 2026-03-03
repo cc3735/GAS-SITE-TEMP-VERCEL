@@ -13,7 +13,6 @@ import {
   ChevronDown,
   Briefcase,
   BookCopy,
-  Book,
   Award,
 } from 'lucide-react';
 import { useState } from 'react';
@@ -24,9 +23,8 @@ const navigation = [
   { name: 'Legal Documents', href: '/legal', icon: Scale },
   { name: 'Legal Filings', href: '/filing', icon: FolderOpen },
   { name: 'Trademark', href: '/trademark', icon: Award },
-  { name: 'Bookkeeping', href: '/bookkeeping', icon: BookCopy },
+  { name: 'Bookkeeping & Accounting', href: '/bookkeeping', icon: BookCopy },
   { name: 'Businesses', href: '/businesses', icon: Briefcase },
-  { name: 'Accounting', href: '/accounting/chart-of-accounts', icon: Book },
   { name: 'Child Support Calculator', href: '/child-support', icon: Calculator },
   { name: 'Settings', href: '/settings', icon: Settings },
 ];

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router-dom';
 import {
@@ -11,6 +12,7 @@ import {
   ArrowRight,
   FileText,
   Calendar,
+  Loader2,
 } from 'lucide-react';
 import { trademarkApi, type TrademarkApplication } from '@/lib/api';
 
@@ -68,6 +70,9 @@ function DeadlineCard({ app }: { app: TrademarkApplication }) {
 
 export default function TrademarkDashboard() {
   const navigate = useNavigate();
+  const [creating, setCreating] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
+
   const { data, isLoading } = useQuery({
     queryKey: ['trademark-applications'],
     queryFn: () => trademarkApi.listApplications(),
@@ -80,14 +85,32 @@ export default function TrademarkDashboard() {
   const deadlines = applications.filter((a) => a.nextActionDate);
 
   const handleNew = async () => {
-    const res = await trademarkApi.createApplication({ markName: 'New Trademark' });
-    if (res.success && res.data) {
-      navigate(`/trademark/apply/${res.data.id}`);
+    setCreating(true);
+    setCreateError(null);
+    try {
+      const res = await trademarkApi.createApplication({ markName: 'New Trademark' });
+      if (res.success && res.data) {
+        navigate(`/trademark/apply/${res.data.id}`);
+      } else {
+        setCreateError('Could not create application. Please try again.');
+      }
+    } catch {
+      setCreateError('Could not create application. Please check your connection and try again.');
+    } finally {
+      setCreating(false);
     }
   };
 
   return (
     <div className="space-y-8">
+      {/* Create error banner */}
+      {createError && (
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 flex items-center gap-3 text-sm text-red-700">
+          <AlertCircle className="h-4 w-4 flex-shrink-0" />
+          {createError}
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -106,10 +129,11 @@ export default function TrademarkDashboard() {
           </Link>
           <button
             onClick={handleNew}
-            className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+            disabled={creating}
+            className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
           >
-            <Plus className="h-4 w-4" />
-            New Application
+            {creating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+            {creating ? 'Creating...' : 'New Application'}
           </button>
         </div>
       </div>
@@ -159,10 +183,11 @@ export default function TrademarkDashboard() {
                 </Link>
                 <button
                   onClick={handleNew}
-                  className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+                  disabled={creating}
+                  className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
                 >
-                  <Plus className="h-4 w-4" />
-                  Start Application
+                  {creating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+                  {creating ? 'Creating...' : 'Start Application'}
                 </button>
               </div>
             </div>
@@ -259,9 +284,10 @@ export default function TrademarkDashboard() {
             </Link>
             <button
               onClick={handleNew}
-              className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
+              disabled={creating}
+              className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground disabled:opacity-60"
             >
-              <Plus className="h-4 w-4" />
+              {creating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
               File Federal Application
             </button>
             <a
