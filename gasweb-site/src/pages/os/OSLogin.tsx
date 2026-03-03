@@ -57,13 +57,8 @@ export default function OSLogin() {
       <div className="w-full max-w-sm">
         {/* Logo */}
         <div className="flex items-center justify-center gap-2 mb-8">
-          <div className="w-9 h-9 rounded-lg bg-primary-600 flex items-center justify-center">
-            <span className="text-sm font-bold text-white">G</span>
-          </div>
-          <div>
-            <p className="text-base font-semibold text-white leading-none">GAS Operating</p>
-            <p className="text-xs text-gray-400 mt-0.5">System</p>
-          </div>
+          <img src="/logo.png" alt="GAS-OS" className="h-20 w-auto brightness-0 invert" />
+          <p className="text-base font-semibold text-white leading-none">GAS-OS</p>
         </div>
 
         {/* Card */}
@@ -76,13 +71,13 @@ export default function OSLogin() {
             <div className="mb-5 p-4 bg-red-900/20 border border-red-800/50 rounded-lg">
               <p className="text-sm text-red-400 font-medium mb-1">Access Denied</p>
               <p className="text-xs text-red-400/70 mb-3">
-                You don't have access to GAS Operating System. Contact an administrator if you believe this is an error.
+                You don't have access to GAS-OS. Contact an administrator if you believe this is an error.
               </p>
               <Link
                 to="/portal/apps"
                 className="inline-flex text-xs font-medium text-primary-400 hover:text-primary-300"
               >
-                Go to GAS Portal &rarr;
+                Go to GAS Client Portal &rarr;
               </Link>
             </div>
           )}

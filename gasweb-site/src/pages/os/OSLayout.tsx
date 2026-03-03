@@ -64,13 +64,8 @@ export default function OSLayout() {
       {/* Logo */}
       <div className="px-5 py-5 border-b border-gray-800">
         <div className="flex items-center gap-2 mb-4">
-          <div className="w-7 h-7 rounded-md bg-primary-600 flex items-center justify-center flex-shrink-0">
-            <span className="text-xs font-bold text-white">G</span>
-          </div>
-          <div>
-            <p className="text-sm font-semibold text-white leading-none">GAS Operating</p>
-            <p className="text-xs text-gray-400 mt-0.5">System</p>
-          </div>
+          <img src="/logo.png" alt="GAS-OS" className="h-16 w-auto brightness-0 invert" />
+          <p className="text-sm font-semibold text-white leading-none">GAS-OS</p>
         </div>
 
         {/* Organization Switcher */}
@@ -204,10 +199,8 @@ export default function OSLayout() {
           {sidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
         </button>
         <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded-md bg-primary-600 flex items-center justify-center">
-            <span className="text-[10px] font-bold text-white">G</span>
-          </div>
-          <span className="font-semibold text-white text-sm">GAS OS</span>
+          <img src="/logo.png" alt="GAS-OS" className="h-12 w-auto brightness-0 invert" />
+          <span className="font-semibold text-white text-sm">GAS-OS</span>
         </div>
         <div className="w-10" /> {/* Spacer for centering */}
       </div>

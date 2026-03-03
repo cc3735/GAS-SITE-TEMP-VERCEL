@@ -57,8 +57,8 @@ function SidebarContent({ initials, user, isSettingsOpen, setIsSettingsOpen, isL
       {/* Logo */}
       <div className="px-4 py-5 border-b border-slate-200">
         <NavLink to="/portal/overview" className="flex items-center gap-2">
-          <img src="/logo.png" alt="GAS" className="h-8 w-auto" />
-          <span className="font-semibold text-slate-900 text-sm">GAS Portal</span>
+          <img src="/logo.png" alt="GAS" className="h-20 w-auto" />
+          <span className="font-semibold text-slate-900 text-sm">GAS Client Portal</span>
         </NavLink>
       </div>
 
@@ -234,8 +234,8 @@ export default function Portal() {
           >
             <Menu className="w-5 h-5" />
           </button>
-          <img src="/logo.png" alt="GAS" className="h-7 w-auto" />
-          <span className="font-semibold text-slate-900 text-sm">GAS Portal</span>
+          <img src="/logo.png" alt="GAS" className="h-16 w-auto" />
+          <span className="font-semibold text-slate-900 text-sm">GAS Client Portal</span>
         </header>
 
         {/* Page content — strip padding when iframe fills the area */}

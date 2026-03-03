@@ -36,7 +36,7 @@ export default function Login() {
             <div className="w-10 h-10 bg-primary-500 rounded-xl flex items-center justify-center">
               <Zap className="w-6 h-6 text-white" />
             </div>
-            <span className="text-2xl font-bold">GAS Portal</span>
+            <span className="text-2xl font-bold">GAS Client Portal</span>
           </Link>
           <p className="mt-3 text-slate-300">Sign in to access your services</p>
         </div>
