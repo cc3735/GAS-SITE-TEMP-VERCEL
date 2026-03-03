@@ -12,6 +12,13 @@ import {
   ChevronDown,
   ChevronRight,
   Settings,
+  Scale,
+  DollarSign,
+  FileText,
+  Award,
+  Calculator,
+  BarChart3,
+  Briefcase,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -26,15 +33,27 @@ const settingsNavItems = [
   { to: '/portal/settings/security', icon: Shield, label: 'Security' },
 ];
 
+const legalFlowNavItems = [
+  { to: '/portal/legalflow',             icon: LayoutGrid,  label: 'Overview',        end: true },
+  { to: '/portal/legalflow/bookkeeping', icon: DollarSign,  label: 'Bookkeeping' },
+  { to: '/portal/legalflow/legal',       icon: FileText,    label: 'Legal Documents' },
+  { to: '/portal/legalflow/trademark',   icon: Award,       label: 'Trademark' },
+  { to: '/portal/legalflow/tax',         icon: Calculator,  label: 'Tax Filing' },
+  { to: '/portal/legalflow/accounting',  icon: BarChart3,   label: 'Accounting' },
+  { to: '/portal/legalflow/businesses',  icon: Briefcase,   label: 'Businesses' },
+];
+
 interface SidebarContentProps {
   initials: string;
   user: { email?: string; user_metadata?: Record<string, unknown> };
   isSettingsOpen: boolean;
   setIsSettingsOpen: (open: boolean) => void;
+  isLegalFlowOpen: boolean;
+  setIsLegalFlowOpen: (open: boolean) => void;
   handleSignOut: () => void;
 }
 
-function SidebarContent({ initials, user, isSettingsOpen, setIsSettingsOpen, handleSignOut }: SidebarContentProps) {
+function SidebarContent({ initials, user, isSettingsOpen, setIsSettingsOpen, isLegalFlowOpen, setIsLegalFlowOpen, handleSignOut }: SidebarContentProps) {
   return (
     <div className="flex flex-col h-full">
       {/* Logo */}
@@ -50,6 +69,29 @@ function SidebarContent({ initials, user, isSettingsOpen, setIsSettingsOpen, han
         {appNavItems.map((item) => (
           <NavItem key={item.to} {...item} />
         ))}
+
+        {/* LegalFlow group */}
+        <div className="pt-1">
+          <button
+            onClick={() => setIsLegalFlowOpen(!isLegalFlowOpen)}
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors"
+          >
+            <Scale className="w-4 h-4 flex-shrink-0" />
+            <span className="flex-1 text-left">LegalFlow</span>
+            {isLegalFlowOpen ? (
+              <ChevronDown className="w-4 h-4" />
+            ) : (
+              <ChevronRight className="w-4 h-4" />
+            )}
+          </button>
+          {isLegalFlowOpen && (
+            <div className="mt-1 ml-3 pl-4 border-l border-slate-200 space-y-1">
+              {legalFlowNavItems.map((item) => (
+                <NavItem key={item.to} {...item} />
+              ))}
+            </div>
+          )}
+        </div>
 
         {/* Settings group */}
         <div className="pt-2">
@@ -100,10 +142,11 @@ function SidebarContent({ initials, user, isSettingsOpen, setIsSettingsOpen, han
   );
 }
 
-function NavItem({ to, icon: Icon, label }: { to: string; icon: React.ElementType; label: string }) {
+function NavItem({ to, icon: Icon, label, end }: { to: string; icon: React.ElementType; label: string; end?: boolean }) {
   return (
     <NavLink
       to={to}
+      end={end}
       className={({ isActive }) =>
         `flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
           isActive
@@ -126,6 +169,10 @@ export default function Portal() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(
     location.pathname.startsWith('/portal/settings')
   );
+  const [isLegalFlowOpen, setIsLegalFlowOpen] = useState(
+    location.pathname.startsWith('/portal/legalflow')
+  );
+  const isFrameRoute = location.pathname.startsWith('/portal/legalflow/');
 
   if (!user) return <Navigate to="/login" replace />;
 
@@ -146,6 +193,8 @@ export default function Portal() {
     user,
     isSettingsOpen,
     setIsSettingsOpen,
+    isLegalFlowOpen,
+    setIsLegalFlowOpen,
     handleSignOut,
   };
 
@@ -191,8 +240,8 @@ export default function Portal() {
           <span className="font-semibold text-slate-900 text-sm">GAS Portal</span>
         </header>
 
-        {/* Page content */}
-        <main className="flex-1 p-6 md:p-8">
+        {/* Page content — strip padding when iframe fills the area */}
+        <main className={`flex-1 ${isFrameRoute ? 'overflow-hidden p-4' : 'p-6 md:p-8'}`}>
           <Outlet />
         </main>
       </div>

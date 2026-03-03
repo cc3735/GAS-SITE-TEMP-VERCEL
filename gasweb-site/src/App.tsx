@@ -18,6 +18,8 @@ import Portal from './pages/Portal';
 import MyApps from './pages/portal/MyApps';
 import Overview from './pages/portal/Overview';
 import Settings from './pages/portal/Settings';
+import LegalFlowHub from './pages/portal/legalflow/LegalFlowHub';
+import LegalFlowFrame from './pages/portal/legalflow/LegalFlowFrame';
 import Profile from './pages/portal/settings/Profile';
 import Billing from './pages/portal/settings/Billing';
 import Notifications from './pages/portal/settings/Notifications';
@@ -53,6 +55,8 @@ function App(): JSX.Element {
               <Route path="notifications" element={<Notifications />} />
               <Route path="security" element={<Security />} />
             </Route>
+            <Route path="legalflow" element={<LegalFlowHub />} />
+            <Route path="legalflow/:section" element={<LegalFlowFrame />} />
           </Route>
 
           {/* Main layout wrapper */}

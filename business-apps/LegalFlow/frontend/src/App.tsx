@@ -5,6 +5,10 @@ import { useAuthStore } from '@/lib/store';
 // Layouts
 import MainLayout from '@/components/layout/MainLayout';
 import AuthLayout from '@/components/layout/AuthLayout';
+import EmbeddedLayout from '@/components/layout/EmbeddedLayout';
+
+// Detect embedded (iframe) mode — set by the index.html inline script
+const isEmbedded = sessionStorage.getItem('embedded_mode') === 'true';
 
 // Pages
 import Landing from '@/pages/Landing';
@@ -13,6 +17,7 @@ import BankAccounts from '@/pages/bookkeeping/BankAccounts';
 import BankStatementUpload from '@/pages/bookkeeping/BankStatementUpload';
 import Transactions from '@/pages/bookkeeping/Transactions';
 import Reports from '@/pages/bookkeeping/Reports';
+import ApAr from '@/pages/bookkeeping/ApAr';
 import NotFound from '@/pages/NotFound';
 import Login from '@/pages/auth/Login';
 import Register from '@/pages/auth/Register';
@@ -28,6 +33,10 @@ import Businesses from '@/pages/Businesses';
 import Settings from '@/pages/Settings';
 import ChartOfAccounts from '@/pages/accounting/ChartOfAccounts';
 import JournalEntries from '@/pages/accounting/JournalEntries';
+import TrademarkDashboard from '@/pages/trademark/TrademarkDashboard';
+import TrademarkSearch from '@/pages/trademark/TrademarkSearch';
+import TrademarkApplication from '@/pages/trademark/TrademarkApplication';
+import DocumentCreate from '@/pages/legal/DocumentCreate';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -50,6 +59,15 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   }
 
   if (!isAuthenticated) {
+    if (isEmbedded) {
+      return (
+        <div className="flex min-h-screen items-center justify-center p-8 text-center">
+          <p className="text-muted-foreground">
+            Session expired. Please return to the GAS portal and sign in again.
+          </p>
+        </div>
+      );
+    }
     return <Navigate to="/login" replace />;
   }
 
@@ -64,10 +82,32 @@ export default function App() {
           {/* Public landing page */}
           <Route path="/" element={<Landing />} />
 
-          {/* Auth routes */}
+          {/* Auth routes — show plain message when running embedded in the portal */}
           <Route element={<AuthLayout />}>
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
+            <Route
+              path="/login"
+              element={
+                isEmbedded ? (
+                  <div className="flex min-h-screen items-center justify-center text-white">
+                    Please sign in via the GAS Portal.
+                  </div>
+                ) : (
+                  <Login />
+                )
+              }
+            />
+            <Route
+              path="/register"
+              element={
+                isEmbedded ? (
+                  <div className="flex min-h-screen items-center justify-center text-white">
+                    Please register via the GAS Portal.
+                  </div>
+                ) : (
+                  <Register />
+                )
+              }
+            />
           </Route>
 
           {/* Public child support calculator */}
@@ -105,11 +145,11 @@ export default function App() {
             }
           />
 
-          {/* Protected routes */}
+          {/* Protected routes — use minimal layout when embedded in portal */}
           <Route
             element={
               <ProtectedRoute>
-                <MainLayout />
+                {isEmbedded ? <EmbeddedLayout /> : <MainLayout />}
               </ProtectedRoute>
             }
           >
@@ -118,6 +158,7 @@ export default function App() {
             <Route path="/tax/:id" element={<TaxDashboard />} />
             <Route path="/tax/new" element={<TaxDashboard />} />
             <Route path="/legal" element={<LegalDashboard />} />
+            <Route path="/legal/create" element={<DocumentCreate />} />
             <Route path="/legal/:id" element={<LegalDashboard />} />
             <Route path="/legal/new" element={<LegalDashboard />} />
             <Route path="/filing" element={<FilingDashboard />} />
@@ -132,9 +173,16 @@ export default function App() {
             <Route path="/bookkeeping/upload" element={<BankStatementUpload />} />
             <Route path="/bookkeeping/transactions" element={<Transactions />} />
             <Route path="/bookkeeping/reports" element={<Reports />} />
+            <Route path="/bookkeeping/ap-ar" element={<ApAr />} />
             <Route path="/businesses" element={<Businesses />} />
             <Route path="/accounting/chart-of-accounts" element={<ChartOfAccounts />} />
             <Route path="/accounting/journal-entries" element={<JournalEntries />} />
+
+            {/* Trademark Routes */}
+            <Route path="/trademark" element={<TrademarkDashboard />} />
+            <Route path="/trademark/search" element={<TrademarkSearch />} />
+            <Route path="/trademark/apply/new" element={<TrademarkApplication />} />
+            <Route path="/trademark/apply/:id" element={<TrademarkApplication />} />
 
           </Route>
 

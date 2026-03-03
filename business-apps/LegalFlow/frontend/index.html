@@ -10,6 +10,25 @@
   </head>
   <body class="dark">
     <div id="root"></div>
+    <!-- SSO token injection: must run before ES modules so Zustand persist
+         reads the token from localStorage during store initialization. -->
+    <script>
+      (function () {
+        var p = new URLSearchParams(location.search);
+        var tok = p.get('token');
+        var emb = p.get('embedded') === 'true';
+        if (tok) {
+          localStorage.setItem('auth_token', tok);
+          localStorage.setItem('auth-storage', JSON.stringify({ state: { token: tok }, version: 0 }));
+          var url = new URL(location.href);
+          url.searchParams.delete('token');
+          history.replaceState(null, '', url.toString());
+        }
+        if (emb) {
+          sessionStorage.setItem('embedded_mode', 'true');
+        }
+      })();
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

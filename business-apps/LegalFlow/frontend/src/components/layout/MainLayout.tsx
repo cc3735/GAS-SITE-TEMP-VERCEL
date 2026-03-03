@@ -14,6 +14,7 @@ import {
   Briefcase,
   BookCopy,
   Book,
+  Award,
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -22,6 +23,7 @@ const navigation = [
   { name: 'Tax Filing', href: '/tax', icon: FileText },
   { name: 'Legal Documents', href: '/legal', icon: Scale },
   { name: 'Legal Filings', href: '/filing', icon: FolderOpen },
+  { name: 'Trademark', href: '/trademark', icon: Award },
   { name: 'Bookkeeping', href: '/bookkeeping', icon: BookCopy },
   { name: 'Businesses', href: '/businesses', icon: Briefcase },
   { name: 'Accounting', href: '/accounting/chart-of-accounts', icon: Book },

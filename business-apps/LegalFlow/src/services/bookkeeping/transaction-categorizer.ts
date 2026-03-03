@@ -31,8 +31,11 @@ export class TransactionCategorizer {
         merchantName?: string
     ): Promise<CategorizationResult | null> {
         try {
+            // Pre-warm cache so rule-based path can do real DB lookups
+            await this.getAllCategories();
+
             // First, try rule-based categorization
-            const ruleBasedResult = this.ruleBasedCategorization(description, merchantName);
+            const ruleBasedResult = await this.ruleBasedCategorization(description, merchantName);
             if (ruleBasedResult && ruleBasedResult.confidence > 0.8) {
                 return ruleBasedResult;
             }
@@ -54,10 +57,10 @@ export class TransactionCategorizer {
     /**
      * Rule-based categorization for common patterns
      */
-    private ruleBasedCategorization(
+    private async ruleBasedCategorization(
         description: string,
         merchantName?: string
-    ): CategorizationResult | null {
+    ): Promise<CategorizationResult | null> {
         const desc = description.toLowerCase();
         const merchant = merchantName?.toLowerCase() || '';
 
@@ -67,7 +70,7 @@ export class TransactionCategorizer {
             desc.includes('staples') ||
             merchant.includes('office')
         ) {
-            return this.getCategoryByName('Office Supplies', 0.9);
+            return await this.getCategoryByName('Office Supplies', 0.9);
         }
 
         if (
@@ -77,7 +80,7 @@ export class TransactionCategorizer {
             desc.includes('software') ||
             merchant.includes('saas')
         ) {
-            return this.getCategoryByName('Software & Subscriptions', 0.85);
+            return await this.getCategoryByName('Software & Subscriptions', 0.85);
         }
 
         // Travel
@@ -88,7 +91,7 @@ export class TransactionCategorizer {
             desc.includes('lyft') ||
             merchant.includes('travel')
         ) {
-            return this.getCategoryByName('Travel', 0.85);
+            return await this.getCategoryByName('Travel', 0.85);
         }
 
         // Food
@@ -98,7 +101,7 @@ export class TransactionCategorizer {
             desc.includes('coffee') ||
             merchant.includes('food')
         ) {
-            return this.getCategoryByName('Dining Out', 0.8);
+            return await this.getCategoryByName('Dining Out', 0.8);
         }
 
         if (
@@ -107,7 +110,7 @@ export class TransactionCategorizer {
             desc.includes('whole foods') ||
             desc.includes('trader joe')
         ) {
-            return this.getCategoryByName('Groceries', 0.85);
+            return await this.getCategoryByName('Groceries', 0.85);
         }
 
         // Medical
@@ -118,7 +121,7 @@ export class TransactionCategorizer {
             desc.includes('medical') ||
             desc.includes('doctor')
         ) {
-            return this.getCategoryByName('Medical & Healthcare', 0.8);
+            return await this.getCategoryByName('Medical & Healthcare', 0.8);
         }
 
         // Utilities
@@ -129,7 +132,7 @@ export class TransactionCategorizer {
             desc.includes('internet') ||
             desc.includes('phone')
         ) {
-            return this.getCategoryByName('Personal Utilities', 0.85);
+            return await this.getCategoryByName('Personal Utilities', 0.85);
         }
 
         // Transfers
@@ -138,11 +141,11 @@ export class TransactionCategorizer {
             desc.includes('payment') ||
             desc.includes('credit card')
         ) {
-            return this.getCategoryByName('Credit Card Payment', 0.75);
+            return await this.getCategoryByName('Credit Card Payment', 0.75);
         }
 
         // Default to Personal if no match
-        return this.getCategoryByName('Personal', 0.5);
+        return await this.getCategoryByName('Personal', 0.5);
     }
 
     /**
@@ -216,17 +219,39 @@ Please respond with ONLY a JSON object in this exact format:
     }
 
     /**
-     * Get category by name
+     * Get category by name — looks up from the populated cache (real DB data)
      */
-    private getCategoryByName(name: string, confidence: number): CategorizationResult | null {
-        // This would query the database in production
-        // For now, return a placeholder
-        return {
-            categoryId: 'placeholder',
-            categoryName: name,
-            confidence,
-            isTaxDeductible: name.includes('Business') || name.includes('Medical'),
-        };
+    private async getCategoryByName(name: string, confidence: number): Promise<CategorizationResult | null> {
+        // Ensure cache is populated
+        if (this.categoryCache.size === 0) {
+            await this.getAllCategories();
+        }
+
+        // Exact match first
+        const category = this.categoryCache.get(name);
+        if (category) {
+            return {
+                categoryId: category.id,
+                categoryName: category.name,
+                confidence,
+                isTaxDeductible: category.tax_deductible ?? false,
+            };
+        }
+
+        // Case-insensitive fallback
+        for (const [, cat] of this.categoryCache) {
+            if (cat.name.toLowerCase() === name.toLowerCase()) {
+                return {
+                    categoryId: cat.id,
+                    categoryName: cat.name,
+                    confidence,
+                    isTaxDeductible: cat.tax_deductible ?? false,
+                };
+            }
+        }
+
+        logger.warn('Category not found in DB', { name });
+        return null;
     }
 
     /**

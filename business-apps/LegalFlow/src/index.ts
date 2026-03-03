@@ -36,6 +36,7 @@ import expandedLegalRoutes from './routes/legal/expanded-services.js';
 import technicalAdminRoutes from './routes/admin/technical.js';
 import bookkeepingRoutes from './routes/bookkeeping/bookkeeping.js';
 import bankStatementsRoutes from './routes/bookkeeping/bank-statements.js';
+import apArRoutes from './routes/bookkeeping/ap-ar.js';
 import trademarkRoutes from './routes/legal/trademark.js';
 import accountingRoutes from './routes/accounting.js';
 
@@ -107,6 +108,7 @@ app.use('/api/legal/expanded', expandedLegalRoutes);
 app.use('/api/admin/technical', technicalAdminRoutes);
 app.use('/api/bookkeeping', bookkeepingRoutes);
 app.use('/api/bookkeeping/statements', bankStatementsRoutes);
+app.use('/api/bookkeeping', apArRoutes);
 app.use('/api/legal/trademark', trademarkRoutes);
 app.use('/api/accounting', accountingRoutes);
 

@@ -179,10 +179,16 @@ export const legalApi = {
   generatePdf: (id: string) =>
     api.post<{ pdfBase64: string; filename: string }>(`/legal/documents/${id}/generate-pdf`),
 
+  aiCustomize: (id: string, customizations?: string) =>
+    api.post<{ content: string; message: string }>(`/legal/documents/${id}/ai-customize`, { customizations }),
+
   listTemplates: (params?: { category?: string; search?: string }) => {
     const query = params ? `?${new URLSearchParams(params as Record<string, string>)}` : '';
-    return api.get<{ templates: LegalTemplate[] }>(`/legal/templates${query}`);
+    return api.get<{ templates: LegalTemplate[]; categories: Array<{id: string; name: string}> }>(`/legal/templates${query}`);
   },
+
+  getTemplate: (id: string) =>
+    api.get<LegalTemplateDetail>(`/legal/templates/${id}`),
 };
 
 // Filing API
@@ -220,6 +226,260 @@ export const childSupportApi = {
   getSupportedStates: () =>
     api.get<{ states: SupportedState[] }>('/child-support/states'),
 };
+
+// Accounts Payable / Receivable API
+export const apArApi = {
+  // Payables
+  listPayables: (params?: { status?: string; businessId?: string }) => {
+    const q = params ? `?${new URLSearchParams(params as Record<string, string>)}` : '';
+    return api.get<{ payables: Payable[]; total: number }>(`/bookkeeping/ap${q}`);
+  },
+  createPayable: (data: Omit<Payable, 'id' | 'computedStatus' | 'balanceDue' | 'createdAt' | 'updatedAt'>) =>
+    api.post<Payable>('/bookkeeping/ap', data),
+  updatePayable: (id: string, data: Partial<Payable>) =>
+    api.put<Payable>(`/bookkeeping/ap/${id}`, data),
+  deletePayable: (id: string) =>
+    api.delete(`/bookkeeping/ap/${id}`),
+
+  // Receivables
+  listReceivables: (params?: { status?: string; businessId?: string }) => {
+    const q = params ? `?${new URLSearchParams(params as Record<string, string>)}` : '';
+    return api.get<{ receivables: Receivable[]; total: number }>(`/bookkeeping/ar${q}`);
+  },
+  createReceivable: (data: Omit<Receivable, 'id' | 'computedStatus' | 'balanceOwed' | 'createdAt' | 'updatedAt'>) =>
+    api.post<Receivable>('/bookkeeping/ar', data),
+  updateReceivable: (id: string, data: Partial<Receivable>) =>
+    api.put<Receivable>(`/bookkeeping/ar/${id}`, data),
+  deleteReceivable: (id: string) =>
+    api.delete(`/bookkeeping/ar/${id}`),
+};
+
+export interface Payable {
+  id: string;
+  vendor_name: string;
+  vendor_email?: string;
+  invoice_number?: string;
+  description?: string;
+  amount: number;
+  amount_paid: number;
+  due_date?: string;
+  issue_date: string;
+  paid_date?: string;
+  status: 'open' | 'partial' | 'paid' | 'overdue' | 'voided';
+  computedStatus?: string;
+  balanceDue?: number;
+  category?: string;
+  tax_deductible?: boolean;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Receivable {
+  id: string;
+  client_name: string;
+  client_email?: string;
+  invoice_number?: string;
+  description?: string;
+  amount: number;
+  amount_received: number;
+  due_date?: string;
+  issue_date: string;
+  received_date?: string;
+  status: 'draft' | 'sent' | 'partial' | 'paid' | 'overdue' | 'written_off';
+  computedStatus?: string;
+  balanceOwed?: number;
+  category?: string;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Trademark API
+export const trademarkApi = {
+  // Search
+  search: (data: { markName: string; goodsServices?: string; niceClassIds?: number[] }) =>
+    api.post<{ searchId: string; results: TrademarkSearchResult[]; report: TrademarkReport }>(
+      '/legal/trademark/search',
+      data
+    ),
+
+  getSearchHistory: () =>
+    api.get<{ searches: TrademarkSearch[] }>('/legal/trademark/search/history'),
+
+  getSearchReport: (id: string) =>
+    api.get<TrademarkReport>(`/legal/trademark/search/${id}`),
+
+  analyzeConflicts: (searchId: string, data: { markName: string; goodsServices: string }) =>
+    api.post<{ analysis: TrademarkConflictAnalysis }>(
+      `/legal/trademark/search/${searchId}/ai-analysis`,
+      data
+    ),
+
+  // Applications
+  listApplications: () =>
+    api.get<{ applications: TrademarkApplication[] }>('/legal/trademark/applications'),
+
+  getApplication: (id: string) =>
+    api.get<TrademarkApplication>(`/legal/trademark/applications/${id}`),
+
+  createApplication: (data: { markName: string; markType?: string }) =>
+    api.post<TrademarkApplication>('/legal/trademark/applications', data),
+
+  updateApplication: (id: string, data: Partial<TrademarkApplication>) =>
+    api.put<TrademarkApplication>(`/legal/trademark/applications/${id}`, data),
+
+  deleteApplication: (id: string) =>
+    api.delete(`/legal/trademark/applications/${id}`),
+
+  // Interview workflow
+  getInterview: (id: string) =>
+    api.get<TrademarkInterviewState>(`/legal/trademark/applications/${id}/interview`),
+
+  answerInterview: (id: string, data: { stepId: string; answers: Record<string, unknown> }) =>
+    api.post<TrademarkInterviewState>(
+      `/legal/trademark/applications/${id}/interview/answer`,
+      data
+    ),
+
+  nextStep: (id: string) =>
+    api.post<TrademarkInterviewState>(`/legal/trademark/applications/${id}/interview/next`),
+
+  previousStep: (id: string) =>
+    api.post<TrademarkInterviewState>(`/legal/trademark/applications/${id}/interview/previous`),
+
+  completeInterview: (id: string) =>
+    api.post<TrademarkApplication>(`/legal/trademark/applications/${id}/interview/complete`),
+
+  generateDocuments: (id: string, data: { documentType: string }) =>
+    api.post<{ pdfBase64: string; totalFee: number; feeBreakdown: FeeBreakdownItem[]; warnings: string[]; readyToFile: boolean }>(
+      `/legal/trademark/applications/${id}/generate-documents`,
+      data
+    ),
+
+  // Classification & AI
+  getNiceClasses: () =>
+    api.get<{ classes: NiceClass[] }>('/legal/trademark/nice-classes'),
+
+  analyzeMark: (data: { markName: string; goodsServices: string }) =>
+    api.post<{ analysis: MarkStrengthAnalysis }>('/legal/trademark/analyze-mark', data),
+
+  classifyGoods: (data: { description: string }) =>
+    api.post<{ suggestions: NiceClassSuggestion[] }>('/legal/trademark/classify', data),
+
+  describeGoods: (data: { niceClassIds: number[]; businessDescription: string }) =>
+    api.post<{ description: string }>('/legal/trademark/describe-goods', data),
+
+  // States
+  getStates: () =>
+    api.get<{ states: TrademarkState[] }>('/legal/trademark/states'),
+};
+
+export interface TrademarkSearchResult {
+  markName: string;
+  serialNumber?: string;
+  registrationNumber?: string;
+  status: string;
+  owner: string;
+  goodsServices: string;
+  similarity?: number;
+  riskLevel?: 'low' | 'medium' | 'high';
+}
+
+export interface TrademarkSearch {
+  id: string;
+  markName: string;
+  searchDate: string;
+  resultsCount: number;
+  status: string;
+}
+
+export interface TrademarkReport {
+  id: string;
+  markName: string;
+  searchDate: string;
+  results: TrademarkSearchResult[];
+  overallRisk: 'low' | 'medium' | 'high';
+  recommendations: string[];
+}
+
+export interface TrademarkConflictAnalysis {
+  overallRisk: 'low' | 'medium' | 'high';
+  riskScore: number;
+  conflictingMarks: Array<{ markName: string; reason: string; severity: string }>;
+  recommendations: string[];
+  summary: string;
+}
+
+export interface TrademarkApplication {
+  id: string;
+  markName: string;
+  markType: string;
+  status: 'draft' | 'pending' | 'filed' | 'approved' | 'refused' | 'abandoned';
+  jurisdiction: 'federal' | 'state';
+  niceClasses?: number[];
+  filingDate?: string;
+  nextActionDate?: string;
+  nextActionType?: string;
+  goodsServices?: string;
+  ownerName?: string;
+  ownerAddress?: string;
+  createdAt: string;
+  updatedAt: string;
+  interviewProgress?: number;
+  totalFee?: number;
+}
+
+export interface TrademarkInterviewState {
+  applicationId: string;
+  currentStep: number;
+  totalSteps: number;
+  stepName: string;
+  isComplete: boolean;
+  progress: number;
+  currentStepData: {
+    stepId: string;
+    title: string;
+    description: string;
+    questions: InterviewQuestion[];
+  };
+  answers: Record<string, unknown>;
+}
+
+export interface NiceClass {
+  classNumber: number;
+  title: string;
+  description: string;
+}
+
+export interface NiceClassSuggestion {
+  classNumber: number;
+  title: string;
+  confidence: number;
+  reasoning: string;
+}
+
+export interface MarkStrengthAnalysis {
+  distinctiveness: 'generic' | 'descriptive' | 'suggestive' | 'arbitrary' | 'fanciful';
+  score: number;
+  strengths: string[];
+  weaknesses: string[];
+  recommendations: string[];
+  registrabilityLikelihood: 'low' | 'medium' | 'high';
+}
+
+export interface FeeBreakdownItem {
+  description: string;
+  amount: number;
+}
+
+export interface TrademarkState {
+  code: string;
+  name: string;
+  filingMethod: string;
+  filingFee: number;
+  processingTime: string;
+}
 
 // Subscription API
 export const subscriptionApi = {
@@ -303,6 +563,28 @@ export interface LegalTemplate {
   premiumOnly: boolean;
   basePrice: number;
   accessible: boolean;
+  requiresUpgrade?: boolean;
+}
+
+export interface TemplateSchemaField {
+  id: string;
+  label: string;
+  type: 'text' | 'textarea' | 'date' | 'select' | 'multiselect' | 'checkbox';
+  required?: boolean;
+  placeholder?: string;
+  options?: Array<{ value: string; label: string }>;
+}
+
+export interface LegalTemplateDetail extends LegalTemplate {
+  requiresUpgrade: boolean;
+  schema: {
+    fields?: TemplateSchemaField[];
+    sections?: Array<{
+      id: string;
+      title: string;
+      fields: string[];
+    }>;
+  } | null;
 }
 
 export interface LegalFiling {

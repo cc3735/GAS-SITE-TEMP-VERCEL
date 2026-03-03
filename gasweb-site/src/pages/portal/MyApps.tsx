@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, ExternalLink, Lock } from 'lucide-react';
+import { Plus, ExternalLink, Lock, ArrowRight } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
 import AddAppsModal, { ALL_APPS, INDIVIDUAL_PRICE } from '../../components/AddAppsModal';
@@ -97,14 +97,23 @@ export default function MyApps() {
 
                 {isActive ? (
                   <div className="flex items-center justify-between">
-                    <a
-                      href={app.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={`inline-flex items-center gap-1.5 text-sm font-medium ${app.textColor} hover:underline`}
-                    >
-                      Open app <ExternalLink className="w-3.5 h-3.5" />
-                    </a>
+                    {app.id === 'legalflow' ? (
+                      <Link
+                        to="/portal/legalflow"
+                        className={`inline-flex items-center gap-1.5 text-sm font-medium ${app.textColor} hover:underline`}
+                      >
+                        Open app <ArrowRight className="w-3.5 h-3.5" />
+                      </Link>
+                    ) : (
+                      <a
+                        href={app.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`inline-flex items-center gap-1.5 text-sm font-medium ${app.textColor} hover:underline`}
+                      >
+                        Open app <ExternalLink className="w-3.5 h-3.5" />
+                      </a>
+                    )}
                     <Link
                       to={`/portal/overview#${app.id}`}
                       className="text-xs text-slate-400 hover:text-slate-600 transition-colors"

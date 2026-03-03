@@ -22,6 +22,7 @@ const documentCategories = [
     icon: Building,
     description: 'LLC, Corporation, DBA',
     templates: ['LLC Formation', 'Corporation', 'DBA Registration', 'Partnership Agreement'],
+    createHref: '/legal/create?category=business',
   },
   {
     id: 'estate',
@@ -29,6 +30,7 @@ const documentCategories = [
     icon: ScrollText,
     description: 'Wills, Trusts, POA',
     templates: ['Last Will & Testament', 'Living Trust', 'Power of Attorney', 'Living Will'],
+    createHref: '/legal/create?category=estate',
   },
   {
     id: 'contracts',
@@ -36,6 +38,7 @@ const documentCategories = [
     icon: FileCheck,
     description: 'NDAs, Agreements',
     templates: ['NDA', 'Employment Agreement', 'Contractor Agreement', 'Service Agreement'],
+    createHref: '/legal/create?category=contract',
   },
   {
     id: 'personal',
@@ -43,6 +46,7 @@ const documentCategories = [
     icon: FileText,
     description: 'Name Change, Affidavits',
     templates: ['Name Change Petition', 'Affidavit', 'Bill of Sale', 'Promissory Note'],
+    createHref: '/legal/create',
   },
 ];
 
@@ -84,7 +88,7 @@ export default function LegalDashboard() {
           </p>
         </div>
         <button
-          onClick={() => navigate('/legal/new')}
+          onClick={() => navigate('/legal/create')}
           className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 font-medium text-primary-foreground hover:bg-primary/90 transition"
         >
           <Plus className="h-5 w-5" />
@@ -97,7 +101,7 @@ export default function LegalDashboard() {
         {documentCategories.map((category) => (
           <button
             key={category.id}
-            onClick={() => navigate(`/legal/new?category=${category.id}`)}
+            onClick={() => navigate(category.createHref)}
             className="rounded-xl border bg-card p-6 text-left hover:border-primary hover:shadow-md transition group"
           >
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary mb-4 group-hover:bg-primary group-hover:text-primary-foreground transition">
@@ -187,7 +191,7 @@ export default function LegalDashboard() {
               Create your first legal document using our AI-powered templates.
             </p>
             <button
-              onClick={() => navigate('/legal/new')}
+              onClick={() => navigate('/legal/create')}
               className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 font-medium text-primary-foreground hover:bg-primary/90 transition"
             >
               <Plus className="h-5 w-5" />
@@ -214,7 +218,7 @@ export default function LegalDashboard() {
           Try: "Create an NDA for my consulting business" or "I need a will leaving everything to my children"
         </p>
         <button
-          onClick={() => navigate('/legal/new')}
+          onClick={() => navigate('/legal/create')}
           className="rounded-lg bg-primary px-4 py-2 font-medium text-primary-foreground hover:bg-primary/90 transition"
         >
           Try AI Document Creator

@@ -12,6 +12,10 @@ export default defineConfig({
   },
   server: {
     port: 5173,
+    headers: {
+      'X-Frame-Options': 'ALLOWALL',
+      'Content-Security-Policy': "frame-ancestors 'self' http://localhost:3000 http://localhost:4173",
+    },
     proxy: {
       '/api': {
         target: 'http://localhost:3002',

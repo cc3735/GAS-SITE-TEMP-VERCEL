@@ -7,7 +7,7 @@
 
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { DollarSign, TrendingUp, TrendingDown, Plus, Upload, RefreshCw, BarChart3 } from 'lucide-react';
+import { DollarSign, TrendingUp, TrendingDown, Plus, Upload, RefreshCw, BarChart3, ArrowLeftRight } from 'lucide-react';
 
 interface FinancialSummary {
     totalIncome: number;
@@ -77,7 +77,7 @@ export default function Bookkeeping() {
                 </div>
 
                 {/* Quick Actions */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
                     <Link
                         to="/bookkeeping/accounts"
                         className="bg-white p-6 rounded-lg shadow hover:shadow-md transition-shadow border border-gray-200"
@@ -134,6 +134,21 @@ export default function Bookkeeping() {
                             <div>
                                 <h3 className="font-semibold text-gray-900">Financial Reports</h3>
                                 <p className="text-sm text-gray-600">P&L & Tax Deductions</p>
+                            </div>
+                        </div>
+                    </Link>
+
+                    <Link
+                        to="/bookkeeping/ap-ar"
+                        className="bg-white p-6 rounded-lg shadow hover:shadow-md transition-shadow border border-gray-200"
+                    >
+                        <div className="flex items-center gap-3">
+                            <div className="p-3 bg-teal-100 rounded-lg">
+                                <ArrowLeftRight className="w-6 h-6 text-teal-600" />
+                            </div>
+                            <div>
+                                <h3 className="font-semibold text-gray-900">AP / AR</h3>
+                                <p className="text-sm text-gray-600">Bills & Invoices</p>
                             </div>
                         </div>
                     </Link>

@@ -10,6 +10,7 @@
 import { parse } from 'csv-parse/sync';
 import { logger } from '../../utils/logger.js';
 import { supabase } from '../../lib/supabase.js';
+import { openai } from '../../lib/openai.js';
 
 export interface ParsedTransaction {
     date: Date;
@@ -143,34 +144,123 @@ export class BankStatementParser {
     }
 
     /**
-     * Parse a PDF bank statement (using OCR)
+     * Parse a PDF bank statement using pdf-parse + OpenAI GPT-4
      */
     async parsePDF(fileBuffer: Buffer): Promise<ParseResult> {
         try {
             logger.info('Parsing PDF bank statement');
 
-            // For now, return a placeholder
-            // In production, you would use pdf-lib and Google Cloud Vision OCR
-            // to extract text and parse transactions
+            // Dynamically import pdf-parse (CommonJS module)
+            const pdfParse = await import('pdf-parse');
+            const pdfData = await pdfParse.default(fileBuffer);
+            const rawText = pdfData.text;
+
+            if (!rawText || rawText.trim().length < 50) {
+                return {
+                    success: false,
+                    transactions: [],
+                    error: 'Could not extract text from PDF. The file may be image-based or password-protected.',
+                };
+            }
+
+            logger.info('PDF text extracted', { chars: rawText.length });
+
+            // Use GPT-4 to extract structured transactions from raw text
+            const transactions = await this.extractTransactionsWithAI(rawText);
+
+            if (transactions.length === 0) {
+                return {
+                    success: false,
+                    transactions: [],
+                    error: 'No transactions could be identified in this PDF. Please verify it is a bank statement.',
+                };
+            }
+
+            let totalCredits = 0;
+            let totalDebits = 0;
+            for (const txn of transactions) {
+                if (txn.amount > 0) totalCredits += txn.amount;
+                else totalDebits += Math.abs(txn.amount);
+            }
 
             return {
-                success: false,
-                transactions: [],
-                error: 'PDF parsing not yet implemented. Please use CSV format or contact support.',
+                success: true,
+                transactions,
+                metadata: {
+                    totalCredits,
+                    totalDebits,
+                    startDate: transactions[0]?.date,
+                    endDate: transactions[transactions.length - 1]?.date,
+                },
             };
-
-            // TODO: Implement PDF parsing
-            // 1. Extract text using Google Cloud Vision OCR
-            // 2. Parse text to identify transaction patterns
-            // 3. Extract date, description, amount for each transaction
-            // 4. Return parsed transactions
         } catch (error) {
             logger.error('Error parsing PDF', { error });
             return {
                 success: false,
                 transactions: [],
-                error: error instanceof Error ? error.message : 'Unknown error',
+                error: error instanceof Error ? error.message : 'Unknown error parsing PDF',
             };
+        }
+    }
+
+    /**
+     * Use OpenAI GPT-4 to extract transactions from raw PDF text
+     */
+    private async extractTransactionsWithAI(rawText: string): Promise<ParsedTransaction[]> {
+        try {
+            // Truncate to ~15k chars to stay within token limits
+            const truncatedText = rawText.slice(0, 15000);
+
+            const prompt = `Extract all bank transactions from the following bank statement text.
+
+Return ONLY a valid JSON array. Each element must have exactly these fields:
+- "date": string in YYYY-MM-DD format
+- "description": string (merchant/payee name or memo)
+- "amount": number (positive for credits/deposits, negative for debits/charges/withdrawals)
+
+If no transactions are found, return [].
+
+Bank statement text:
+${truncatedText}`;
+
+            const response = await openai.chat.completions.create({
+                model: 'gpt-4-turbo-preview',
+                messages: [
+                    {
+                        role: 'system',
+                        content:
+                            'You are a financial data extraction specialist. Extract transaction data from bank statements and return clean JSON only. No markdown, no explanation.',
+                    },
+                    { role: 'user', content: prompt },
+                ],
+                temperature: 0.1,
+                max_tokens: 4000,
+            });
+
+            const content = response.choices[0]?.message?.content;
+            if (!content) return [];
+
+            // Strip any markdown code fences if present
+            const cleaned = content.replace(/```(?:json)?\n?/g, '').trim();
+
+            const raw: Array<{ date: string; description: string; amount: number }> =
+                JSON.parse(cleaned);
+
+            return raw
+                .map((item) => {
+                    const date = this.parseDate(item.date);
+                    if (!date || typeof item.amount !== 'number') return null;
+                    return {
+                        date,
+                        description: String(item.description).trim(),
+                        amount: item.amount,
+                    };
+                })
+                .filter((t): t is ParsedTransaction => t !== null)
+                .sort((a, b) => a.date.getTime() - b.date.getTime());
+        } catch (error) {
+            logger.error('AI transaction extraction failed', { error });
+            return [];
         }
     }
 
