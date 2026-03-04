@@ -24,9 +24,11 @@ import {
   Loader2,
   TrendingUp,
   Trash2,
+  ChevronDown,
 } from 'lucide-react';
 import { useOrganization } from '../../contexts/OrganizationContext';
 import { useContacts } from '../../hooks/useContacts';
+import UnifiedMessaging from '../../components/messaging/UnifiedMessaging';
 
 type TabType = 'crm' | 'messages' | 'marketing';
 type MarketingSubTab = 'campaigns' | 'social';
@@ -120,11 +122,15 @@ export default function PortalCRM() {
   const [creating, setCreating] = useState(false);
   const [updating, setUpdating] = useState(false);
   const [formData, setFormData] = useState({
-    first_name: '', last_name: '', email: '', phone: '', title: '', company_name: '', date_of_birth: '', notes: '',
+    first_name: '', last_name: '', email: '', phone: '', mobile: '', title: '', company_name: '', date_of_birth: '', notes: '',
+    linkedin_url: '', twitter_handle: '', instagram_handle: '', facebook_url: '', whatsapp_number: '',
   });
   const [editFormData, setEditFormData] = useState({
-    first_name: '', last_name: '', email: '', phone: '', title: '', company_name: '', date_of_birth: '', notes: '',
+    first_name: '', last_name: '', email: '', phone: '', mobile: '', title: '', company_name: '', date_of_birth: '', notes: '',
+    linkedin_url: '', twitter_handle: '', instagram_handle: '', facebook_url: '', whatsapp_number: '',
   });
+  const [showSocialFields, setShowSocialFields] = useState(false);
+  const [showEditSocialFields, setShowEditSocialFields] = useState(false);
 
   // Marketing state
   const [marketingSubTab, setMarketingSubTab] = useState<MarketingSubTab>('campaigns');
@@ -179,7 +185,7 @@ export default function PortalCRM() {
     try {
       const contact = await createContact(formData);
       if (contact) {
-        setFormData({ first_name: '', last_name: '', email: '', phone: '', title: '', company_name: '', date_of_birth: '', notes: '' });
+        setFormData({ first_name: '', last_name: '', email: '', phone: '', mobile: '', title: '', company_name: '', date_of_birth: '', notes: '', linkedin_url: '', twitter_handle: '', instagram_handle: '', facebook_url: '', whatsapp_number: '' });
         setShowNewContact(false);
       } else {
         alert('Failed to create contact. Please make sure you have an organization set up.');
@@ -401,10 +407,16 @@ export default function PortalCRM() {
                               last_name: contact.last_name || '',
                               email: contact.email || '',
                               phone: contact.phone || '',
+                              mobile: contact.mobile || '',
                               title: contact.title || '',
                               company_name: contact.company_name || '',
                               date_of_birth: contact.date_of_birth || '',
                               notes: contact.notes || '',
+                              linkedin_url: contact.linkedin_url || '',
+                              twitter_handle: contact.twitter_handle || '',
+                              instagram_handle: contact.instagram_handle || '',
+                              facebook_url: contact.facebook_url || '',
+                              whatsapp_number: contact.whatsapp_number || '',
                             });
                             setShowEditContact(true);
                           }}
@@ -505,133 +517,7 @@ export default function PortalCRM() {
 
       {/* ========== Unified Messaging Tab ========== */}
       {activeTab === 'messages' && (
-        <div className="bg-white border border-slate-200 rounded-2xl">
-          <div className="p-6">
-            <div className="flex items-center gap-3 mb-6">
-              <MessageCircle className="w-8 h-8 text-primary-600" />
-              <h2 className="text-2xl font-bold text-slate-900">Unified Messages</h2>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-              {/* Channels */}
-              <div className="lg:col-span-1">
-                <div className="bg-slate-50 rounded-lg p-4">
-                  <h3 className="font-semibold text-slate-900 mb-4">Communication Channels</h3>
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-3 p-3 bg-white rounded border border-slate-200">
-                      <Mail className="w-5 h-5 text-blue-500" />
-                      <div>
-                        <div className="font-medium text-slate-900">Email</div>
-                        <div className="text-sm text-slate-500">12 unread</div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3 p-3 bg-white rounded border border-slate-200">
-                      <MessageCircle className="w-5 h-5 text-green-500" />
-                      <div>
-                        <div className="font-medium text-slate-900">SMS</div>
-                        <div className="text-sm text-slate-500">3 unread</div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3 p-3 bg-white rounded border border-slate-200">
-                      <Send className="w-5 h-5 text-purple-500" />
-                      <div>
-                        <div className="font-medium text-slate-900">Social DMs</div>
-                        <div className="text-sm text-slate-500">8 unread</div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3 p-3 bg-white rounded border border-slate-200">
-                      <Inbox className="w-5 h-5 text-orange-500" />
-                      <div>
-                        <div className="font-medium text-slate-900">Forms</div>
-                        <div className="text-sm text-slate-500">5 unread</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Messages List */}
-              <div className="lg:col-span-2">
-                <div className="bg-slate-50 rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-semibold text-slate-900">Recent Communications</h3>
-                    <select className="px-3 py-1 text-sm border border-slate-300 rounded bg-white text-slate-900">
-                      <option>All Contacts</option>
-                      <option>Unanswered</option>
-                      <option>This Week</option>
-                    </select>
-                  </div>
-
-                  <div className="space-y-3 max-h-96 overflow-y-auto">
-                    {contacts.slice(0, 6).map((contact, index) => (
-                      <div key={contact.id} className="bg-white rounded-lg border border-slate-200 p-4 transition">
-                        <div className="flex items-start justify-between">
-                          <div className="flex items-start gap-3">
-                            <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center text-primary-700 font-semibold text-xs">
-                              {contact.first_name.charAt(0)}
-                              {contact.last_name?.charAt(0)}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-1">
-                                <span className="font-medium text-slate-900">
-                                  {contact.first_name} {contact.last_name}
-                                </span>
-                                <span className={`text-xs px-2 py-0.5 rounded ${
-                                  index % 3 === 0 ? 'bg-blue-50 text-blue-700' :
-                                  index % 3 === 1 ? 'bg-green-50 text-green-700' :
-                                  'bg-orange-50 text-orange-700'
-                                }`}>
-                                  {index % 3 === 0 ? 'Email' : index % 3 === 1 ? 'SMS' : 'Social'}
-                                </span>
-                              </div>
-                              <p className="text-sm text-slate-600 line-clamp-2">
-                                {index % 3 === 0 ? 'Following up on our conversation about AI solutions...' :
-                                 index % 3 === 1 ? 'Thanks for your interest! Here are more details...' :
-                                 'Check out our latest campaign on LinkedIn!'}
-                              </p>
-                              <div className="flex items-center gap-2 mt-2 text-xs text-slate-400">
-                                <Clock className="w-3 h-3" />
-                                {getLastCorrespondenceDate(contact.id).toLocaleDateString()} at {getLastCorrespondenceDate(contact.id).toLocaleTimeString()}
-                              </div>
-                            </div>
-                          </div>
-                          <button className="text-primary-600 hover:text-primary-700 p-1">
-                            <Send className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                    {contacts.length === 0 && (
-                      <div className="text-center py-8">
-                        <MessageCircle className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                        <p className="text-slate-500">No messages yet. Add contacts to get started.</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Quick Actions */}
-            <div className="bg-slate-50 rounded-lg p-4">
-              <h3 className="font-semibold text-slate-900 mb-4">Quick Actions</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <button className="flex items-center gap-2 bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition">
-                  <Mail className="w-4 h-4" />
-                  Compose Email
-                </button>
-                <button className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition">
-                  <MessageCircle className="w-4 h-4" />
-                  Send SMS
-                </button>
-                <button className="flex items-center gap-2 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition">
-                  <Send className="w-4 h-4" />
-                  Start Sequence
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <UnifiedMessaging theme="light" isClientView />
       )}
 
       {/* ========== Marketing & Social Tab ========== */}
@@ -878,6 +764,51 @@ export default function PortalCRM() {
                 <input type="date" value={formData.date_of_birth} onChange={(e) => setFormData({ ...formData, date_of_birth: e.target.value })}
                   className="w-full px-4 py-2 border border-slate-300 rounded-lg text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none" />
               </div>
+              {/* Social & Communication Channels */}
+              <div>
+                <button type="button" onClick={() => setShowSocialFields(!showSocialFields)}
+                  className="text-sm text-primary-600 hover:text-primary-700 transition">
+                  {showSocialFields ? '- Hide' : '+ Show'} Social & Communication Fields
+                </button>
+                {showSocialFields && (
+                  <div className="mt-3 space-y-3 p-4 bg-slate-50 rounded-lg border border-slate-200">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">Mobile</label>
+                        <input type="tel" value={formData.mobile} onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
+                          className="w-full px-4 py-2 border border-slate-300 rounded-lg text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none" placeholder="+1 (555) 987-6543" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">WhatsApp</label>
+                        <input type="tel" value={formData.whatsapp_number} onChange={(e) => setFormData({ ...formData, whatsapp_number: e.target.value })}
+                          className="w-full px-4 py-2 border border-slate-300 rounded-lg text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none" placeholder="+15559876543" />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">LinkedIn URL</label>
+                      <input type="url" value={formData.linkedin_url} onChange={(e) => setFormData({ ...formData, linkedin_url: e.target.value })}
+                        className="w-full px-4 py-2 border border-slate-300 rounded-lg text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none" placeholder="https://linkedin.com/in/username" />
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">Twitter / X Handle</label>
+                        <input type="text" value={formData.twitter_handle} onChange={(e) => setFormData({ ...formData, twitter_handle: e.target.value })}
+                          className="w-full px-4 py-2 border border-slate-300 rounded-lg text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none" placeholder="@username" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">Instagram Handle</label>
+                        <input type="text" value={formData.instagram_handle} onChange={(e) => setFormData({ ...formData, instagram_handle: e.target.value })}
+                          className="w-full px-4 py-2 border border-slate-300 rounded-lg text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none" placeholder="@username" />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">Facebook URL</label>
+                      <input type="url" value={formData.facebook_url} onChange={(e) => setFormData({ ...formData, facebook_url: e.target.value })}
+                        className="w-full px-4 py-2 border border-slate-300 rounded-lg text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none" placeholder="https://facebook.com/username" />
+                    </div>
+                  </div>
+                )}
+              </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">Notes</label>
                 <textarea value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} rows={3}
@@ -948,6 +879,53 @@ export default function PortalCRM() {
                 <input type="date" value={editFormData.date_of_birth} onChange={(e) => setEditFormData({ ...editFormData, date_of_birth: e.target.value })}
                   className="w-full px-4 py-2 border border-slate-300 rounded-lg text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none" />
               </div>
+              {/* Social & Communication Fields */}
+              <div className="border border-slate-200 rounded-lg overflow-hidden">
+                <button type="button" onClick={() => setShowEditSocialFields(!showEditSocialFields)}
+                  className="w-full flex items-center justify-between px-4 py-3 bg-slate-50 text-sm font-medium text-slate-700 hover:bg-slate-100 transition">
+                  <span>Social & Communication Fields</span>
+                  <ChevronDown className={`w-4 h-4 transition-transform ${showEditSocialFields ? 'rotate-180' : ''}`} />
+                </button>
+                {showEditSocialFields && (
+                  <div className="p-4 space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-2">Mobile</label>
+                        <input type="tel" value={editFormData.mobile} onChange={(e) => setEditFormData({ ...editFormData, mobile: e.target.value })}
+                          className="w-full px-4 py-2 border border-slate-300 rounded-lg text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none" placeholder="+1 (555) 000-0000" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-2">WhatsApp Number</label>
+                        <input type="tel" value={editFormData.whatsapp_number} onChange={(e) => setEditFormData({ ...editFormData, whatsapp_number: e.target.value })}
+                          className="w-full px-4 py-2 border border-slate-300 rounded-lg text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none" placeholder="+1 (555) 000-0000" />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">LinkedIn URL</label>
+                      <input type="url" value={editFormData.linkedin_url} onChange={(e) => setEditFormData({ ...editFormData, linkedin_url: e.target.value })}
+                        className="w-full px-4 py-2 border border-slate-300 rounded-lg text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none" placeholder="https://linkedin.com/in/..." />
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-2">Twitter Handle</label>
+                        <input type="text" value={editFormData.twitter_handle} onChange={(e) => setEditFormData({ ...editFormData, twitter_handle: e.target.value })}
+                          className="w-full px-4 py-2 border border-slate-300 rounded-lg text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none" placeholder="@handle" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-2">Instagram Handle</label>
+                        <input type="text" value={editFormData.instagram_handle} onChange={(e) => setEditFormData({ ...editFormData, instagram_handle: e.target.value })}
+                          className="w-full px-4 py-2 border border-slate-300 rounded-lg text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none" placeholder="@handle" />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">Facebook URL</label>
+                      <input type="url" value={editFormData.facebook_url} onChange={(e) => setEditFormData({ ...editFormData, facebook_url: e.target.value })}
+                        className="w-full px-4 py-2 border border-slate-300 rounded-lg text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none" placeholder="https://facebook.com/..." />
+                    </div>
+                  </div>
+                )}
+              </div>
+
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">Notes</label>
                 <textarea value={editFormData.notes} onChange={(e) => setEditFormData({ ...editFormData, notes: e.target.value })} rows={3}

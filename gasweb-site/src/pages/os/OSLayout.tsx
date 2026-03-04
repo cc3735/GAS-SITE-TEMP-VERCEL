@@ -57,10 +57,10 @@ export default function OSLayout() {
     <div className="flex flex-col h-full">
       {/* Logo */}
       <div className="px-5 py-5 border-b border-gray-800">
-        <div className="flex items-center gap-2 mb-4">
+        <NavLink to="/os" end className="flex items-center gap-2 mb-4 cursor-pointer">
           <img src="/logo.png" alt="GAS-OS" className="h-16 w-auto brightness-0 invert" />
           <p className="text-sm font-semibold text-white leading-none">GAS-OS</p>
-        </div>
+        </NavLink>
 
         {/* Organization Switcher */}
         <div className="relative">

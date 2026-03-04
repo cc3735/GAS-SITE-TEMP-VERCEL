@@ -4,6 +4,7 @@ import { useContacts } from '../../hooks/useContacts';
 import { useAuth } from '../../contexts/AuthContext';
 import { Users, Plus, Search, Mail, Phone, Building2, X, Loader2, Filter, Edit2, Calendar, MessageCircle, Clock, Send, Inbox, ChevronRight, Trash2 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
+import UnifiedMessaging from '../../components/messaging/UnifiedMessaging';
 
 interface ClientRow {
   id: string;
@@ -50,21 +51,35 @@ export default function OSCRM() {
     last_name: '',
     email: '',
     phone: '',
+    mobile: '',
     title: '',
     company_name: '',
     date_of_birth: '',
     notes: '',
+    linkedin_url: '',
+    twitter_handle: '',
+    instagram_handle: '',
+    facebook_url: '',
+    whatsapp_number: '',
   });
   const [editFormData, setEditFormData] = useState({
     first_name: '',
     last_name: '',
     email: '',
     phone: '',
+    mobile: '',
     title: '',
     company_name: '',
     date_of_birth: '',
     notes: '',
+    linkedin_url: '',
+    twitter_handle: '',
+    instagram_handle: '',
+    facebook_url: '',
+    whatsapp_number: '',
   });
+  const [showSocialFields, setShowSocialFields] = useState(false);
+  const [showEditSocialFields, setShowEditSocialFields] = useState(false);
 
   // --- Clients tab state ---
   const [clients, setClients] = useState<ClientRow[]>([]);
@@ -158,8 +173,9 @@ export default function OSCRM() {
       const contact = await createContact(formData);
       if (contact) {
         setFormData({
-          first_name: '', last_name: '', email: '', phone: '',
+          first_name: '', last_name: '', email: '', phone: '', mobile: '',
           title: '', company_name: '', date_of_birth: '', notes: '',
+          linkedin_url: '', twitter_handle: '', instagram_handle: '', facebook_url: '', whatsapp_number: '',
         });
         setShowNewContact(false);
       } else {
@@ -184,10 +200,16 @@ export default function OSCRM() {
         last_name: editFormData.last_name,
         email: editFormData.email,
         phone: editFormData.phone,
+        mobile: editFormData.mobile || null,
         title: editFormData.title,
         company_name: editFormData.company_name,
         date_of_birth: editFormData.date_of_birth,
         notes: editFormData.notes,
+        linkedin_url: editFormData.linkedin_url || null,
+        twitter_handle: editFormData.twitter_handle || null,
+        instagram_handle: editFormData.instagram_handle || null,
+        facebook_url: editFormData.facebook_url || null,
+        whatsapp_number: editFormData.whatsapp_number || null,
       });
       setShowEditContact(false);
       setEditingContact(null);
@@ -394,10 +416,16 @@ export default function OSCRM() {
                             last_name: contact.last_name || '',
                             email: contact.email || '',
                             phone: contact.phone || '',
+                            mobile: contact.mobile || '',
                             title: contact.title || '',
                             company_name: contact.company_name || '',
                             date_of_birth: contact.date_of_birth || '',
                             notes: contact.notes || '',
+                            linkedin_url: contact.linkedin_url || '',
+                            twitter_handle: contact.twitter_handle || '',
+                            instagram_handle: contact.instagram_handle || '',
+                            facebook_url: contact.facebook_url || '',
+                            whatsapp_number: contact.whatsapp_number || '',
                           });
                           setShowEditContact(true);
                         }
@@ -547,127 +575,7 @@ export default function OSCRM() {
       )}
 
       {activeTab === 'messages' && (
-        <div className="bg-gray-900 rounded-xl border border-gray-700 mb-6">
-          <div className="p-6">
-            <div className="flex items-center gap-3 mb-6">
-              <MessageCircle className="w-8 h-8 text-primary-400" />
-              <h2 className="text-2xl font-bold text-white">Unified Messages</h2>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-              {/* Message Channels */}
-              <div className="lg:col-span-1">
-                <div className="bg-gray-800 rounded-lg p-4">
-                  <h3 className="font-semibold text-white mb-4">Communication Channels</h3>
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-3 p-3 bg-gray-900 rounded border border-gray-700">
-                      <Mail className="w-5 h-5 text-primary-400" />
-                      <div>
-                        <div className="font-medium text-white">Email</div>
-                        <div className="text-sm text-gray-500">12 unread</div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3 p-3 bg-gray-900 rounded border border-gray-700">
-                      <MessageCircle className="w-5 h-5 text-green-400" />
-                      <div>
-                        <div className="font-medium text-white">SMS</div>
-                        <div className="text-sm text-gray-500">3 unread</div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3 p-3 bg-gray-900 rounded border border-gray-700">
-                      <Send className="w-5 h-5 text-purple-400" />
-                      <div>
-                        <div className="font-medium text-white">Social DMs</div>
-                        <div className="text-sm text-gray-500">8 unread</div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3 p-3 bg-gray-900 rounded border border-gray-700">
-                      <Inbox className="w-5 h-5 text-orange-400" />
-                      <div>
-                        <div className="font-medium text-white">Forms</div>
-                        <div className="text-sm text-gray-500">5 unread</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Messages List */}
-              <div className="lg:col-span-2">
-                <div className="bg-gray-800 rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-semibold text-white">Recent Communications</h3>
-                    <select className="px-3 py-1 text-sm border border-gray-600 rounded bg-gray-800 text-white">
-                      <option>All Contacts</option>
-                      <option>Unanswered</option>
-                      <option>This Week</option>
-                    </select>
-                  </div>
-
-                  <div className="space-y-3 max-h-96 overflow-y-auto">
-                    {contacts.slice(0, 6).map((contact, index) => (
-                      <div key={contact.id} className="bg-gray-900 rounded-lg border border-gray-700 p-4 transition">
-                        <div className="flex items-start justify-between">
-                          <div className="flex items-start gap-3">
-                            <div className="w-8 h-8 bg-gradient-to-br from-primary-600 to-primary-700 rounded-full flex items-center justify-center text-white font-semibold text-xs">
-                              {contact.first_name.charAt(0)}
-                              {contact.last_name?.charAt(0)}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-1">
-                                <span className="font-medium text-white">
-                                  {contact.first_name} {contact.last_name}
-                                </span>
-                                <span className={`text-xs px-2 py-0.5 rounded ${
-                                  index % 3 === 0 ? 'bg-blue-900/30 text-blue-400' :
-                                  index % 3 === 1 ? 'bg-green-900/30 text-green-400' :
-                                  'bg-orange-900/30 text-orange-400'
-                                }`}>
-                                  {index % 3 === 0 ? 'Email' : index % 3 === 1 ? 'SMS' : 'Social'}
-                                </span>
-                              </div>
-                              <p className="text-sm text-gray-400 line-clamp-2">
-                                {index % 3 === 0 ? 'Following up on our conversation about AI solutions...' :
-                                 index % 3 === 1 ? 'Thanks for your interest! Here are more details...' :
-                                 'Check out our latest campaign on LinkedIn!'}
-                              </p>
-                              <div className="flex items-center gap-2 mt-2 text-xs text-gray-500">
-                                <Clock className="w-3 h-3" />
-                                {getLastCorrespondenceDate(contact.id).toLocaleDateString()} at {getLastCorrespondenceDate(contact.id).toLocaleTimeString()}
-                              </div>
-                            </div>
-                          </div>
-                          <button className="text-primary-400 hover:text-primary-300 p-1">
-                            <Send className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Quick Actions */}
-            <div className="bg-gray-800 rounded-lg p-4">
-              <h3 className="font-semibold text-white mb-4">Quick Actions</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <button className="flex items-center gap-2 bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition">
-                  <Mail className="w-4 h-4" />
-                  Compose Email
-                </button>
-                <button className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition">
-                  <MessageCircle className="w-4 h-4" />
-                  Send SMS
-                </button>
-                <button className="flex items-center gap-2 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition">
-                  <Send className="w-4 h-4" />
-                  Start Sequence
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <UnifiedMessaging theme="dark" />
       )}
 
       {activeTab === 'clients' && (
@@ -864,6 +772,63 @@ export default function OSCRM() {
                     placeholder="Marketing Manager" />
                 </div>
               </div>
+              {/* Social & Communication Channels */}
+              <div>
+                <button type="button" onClick={() => setShowSocialFields(!showSocialFields)}
+                  className="text-sm text-primary-400 hover:text-primary-300 transition">
+                  {showSocialFields ? '- Hide' : '+ Show'} Social & Communication Fields
+                </button>
+                {showSocialFields && (
+                  <div className="mt-3 space-y-3 p-4 bg-gray-800 rounded-lg border border-gray-700">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-1">Mobile</label>
+                        <input type="tel" value={formData.mobile}
+                          onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
+                          className="w-full px-4 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none bg-gray-800 text-white placeholder-gray-500"
+                          placeholder="+1 (555) 987-6543" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-1">WhatsApp</label>
+                        <input type="tel" value={formData.whatsapp_number}
+                          onChange={(e) => setFormData({ ...formData, whatsapp_number: e.target.value })}
+                          className="w-full px-4 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none bg-gray-800 text-white placeholder-gray-500"
+                          placeholder="+15559876543" />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-1">LinkedIn URL</label>
+                      <input type="url" value={formData.linkedin_url}
+                        onChange={(e) => setFormData({ ...formData, linkedin_url: e.target.value })}
+                        className="w-full px-4 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none bg-gray-800 text-white placeholder-gray-500"
+                        placeholder="https://linkedin.com/in/username" />
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-1">Twitter / X Handle</label>
+                        <input type="text" value={formData.twitter_handle}
+                          onChange={(e) => setFormData({ ...formData, twitter_handle: e.target.value })}
+                          className="w-full px-4 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none bg-gray-800 text-white placeholder-gray-500"
+                          placeholder="@username" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-1">Instagram Handle</label>
+                        <input type="text" value={formData.instagram_handle}
+                          onChange={(e) => setFormData({ ...formData, instagram_handle: e.target.value })}
+                          className="w-full px-4 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none bg-gray-800 text-white placeholder-gray-500"
+                          placeholder="@username" />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-1">Facebook URL</label>
+                      <input type="url" value={formData.facebook_url}
+                        onChange={(e) => setFormData({ ...formData, facebook_url: e.target.value })}
+                        className="w-full px-4 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none bg-gray-800 text-white placeholder-gray-500"
+                        placeholder="https://facebook.com/username" />
+                    </div>
+                  </div>
+                )}
+              </div>
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">Notes</label>
                 <textarea value={formData.notes}
@@ -948,6 +913,63 @@ export default function OSCRM() {
                     className="w-full px-4 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none bg-gray-800 text-white placeholder-gray-500"
                     placeholder="Marketing Manager" />
                 </div>
+              </div>
+              {/* Social & Communication Channels */}
+              <div>
+                <button type="button" onClick={() => setShowEditSocialFields(!showEditSocialFields)}
+                  className="text-sm text-primary-400 hover:text-primary-300 transition">
+                  {showEditSocialFields ? '- Hide' : '+ Show'} Social & Communication Fields
+                </button>
+                {showEditSocialFields && (
+                  <div className="mt-3 space-y-3 p-4 bg-gray-800 rounded-lg border border-gray-700">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-1">Mobile</label>
+                        <input type="tel" value={editFormData.mobile}
+                          onChange={(e) => setEditFormData({ ...editFormData, mobile: e.target.value })}
+                          className="w-full px-4 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none bg-gray-800 text-white placeholder-gray-500"
+                          placeholder="+1 (555) 987-6543" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-1">WhatsApp</label>
+                        <input type="tel" value={editFormData.whatsapp_number}
+                          onChange={(e) => setEditFormData({ ...editFormData, whatsapp_number: e.target.value })}
+                          className="w-full px-4 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none bg-gray-800 text-white placeholder-gray-500"
+                          placeholder="+15559876543" />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-1">LinkedIn URL</label>
+                      <input type="url" value={editFormData.linkedin_url}
+                        onChange={(e) => setEditFormData({ ...editFormData, linkedin_url: e.target.value })}
+                        className="w-full px-4 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none bg-gray-800 text-white placeholder-gray-500"
+                        placeholder="https://linkedin.com/in/username" />
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-1">Twitter / X Handle</label>
+                        <input type="text" value={editFormData.twitter_handle}
+                          onChange={(e) => setEditFormData({ ...editFormData, twitter_handle: e.target.value })}
+                          className="w-full px-4 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none bg-gray-800 text-white placeholder-gray-500"
+                          placeholder="@username" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-1">Instagram Handle</label>
+                        <input type="text" value={editFormData.instagram_handle}
+                          onChange={(e) => setEditFormData({ ...editFormData, instagram_handle: e.target.value })}
+                          className="w-full px-4 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none bg-gray-800 text-white placeholder-gray-500"
+                          placeholder="@username" />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-1">Facebook URL</label>
+                      <input type="url" value={editFormData.facebook_url}
+                        onChange={(e) => setEditFormData({ ...editFormData, facebook_url: e.target.value })}
+                        className="w-full px-4 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none bg-gray-800 text-white placeholder-gray-500"
+                        placeholder="https://facebook.com/username" />
+                    </div>
+                  </div>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">Notes</label>

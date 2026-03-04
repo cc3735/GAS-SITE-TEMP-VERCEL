@@ -10,6 +10,7 @@ export interface Contact {
   last_name: string | null;
   email: string | null;
   phone: string | null;
+  mobile: string | null;
   title: string | null;
   company_id: string | null;
   company_name: string | null;
@@ -18,6 +19,11 @@ export interface Contact {
   lead_status: string;
   lead_score: number;
   tags: string[] | null;
+  linkedin_url: string | null;
+  twitter_handle: string | null;
+  instagram_handle: string | null;
+  facebook_url: string | null;
+  whatsapp_number: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -42,7 +48,7 @@ export function useContacts() {
     try {
       const { data, error: fetchError } = await supabase
         .from('contacts')
-        .select('id, organization_id, first_name, last_name, email, phone, title, company_id, company_name, date_of_birth, notes, lead_status, lead_score, tags, created_at, updated_at')
+        .select('id, organization_id, first_name, last_name, email, phone, mobile, title, company_id, company_name, date_of_birth, notes, lead_status, lead_score, tags, linkedin_url, twitter_handle, instagram_handle, facebook_url, whatsapp_number, created_at, updated_at')
         .eq('organization_id', currentOrganization.id)
         .is('deleted_at', null)
         .order('created_at', { ascending: false });
@@ -67,10 +73,16 @@ export function useContacts() {
     last_name?: string;
     email?: string;
     phone?: string;
+    mobile?: string;
     title?: string;
     company_name?: string;
     date_of_birth?: string;
     notes?: string;
+    linkedin_url?: string;
+    twitter_handle?: string;
+    instagram_handle?: string;
+    facebook_url?: string;
+    whatsapp_number?: string;
   }) => {
     if (!currentOrganization) throw new Error('No organization selected');
     if (!user) throw new Error('Not authenticated');
@@ -83,15 +95,21 @@ export function useContacts() {
         last_name: contactData.last_name || null,
         email: contactData.email || null,
         phone: contactData.phone || null,
+        mobile: contactData.mobile || null,
         title: contactData.title || null,
         company_name: contactData.company_name || null,
         date_of_birth: contactData.date_of_birth || null,
         notes: contactData.notes || null,
+        linkedin_url: contactData.linkedin_url || null,
+        twitter_handle: contactData.twitter_handle || null,
+        instagram_handle: contactData.instagram_handle || null,
+        facebook_url: contactData.facebook_url || null,
+        whatsapp_number: contactData.whatsapp_number || null,
         lead_status: 'new',
         lead_score: 0,
         created_by: user.id,
       })
-      .select('id, organization_id, first_name, last_name, email, phone, title, company_id, company_name, date_of_birth, notes, lead_status, lead_score, tags, created_at, updated_at')
+      .select('id, organization_id, first_name, last_name, email, phone, mobile, title, company_id, company_name, date_of_birth, notes, lead_status, lead_score, tags, linkedin_url, twitter_handle, instagram_handle, facebook_url, whatsapp_number, created_at, updated_at')
       .single();
 
     if (insertError) throw insertError;
@@ -108,12 +126,18 @@ export function useContacts() {
       last_name: string | null;
       email: string | null;
       phone: string | null;
+      mobile: string | null;
       title: string | null;
       company_name: string | null;
       date_of_birth: string | null;
       notes: string | null;
       lead_status: string;
       tags: string[] | null;
+      linkedin_url: string | null;
+      twitter_handle: string | null;
+      instagram_handle: string | null;
+      facebook_url: string | null;
+      whatsapp_number: string | null;
     }>
   ) => {
     const payload = { ...contactData, updated_at: new Date().toISOString() };
@@ -122,7 +146,7 @@ export function useContacts() {
       .from('contacts')
       .update(payload)
       .eq('id', contactId)
-      .select('id, organization_id, first_name, last_name, email, phone, title, company_id, company_name, date_of_birth, notes, lead_status, lead_score, tags, created_at, updated_at')
+      .select('id, organization_id, first_name, last_name, email, phone, mobile, title, company_id, company_name, date_of_birth, notes, lead_status, lead_score, tags, linkedin_url, twitter_handle, instagram_handle, facebook_url, whatsapp_number, created_at, updated_at')
       .single();
 
     if (updateError) throw updateError;
