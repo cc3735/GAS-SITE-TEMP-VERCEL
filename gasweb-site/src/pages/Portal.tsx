@@ -14,12 +14,18 @@ import {
   ChevronRight,
   Settings,
   Scale,
-  DollarSign,
   FileText,
   Award,
-  Calculator,
   Briefcase,
   FolderKanban,
+  Receipt,
+  DollarSign,
+  Calculator,
+  FileSpreadsheet,
+  Package,
+  Share2,
+  MessageCircle,
+  Megaphone,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import PortalChatBot from '../components/portal/PortalChatBot';
@@ -39,11 +45,23 @@ const settingsNavItems = [
 
 const legalFlowNavItems = [
   { to: '/portal/legalflow',             icon: LayoutGrid,  label: 'Overview',        end: true },
-  { to: '/portal/legalflow/bookkeeping', icon: DollarSign,  label: 'Bookkeeping & Accounting' },
   { to: '/portal/legalflow/legal',       icon: FileText,    label: 'Legal Documents' },
   { to: '/portal/legalflow/trademark',   icon: Award,       label: 'Trademark' },
-  { to: '/portal/legalflow/tax',         icon: Calculator,  label: 'Tax Filing' },
   { to: '/portal/legalflow/businesses',  icon: Briefcase,   label: 'Businesses' },
+];
+
+const financeFlowNavItems = [
+  { to: '/portal/financeflow',              icon: LayoutGrid,     label: 'Overview',                end: true },
+  { to: '/portal/financeflow/bookkeeping',  icon: DollarSign,     label: 'Bookkeeping & Accounting' },
+  { to: '/portal/financeflow/tax',          icon: Calculator,     label: 'Tax Filing' },
+  { to: '/portal/financeflow/invoicing',    icon: FileSpreadsheet, label: 'Invoicing & Payments' },
+  { to: '/portal/financeflow/inventory',    icon: Package,        label: 'Inventory Management' },
+];
+
+const socialFlowNavItems = [
+  { to: '/portal/socialflow',            icon: LayoutGrid,    label: 'Overview',           end: true },
+  { to: '/portal/socialflow/messaging',  icon: MessageCircle, label: 'Unified Messaging' },
+  { to: '/portal/socialflow/marketing',  icon: Megaphone,     label: 'Marketing & Social' },
 ];
 
 interface SidebarContentProps {
@@ -53,10 +71,21 @@ interface SidebarContentProps {
   setIsSettingsOpen: (open: boolean) => void;
   isLegalFlowOpen: boolean;
   setIsLegalFlowOpen: (open: boolean) => void;
+  isFinanceFlowOpen: boolean;
+  setIsFinanceFlowOpen: (open: boolean) => void;
+  isSocialFlowOpen: boolean;
+  setIsSocialFlowOpen: (open: boolean) => void;
   handleSignOut: () => void;
 }
 
-function SidebarContent({ initials, user, isSettingsOpen, setIsSettingsOpen, isLegalFlowOpen, setIsLegalFlowOpen, handleSignOut }: SidebarContentProps) {
+function SidebarContent({
+  initials, user,
+  isSettingsOpen, setIsSettingsOpen,
+  isLegalFlowOpen, setIsLegalFlowOpen,
+  isFinanceFlowOpen, setIsFinanceFlowOpen,
+  isSocialFlowOpen, setIsSocialFlowOpen,
+  handleSignOut,
+}: SidebarContentProps) {
   return (
     <div className="flex flex-col h-full">
       {/* Logo */}
@@ -74,50 +103,41 @@ function SidebarContent({ initials, user, isSettingsOpen, setIsSettingsOpen, isL
         ))}
 
         {/* LegalFlow group */}
-        <div className="pt-1">
-          <button
-            onClick={() => setIsLegalFlowOpen(!isLegalFlowOpen)}
-            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors"
-          >
-            <Scale className="w-4 h-4 flex-shrink-0" />
-            <span className="flex-1 text-left">LegalFlow</span>
-            {isLegalFlowOpen ? (
-              <ChevronDown className="w-4 h-4" />
-            ) : (
-              <ChevronRight className="w-4 h-4" />
-            )}
-          </button>
-          {isLegalFlowOpen && (
-            <div className="mt-1 ml-3 pl-4 border-l border-slate-200 space-y-1">
-              {legalFlowNavItems.map((item) => (
-                <NavItem key={item.to} {...item} />
-              ))}
-            </div>
-          )}
-        </div>
+        <CollapsibleGroup
+          icon={Scale}
+          label="LegalFlow"
+          isOpen={isLegalFlowOpen}
+          onToggle={() => setIsLegalFlowOpen(!isLegalFlowOpen)}
+          items={legalFlowNavItems}
+        />
+
+        {/* FinanceFlow group */}
+        <CollapsibleGroup
+          icon={Receipt}
+          label="FinanceFlow"
+          isOpen={isFinanceFlowOpen}
+          onToggle={() => setIsFinanceFlowOpen(!isFinanceFlowOpen)}
+          items={financeFlowNavItems}
+        />
+
+        {/* SocialFlow group */}
+        <CollapsibleGroup
+          icon={Share2}
+          label="SocialFlow"
+          isOpen={isSocialFlowOpen}
+          onToggle={() => setIsSocialFlowOpen(!isSocialFlowOpen)}
+          items={socialFlowNavItems}
+        />
 
         {/* Settings group */}
-        <div className="pt-2">
-          <button
-            onClick={() => setIsSettingsOpen(!isSettingsOpen)}
-            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors"
-          >
-            <Settings className="w-4 h-4 flex-shrink-0" />
-            <span className="flex-1 text-left">Settings</span>
-            {isSettingsOpen ? (
-              <ChevronDown className="w-4 h-4" />
-            ) : (
-              <ChevronRight className="w-4 h-4" />
-            )}
-          </button>
-          {isSettingsOpen && (
-            <div className="mt-1 ml-3 pl-4 border-l border-slate-200 space-y-1">
-              {settingsNavItems.map((item) => (
-                <NavItem key={item.to} {...item} />
-              ))}
-            </div>
-          )}
-        </div>
+        <CollapsibleGroup
+          icon={Settings}
+          label="Settings"
+          isOpen={isSettingsOpen}
+          onToggle={() => setIsSettingsOpen(!isSettingsOpen)}
+          items={settingsNavItems}
+          className="pt-2"
+        />
       </nav>
 
       {/* User footer */}
@@ -141,6 +161,37 @@ function SidebarContent({ initials, user, isSettingsOpen, setIsSettingsOpen, isL
           Sign out
         </button>
       </div>
+    </div>
+  );
+}
+
+function CollapsibleGroup({
+  icon: Icon, label, isOpen, onToggle, items, className = 'pt-1',
+}: {
+  icon: React.ElementType;
+  label: string;
+  isOpen: boolean;
+  onToggle: () => void;
+  items: { to: string; icon: React.ElementType; label: string; end?: boolean }[];
+  className?: string;
+}) {
+  return (
+    <div className={className}>
+      <button
+        onClick={onToggle}
+        className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors"
+      >
+        <Icon className="w-4 h-4 flex-shrink-0" />
+        <span className="flex-1 text-left">{label}</span>
+        {isOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+      </button>
+      {isOpen && (
+        <div className="mt-1 ml-3 pl-4 border-l border-slate-200 space-y-1">
+          {items.map((item) => (
+            <NavItem key={item.to} {...item} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -175,7 +226,15 @@ export default function Portal() {
   const [isLegalFlowOpen, setIsLegalFlowOpen] = useState(
     location.pathname.startsWith('/portal/legalflow')
   );
-  const isFrameRoute = location.pathname.startsWith('/portal/legalflow/');
+  const [isFinanceFlowOpen, setIsFinanceFlowOpen] = useState(
+    location.pathname.startsWith('/portal/financeflow')
+  );
+  const [isSocialFlowOpen, setIsSocialFlowOpen] = useState(
+    location.pathname.startsWith('/portal/socialflow')
+  );
+  const isFrameRoute =
+    location.pathname.startsWith('/portal/legalflow/') ||
+    location.pathname.startsWith('/portal/financeflow/');
 
   if (!user) return <Navigate to="/login" replace />;
 
@@ -198,6 +257,10 @@ export default function Portal() {
     setIsSettingsOpen,
     isLegalFlowOpen,
     setIsLegalFlowOpen,
+    isFinanceFlowOpen,
+    setIsFinanceFlowOpen,
+    isSocialFlowOpen,
+    setIsSocialFlowOpen,
     handleSignOut,
   };
 

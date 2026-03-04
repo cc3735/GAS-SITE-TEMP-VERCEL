@@ -97,9 +97,9 @@ export default function MyApps() {
 
                 {isActive ? (
                   <div className="flex items-center justify-between">
-                    {app.id === 'legalflow' ? (
+                    {app.internalRoute ? (
                       <Link
-                        to="/portal/legalflow"
+                        to={app.internalRoute}
                         className={`inline-flex items-center gap-1.5 text-sm font-medium ${app.textColor} hover:underline`}
                       >
                         Open app <ArrowRight className="w-3.5 h-3.5" />

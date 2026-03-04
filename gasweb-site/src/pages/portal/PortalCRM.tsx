@@ -1,9 +1,6 @@
 import { useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
 import {
   Users,
-  MessageCircle,
-  Megaphone,
   Plus,
   Search,
   Filter,
@@ -11,105 +8,17 @@ import {
   Phone,
   Building2,
   Edit2,
-  Calendar,
   Clock,
-  Send,
   Inbox,
-  Share2,
-  Target,
-  Sparkles,
-  Heart,
-  ShoppingCart,
   X,
   Loader2,
-  TrendingUp,
   Trash2,
   ChevronDown,
 } from 'lucide-react';
 import { useOrganization } from '../../contexts/OrganizationContext';
 import { useContacts } from '../../hooks/useContacts';
-import UnifiedMessaging from '../../components/messaging/UnifiedMessaging';
-
-type TabType = 'crm' | 'messages' | 'marketing';
-type MarketingSubTab = 'campaigns' | 'social';
-
-type CampaignTemplate = {
-  id: string;
-  name: string;
-  description: string;
-  category: string;
-  icon: React.ComponentType<any>;
-  color: string;
-  metrics: {
-    estimatedOpens: string;
-    estimatedClicks: string;
-    sendTime: string;
-  };
-};
-
-const campaignTemplates: CampaignTemplate[] = [
-  {
-    id: 'welcome-series',
-    name: 'Welcome Series',
-    description: '5-email automated welcome flow',
-    category: 'Onboarding',
-    icon: Sparkles,
-    color: 'bg-blue-500',
-    metrics: { estimatedOpens: '35-45%', estimatedClicks: '8-12%', sendTime: 'Immediate + 3, 7, 14, 21 days' },
-  },
-  {
-    id: 'product-launch',
-    name: 'Product Launch',
-    description: 'Build anticipation for new features',
-    category: 'Announcements',
-    icon: Target,
-    color: 'bg-green-500',
-    metrics: { estimatedOpens: '28-38%', estimatedClicks: '12-18%', sendTime: '2 weeks before, 1 week before, launch day' },
-  },
-  {
-    id: 're-engagement',
-    name: 'Re-engagement',
-    description: 'Win back inactive subscribers',
-    category: 'Nurture',
-    icon: Heart,
-    color: 'bg-purple-500',
-    metrics: { estimatedOpens: '22-32%', estimatedClicks: '6-10%', sendTime: '30 days of inactivity' },
-  },
-  {
-    id: 'promotional',
-    name: 'Promotional Sale',
-    description: 'Drive conversions with special offers',
-    category: 'Sales',
-    icon: ShoppingCart,
-    color: 'bg-orange-500',
-    metrics: { estimatedOpens: '40-50%', estimatedClicks: '15-25%', sendTime: 'Immediately after signup' },
-  },
-  {
-    id: 'educational',
-    name: 'Educational Content',
-    description: 'Share valuable tips and resources',
-    category: 'Content',
-    icon: Send,
-    color: 'bg-indigo-500',
-    metrics: { estimatedOpens: '25-35%', estimatedClicks: '10-15%', sendTime: 'Weekly, Friday morning' },
-  },
-  {
-    id: 'seasonal',
-    name: 'Seasonal Campaign',
-    description: 'Holiday and seasonal messaging',
-    category: 'Events',
-    icon: Calendar,
-    color: 'bg-pink-500',
-    metrics: { estimatedOpens: '30-40%', estimatedClicks: '12-18%', sendTime: 'Date-specific triggers' },
-  },
-];
 
 export default function PortalCRM() {
-  const [searchParams] = useSearchParams();
-  const tabParam = searchParams.get('tab');
-  const initialTab: TabType = tabParam === 'messages' ? 'messages' : tabParam === 'marketing' ? 'marketing' : 'crm';
-  const [activeTab, setActiveTab] = useState<TabType>(initialTab);
-
   const { currentOrganization, loading: orgLoading } = useOrganization();
   const { contacts, loading, createContact, updateContact, deleteContact } = useContacts();
 
@@ -131,14 +40,6 @@ export default function PortalCRM() {
   });
   const [showSocialFields, setShowSocialFields] = useState(false);
   const [showEditSocialFields, setShowEditSocialFields] = useState(false);
-
-  // Marketing state
-  const [marketingSubTab, setMarketingSubTab] = useState<MarketingSubTab>('campaigns');
-  const [showCampaignModal, setShowCampaignModal] = useState(false);
-  const [selectedTemplate, setSelectedTemplate] = useState<CampaignTemplate | null>(null);
-  const [campaignForm, setCampaignForm] = useState({
-    name: '', subject: '', description: '', audience: '', sendDate: '', templateId: '',
-  });
 
   // Contact helpers
   const filteredContacts = contacts.filter((contact) => {
@@ -213,26 +114,6 @@ export default function PortalCRM() {
     }
   };
 
-  const handleTemplateSelect = (template: CampaignTemplate) => {
-    setSelectedTemplate(template);
-    setCampaignForm({
-      name: `${template.name} Campaign`,
-      subject: `Default ${template.name} subject line`,
-      description: template.description,
-      audience: 'All subscribers',
-      sendDate: new Date().toISOString().split('T')[0],
-      templateId: template.id,
-    });
-    setShowCampaignModal(true);
-  };
-
-  const handleCreateCampaign = () => {
-    alert(`Campaign "${campaignForm.name}" created using ${selectedTemplate?.name} template!`);
-    setShowCampaignModal(false);
-    setSelectedTemplate(null);
-    setCampaignForm({ name: '', subject: '', description: '', audience: '', sendDate: '', templateId: '' });
-  };
-
   // Loading
   if (orgLoading) {
     return (
@@ -247,11 +128,11 @@ export default function PortalCRM() {
     return (
       <div>
         <h1 className="text-2xl font-bold text-slate-900 mb-2">CRM</h1>
-        <p className="text-slate-500 text-sm mb-8">Manage contacts, messages, and marketing.</p>
+        <p className="text-slate-500 text-sm mb-6">Manage your contacts and client information.</p>
         <div className="bg-white border border-slate-200 rounded-2xl p-12 text-center">
-          <Building2 className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-slate-900 mb-2">Set Up Your Business</h3>
-          <p className="text-slate-500 mb-6">Create an organization to start managing contacts, messages, and marketing campaigns.</p>
+          <Users className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-slate-900 mb-2">No Organization Found</h3>
+          <p className="text-slate-500">Please set up an organization first to use the CRM.</p>
         </div>
       </div>
     );
@@ -263,454 +144,182 @@ export default function PortalCRM() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">CRM</h1>
-          <p className="text-slate-500 text-sm mt-1">Manage contacts, messages, and marketing in one place.</p>
+          <p className="text-slate-500 text-sm mt-1">Manage your contacts and client information.</p>
         </div>
-        {activeTab === 'crm' && (
-          <button
-            onClick={() => setShowNewContact(true)}
-            className="flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg transition"
-          >
-            <Plus className="w-5 h-5" />
-            New Contact
-          </button>
-        )}
-        {activeTab === 'marketing' && marketingSubTab === 'campaigns' && (
-          <button
-            onClick={() => setShowCampaignModal(true)}
-            className="flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg transition"
-          >
-            <Plus className="w-5 h-5" />
-            New Campaign
-          </button>
-        )}
+        <button
+          onClick={() => setShowNewContact(true)}
+          className="flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg transition"
+        >
+          <Plus className="w-5 h-5" />
+          New Contact
+        </button>
       </div>
 
-      {/* Tab Navigation */}
-      <div className="border-b border-slate-200 mb-6">
-        <nav className="-mb-px flex space-x-8">
-          <button
-            onClick={() => setActiveTab('crm')}
-            className={`py-2 px-1 border-b-2 font-medium text-sm ${
-              activeTab === 'crm'
-                ? 'border-primary-600 text-primary-700'
-                : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
-            }`}
-          >
-            <Users className="w-4 h-4 inline mr-2" />
-            CRM
-          </button>
-          <button
-            onClick={() => setActiveTab('messages')}
-            className={`py-2 px-1 border-b-2 font-medium text-sm ${
-              activeTab === 'messages'
-                ? 'border-primary-600 text-primary-700'
-                : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
-            }`}
-          >
-            <MessageCircle className="w-4 h-4 inline mr-2" />
-            Unified Messaging
-          </button>
-          <button
-            onClick={() => setActiveTab('marketing')}
-            className={`py-2 px-1 border-b-2 font-medium text-sm ${
-              activeTab === 'marketing'
-                ? 'border-primary-600 text-primary-700'
-                : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
-            }`}
-          >
-            <Megaphone className="w-4 h-4 inline mr-2" />
-            Marketing & Social
-          </button>
-        </nav>
-      </div>
-
-      {/* ========== CRM Tab ========== */}
-      {activeTab === 'crm' && (
-        <div>
-          {loading ? (
-            <div className="flex items-center justify-center min-h-[300px]">
-              <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
-            </div>
-          ) : (
-            <div className="bg-white border border-slate-200 rounded-2xl">
-              {/* Search & Filter */}
-              <div className="p-4 border-b border-slate-200">
-                <div className="flex items-center gap-4">
-                  <div className="flex-1 relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
-                    <input
-                      type="text"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder="Search contacts..."
-                      className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none bg-white text-slate-900 placeholder-slate-400"
-                    />
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Filter className="w-5 h-5 text-slate-400" />
-                    <select
-                      value={filterStatus}
-                      onChange={(e) => setFilterStatus(e.target.value)}
-                      className="px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none bg-white text-slate-900"
-                    >
-                      <option value="all">All Status</option>
-                      <option value="new">New</option>
-                      <option value="contacted">Contacted</option>
-                      <option value="qualified">Qualified</option>
-                      <option value="unqualified">Unqualified</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-
-              {/* Contact Table */}
-              {filteredContacts.length === 0 ? (
-                <div className="p-12 text-center">
-                  <Users className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-slate-900 mb-2">
-                    {contacts.length === 0 ? 'No contacts yet' : 'No contacts found'}
-                  </h3>
-                  <p className="text-slate-500 mb-4">
-                    {contacts.length === 0 ? 'Add your first contact to get started' : 'Try adjusting your search or filters'}
-                  </p>
-                  {contacts.length === 0 && (
-                    <button
-                      onClick={() => setShowNewContact(true)}
-                      className="bg-primary-600 hover:bg-primary-700 text-white px-6 py-3 rounded-lg transition"
-                    >
-                      Add Your First Contact
-                    </button>
-                  )}
-                </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead className="bg-slate-50 border-b border-slate-200">
-                      <tr>
-                        <th className="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Contact</th>
-                        <th className="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Company</th>
-                        <th className="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Email</th>
-                        <th className="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Phone</th>
-                        <th className="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Last Contact</th>
-                        <th className="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
-                        <th className="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-200">
-                      {filteredContacts.map((contact) => (
-                        <tr
-                          key={contact.id}
-                          onClick={() => {
-                            setEditingContact(contact);
-                            setEditFormData({
-                              first_name: contact.first_name,
-                              last_name: contact.last_name || '',
-                              email: contact.email || '',
-                              phone: contact.phone || '',
-                              mobile: contact.mobile || '',
-                              title: contact.title || '',
-                              company_name: contact.company_name || '',
-                              date_of_birth: contact.date_of_birth || '',
-                              notes: contact.notes || '',
-                              linkedin_url: contact.linkedin_url || '',
-                              twitter_handle: contact.twitter_handle || '',
-                              instagram_handle: contact.instagram_handle || '',
-                              facebook_url: contact.facebook_url || '',
-                              whatsapp_number: contact.whatsapp_number || '',
-                            });
-                            setShowEditContact(true);
-                          }}
-                          className="hover:bg-slate-50 cursor-pointer transition"
-                        >
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="flex items-center">
-                              <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center text-primary-700 font-semibold text-sm mr-3">
-                                {contact.first_name.charAt(0)}
-                                {contact.last_name?.charAt(0)}
-                              </div>
-                              <div>
-                                <div className="text-sm font-medium text-slate-900">
-                                  {contact.first_name} {contact.last_name}
-                                </div>
-                                {contact.title && (
-                                  <div className="text-xs text-slate-500">{contact.title}</div>
-                                )}
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm text-slate-700 flex items-center gap-2">
-                              <Building2 className="w-4 h-4 text-slate-400" />
-                              {contact.company_name || '-'}
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm text-slate-700 flex items-center gap-2">
-                              {contact.email ? (
-                                <><Mail className="w-4 h-4 text-slate-400" />{contact.email}</>
-                              ) : '-'}
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm text-slate-700 flex items-center gap-2">
-                              {contact.phone ? (
-                                <><Phone className="w-4 h-4 text-slate-400" />{formatPhoneNumber(contact.phone)}</>
-                              ) : '-'}
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm text-slate-500 flex items-center gap-2">
-                              <Clock className="w-4 h-4" />
-                              {getLastCorrespondenceDate(contact.id).toLocaleDateString()}
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(contact.lead_status)}`}>
-                              {contact.lead_status}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                            <div className="flex items-center gap-1">
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setEditingContact(contact);
-                                  setEditFormData({
-                                    first_name: contact.first_name,
-                                    last_name: contact.last_name || '',
-                                    email: contact.email || '',
-                                    phone: contact.phone || '',
-                                    title: contact.title || '',
-                                    company_name: contact.company_name || '',
-                                    date_of_birth: contact.date_of_birth || '',
-                                    notes: contact.notes || '',
-                                  });
-                                  setShowEditContact(true);
-                                }}
-                                className="text-primary-600 hover:text-primary-700 p-2 rounded-lg hover:bg-primary-50 transition"
-                              >
-                                <Edit2 className="w-4 h-4" />
-                              </button>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  if (window.confirm(`Delete contact ${contact.first_name}${contact.last_name ? ' ' + contact.last_name : ''}?`)) {
-                                    deleteContact(contact.id);
-                                  }
-                                }}
-                                className="text-red-400 hover:text-red-500 p-2 rounded-lg hover:bg-red-50 transition"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* ========== Unified Messaging Tab ========== */}
-      {activeTab === 'messages' && (
-        <UnifiedMessaging theme="light" isClientView />
-      )}
-
-      {/* ========== Marketing & Social Tab ========== */}
-      {activeTab === 'marketing' && (
-        <div>
-          {/* Sub-tab Navigation */}
-          <div className="flex gap-4 mb-6">
-            <button
-              onClick={() => setMarketingSubTab('campaigns')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition ${
-                marketingSubTab === 'campaigns'
-                  ? 'bg-primary-50 text-primary-700 border border-primary-200'
-                  : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
-              }`}
-            >
-              <Mail className="w-4 h-4" />
-              Campaigns & Marketing
-            </button>
-            <button
-              onClick={() => setMarketingSubTab('social')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition ${
-                marketingSubTab === 'social'
-                  ? 'bg-primary-50 text-primary-700 border border-primary-200'
-                  : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
-              }`}
-            >
-              <Share2 className="w-4 h-4" />
-              Social Media
-            </button>
+      {/* ========== Contacts Content ========== */}
+      <div>
+        {loading ? (
+          <div className="flex items-center justify-center min-h-[300px]">
+            <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
           </div>
-
-          {/* Campaigns Sub-Tab */}
-          {marketingSubTab === 'campaigns' && (
-            <div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div className="bg-white rounded-2xl border border-slate-200 p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center">
-                      <Mail className="w-6 h-6 text-blue-600" />
-                    </div>
-                    <TrendingUp className="w-5 h-5 text-green-500" />
-                  </div>
-                  <h3 className="text-sm font-medium text-slate-500 mb-1">Active Campaigns</h3>
-                  <p className="text-3xl font-bold text-slate-900 mb-2">8</p>
-                  <p className="text-sm text-slate-400">+2 this week</p>
+        ) : (
+          <div className="bg-white border border-slate-200 rounded-2xl">
+            {/* Search & Filter */}
+            <div className="p-4 border-b border-slate-200">
+              <div className="flex items-center gap-4">
+                <div className="flex-1 relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search contacts..."
+                    className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none bg-white text-slate-900 placeholder-slate-400"
+                  />
                 </div>
-                <div className="bg-white rounded-2xl border border-slate-200 p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="w-12 h-12 bg-green-50 rounded-lg flex items-center justify-center">
-                      <Users className="w-6 h-6 text-green-600" />
-                    </div>
-                    <TrendingUp className="w-5 h-5 text-green-500" />
-                  </div>
-                  <h3 className="text-sm font-medium text-slate-500 mb-1">Total Recipients</h3>
-                  <p className="text-3xl font-bold text-slate-900 mb-2">15,247</p>
-                  <p className="text-sm text-slate-400">+1,423 this month</p>
-                </div>
-                <div className="bg-white rounded-2xl border border-slate-200 p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="w-12 h-12 bg-purple-50 rounded-lg flex items-center justify-center">
-                      <Megaphone className="w-6 h-6 text-purple-600" />
-                    </div>
-                    <TrendingUp className="w-5 h-5 text-green-500" />
-                  </div>
-                  <h3 className="text-sm font-medium text-slate-500 mb-1">Average Open Rate</h3>
-                  <p className="text-3xl font-bold text-slate-900 mb-2">24.6%</p>
-                  <p className="text-sm text-slate-400">+2.1% from last campaign</p>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-2xl border border-slate-200 p-8">
-                <div className="flex items-center justify-between mb-6">
-                  <div>
-                    <h3 className="text-lg font-semibold text-slate-900 mb-2">Campaign Templates</h3>
-                    <p className="text-slate-500">Choose from proven campaign templates to get started</p>
-                  </div>
-                  <button
-                    onClick={() => setShowCampaignModal(true)}
-                    className="flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg transition"
+                <div className="flex items-center gap-2">
+                  <Filter className="w-5 h-5 text-slate-400" />
+                  <select
+                    value={filterStatus}
+                    onChange={(e) => setFilterStatus(e.target.value)}
+                    className="px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none bg-white text-slate-900"
                   >
-                    <Plus className="w-4 h-4" />
-                    Custom Campaign
-                  </button>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {campaignTemplates.map((template) => {
-                    const Icon = template.icon;
-                    return (
-                      <button
-                        key={template.id}
-                        onClick={() => handleTemplateSelect(template)}
-                        className="group p-6 border-2 border-slate-200 rounded-lg hover:border-primary-600 hover:bg-primary-50 transition text-left"
-                      >
-                        <div className="flex items-center gap-3 mb-4">
-                          <div className={`w-10 h-10 ${template.color} rounded-lg flex items-center justify-center`}>
-                            <Icon className="w-5 h-5 text-white" />
-                          </div>
-                          <div>
-                            <h4 className="font-semibold text-slate-900 mb-1">{template.name}</h4>
-                            <span className="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded">{template.category}</span>
-                          </div>
-                        </div>
-                        <p className="text-sm text-slate-500 mb-4">{template.description}</p>
-                        <div className="space-y-2 text-xs text-slate-400">
-                          <div className="flex justify-between">
-                            <span>Est. Opens:</span>
-                            <span className="font-medium">{template.metrics.estimatedOpens}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span>Est. Clicks:</span>
-                            <span className="font-medium">{template.metrics.estimatedClicks}</span>
-                          </div>
-                          <div className="text-xs"><span>Send Timing:</span></div>
-                          <div className="text-xs text-slate-400 mt-1">{template.metrics.sendTime}</div>
-                        </div>
-                      </button>
-                    );
-                  })}
+                    <option value="all">All Status</option>
+                    <option value="new">New</option>
+                    <option value="contacted">Contacted</option>
+                    <option value="qualified">Qualified</option>
+                    <option value="unqualified">Unqualified</option>
+                  </select>
                 </div>
               </div>
             </div>
-          )}
 
-          {/* Social Media Sub-Tab */}
-          {marketingSubTab === 'social' && (
-            <div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <div className="bg-white rounded-2xl border border-slate-200 p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center">
-                      <Share2 className="w-6 h-6 text-blue-600" />
-                    </div>
-                    <TrendingUp className="w-5 h-5 text-green-500" />
-                  </div>
-                  <h3 className="text-sm font-medium text-slate-500 mb-1">Posts This Week</h3>
-                  <p className="text-3xl font-bold text-slate-900 mb-2">12</p>
-                  <p className="text-sm text-slate-400">+3 vs last week</p>
-                </div>
-                <div className="bg-white rounded-2xl border border-slate-200 p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="w-12 h-12 bg-green-50 rounded-lg flex items-center justify-center">
-                      <Users className="w-6 h-6 text-green-600" />
-                    </div>
-                    <TrendingUp className="w-5 h-5 text-green-500" />
-                  </div>
-                  <h3 className="text-sm font-medium text-slate-500 mb-1">Active Accounts</h3>
-                  <p className="text-3xl font-bold text-slate-900 mb-2">4</p>
-                  <p className="text-sm text-slate-400">Twitter, Facebook, Instagram</p>
-                </div>
-                <div className="bg-white rounded-2xl border border-slate-200 p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="w-12 h-12 bg-purple-50 rounded-lg flex items-center justify-center">
-                      <Calendar className="w-6 h-6 text-purple-600" />
-                    </div>
-                    <TrendingUp className="w-5 h-5 text-green-500" />
-                  </div>
-                  <h3 className="text-sm font-medium text-slate-500 mb-1">Scheduled Posts</h3>
-                  <p className="text-3xl font-bold text-slate-900 mb-2">7</p>
-                  <p className="text-sm text-slate-400">Next post: Tomorrow 2:00 PM</p>
-                </div>
-                <div className="bg-white rounded-2xl border border-slate-200 p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="w-12 h-12 bg-orange-50 rounded-lg flex items-center justify-center">
-                      <TrendingUp className="w-6 h-6 text-orange-600" />
-                    </div>
-                    <TrendingUp className="w-5 h-5 text-green-500" />
-                  </div>
-                  <h3 className="text-sm font-medium text-slate-500 mb-1">Avg. Engagement</h3>
-                  <p className="text-3xl font-bold text-slate-900 mb-2">14.7%</p>
-                  <p className="text-sm text-slate-400">+1.2% this week</p>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-2xl border border-slate-200 p-8">
-                <div className="text-center">
-                  <Share2 className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-slate-900 mb-2">Connect Social Media Accounts</h3>
-                  <p className="text-slate-500 mb-6">
-                    Connect your social media accounts to start posting and managing your social presence.
-                  </p>
+            {/* Contacts Table */}
+            {filteredContacts.length === 0 ? (
+              <div className="p-12 text-center">
+                <Inbox className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-slate-900 mb-2">No Contacts Found</h3>
+                <p className="text-slate-500 mb-4">
+                  {contacts.length === 0
+                    ? 'Get started by adding your first contact.'
+                    : 'No contacts match your search or filter criteria.'}
+                </p>
+                {contacts.length === 0 && (
                   <button
-                    onClick={() => alert('Social account connection coming soon!')}
-                    className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg transition mx-auto"
+                    onClick={() => setShowNewContact(true)}
+                    className="flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg transition mx-auto"
                   >
                     <Plus className="w-5 h-5" />
-                    Connect Accounts
+                    Add First Contact
                   </button>
-                </div>
+                )}
               </div>
-            </div>
-          )}
-        </div>
-      )}
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="min-w-full">
+                  <thead className="bg-slate-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Contact</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Company</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Email</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Phone</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Last Contact</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {filteredContacts.map((contact) => (
+                      <tr key={contact.id} className="hover:bg-slate-50 transition cursor-pointer">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-primary-100 text-primary-700 rounded-full flex items-center justify-center text-sm font-semibold">
+                              {contact.first_name[0]}{contact.last_name?.[0] || ''}
+                            </div>
+                            <div>
+                              <div className="text-sm font-medium text-slate-900">
+                                {contact.first_name} {contact.last_name}
+                              </div>
+                              {contact.title && (
+                                <div className="text-xs text-slate-500">{contact.title}</div>
+                              )}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-slate-700 flex items-center gap-2">
+                            <Building2 className="w-4 h-4 text-slate-400" />
+                            {contact.company_name || '-'}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-slate-700 flex items-center gap-2">
+                            {contact.email ? (
+                              <><Mail className="w-4 h-4 text-slate-400" />{contact.email}</>
+                            ) : '-'}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-slate-700 flex items-center gap-2">
+                            {contact.phone ? (
+                              <><Phone className="w-4 h-4 text-slate-400" />{formatPhoneNumber(contact.phone)}</>
+                            ) : '-'}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-slate-500 flex items-center gap-2">
+                            <Clock className="w-4 h-4" />
+                            {getLastCorrespondenceDate(contact.id).toLocaleDateString()}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(contact.lead_status)}`}>
+                            {contact.lead_status}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                          <div className="flex items-center gap-1">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setEditingContact(contact);
+                                setEditFormData({
+                                  first_name: contact.first_name,
+                                  last_name: contact.last_name || '',
+                                  email: contact.email || '',
+                                  phone: contact.phone || '',
+                                  title: contact.title || '',
+                                  company_name: contact.company_name || '',
+                                  date_of_birth: contact.date_of_birth || '',
+                                  notes: contact.notes || '',
+                                });
+                                setShowEditContact(true);
+                              }}
+                              className="text-primary-600 hover:text-primary-700 p-2 rounded-lg hover:bg-primary-50 transition"
+                            >
+                              <Edit2 className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (window.confirm(`Delete contact ${contact.first_name}${contact.last_name ? ' ' + contact.last_name : ''}?`)) {
+                                  deleteContact(contact.id);
+                                }
+                              }}
+                              className="text-red-400 hover:text-red-500 p-2 rounded-lg hover:bg-red-50 transition"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* ========== New Contact Modal ========== */}
       {showNewContact && (
@@ -940,94 +549,6 @@ export default function PortalCRM() {
                 </button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
-
-      {/* ========== Campaign Creation Modal ========== */}
-      {showCampaignModal && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-          <div className="bg-white border border-slate-200 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between p-6 border-b border-slate-200">
-              <div>
-                <h2 className="text-xl font-bold text-slate-900">
-                  {selectedTemplate ? `Create ${selectedTemplate.name} Campaign` : 'Create Custom Campaign'}
-                </h2>
-                {selectedTemplate && <p className="text-sm text-slate-500 mt-1">{selectedTemplate.description}</p>}
-              </div>
-              <button onClick={() => { setShowCampaignModal(false); setSelectedTemplate(null); }} className="text-slate-400 hover:text-slate-600">
-                <X className="w-6 h-6" />
-              </button>
-            </div>
-            <div className="p-6 space-y-6">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Campaign Name <span className="text-red-500">*</span></label>
-                <input type="text" value={campaignForm.name} onChange={(e) => setCampaignForm({ ...campaignForm, name: e.target.value })}
-                  className="w-full px-4 py-3 border border-slate-300 rounded-lg text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none" placeholder="Enter campaign name" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Email Subject <span className="text-red-500">*</span></label>
-                <input type="text" value={campaignForm.subject} onChange={(e) => setCampaignForm({ ...campaignForm, subject: e.target.value })}
-                  className="w-full px-4 py-3 border border-slate-300 rounded-lg text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none" placeholder="Enter email subject line" />
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Target Audience</label>
-                  <select value={campaignForm.audience} onChange={(e) => setCampaignForm({ ...campaignForm, audience: e.target.value })}
-                    className="w-full px-4 py-3 border border-slate-300 rounded-lg text-slate-900 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none">
-                    <option value="all">All Subscribers</option>
-                    <option value="active">Active Users</option>
-                    <option value="inactive">Inactive Users</option>
-                    <option value="new">New Subscribers</option>
-                    <option value="leads">Lead Prospects</option>
-                    <option value="customers">Existing Customers</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Send Date</label>
-                  <input type="date" value={campaignForm.sendDate} onChange={(e) => setCampaignForm({ ...campaignForm, sendDate: e.target.value })}
-                    className="w-full px-4 py-3 border border-slate-300 rounded-lg text-slate-900 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none" />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Campaign Description</label>
-                <textarea value={campaignForm.description} onChange={(e) => setCampaignForm({ ...campaignForm, description: e.target.value })} rows={3}
-                  className="w-full px-4 py-3 border border-slate-300 rounded-lg text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none resize-none" placeholder="Describe the campaign goals and content..." />
-              </div>
-              {selectedTemplate && (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className={`w-8 h-8 ${selectedTemplate.color} rounded-lg flex items-center justify-center`}>
-                      <selectedTemplate.icon className="w-4 h-4 text-white" />
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-slate-900">{selectedTemplate.name} Template</h4>
-                      <p className="text-sm text-slate-600">{selectedTemplate.category} campaign</p>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span className="text-slate-500">Estimated Opens:</span>
-                      <p className="font-semibold text-slate-900">{selectedTemplate.metrics.estimatedOpens}</p>
-                    </div>
-                    <div>
-                      <span className="text-slate-500">Estimated Clicks:</span>
-                      <p className="font-semibold text-slate-900">{selectedTemplate.metrics.estimatedClicks}</p>
-                    </div>
-                  </div>
-                </div>
-              )}
-              <div className="flex gap-3 pt-4 border-t border-slate-200">
-                <button type="button" onClick={() => { setShowCampaignModal(false); setSelectedTemplate(null); }}
-                  className="flex-1 px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition">Cancel</button>
-                <button type="button" onClick={handleCreateCampaign}
-                  disabled={!campaignForm.name.trim() || !campaignForm.subject.trim()}
-                  className="flex-1 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
-                  <Send className="w-4 h-4" />
-                  Create Campaign
-                </button>
-              </div>
-            </div>
           </div>
         </div>
       )}

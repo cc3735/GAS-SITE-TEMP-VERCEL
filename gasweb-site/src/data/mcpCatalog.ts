@@ -11,7 +11,7 @@ export interface MCPCatalogEntry {
   id: string;
   name: string;
   description: string;
-  category: 'productivity' | 'crm' | 'marketing' | 'communication' | 'finance' | 'ai' | 'developer';
+  category: 'productivity' | 'crm' | 'marketing' | 'communication' | 'finance' | 'ai' | 'developer' | 'hr';
   github_url: string;
   npm_package?: string;
   is_official: boolean;
@@ -28,6 +28,7 @@ export const CATEGORY_LABELS: Record<string, { label: string; color: string }> =
   finance: { label: 'Finance', color: 'bg-yellow-600' },
   ai: { label: 'AI & Knowledge', color: 'bg-cyan-600' },
   developer: { label: 'Developer', color: 'bg-orange-600' },
+  hr: { label: 'HR & Payroll', color: 'bg-rose-600' },
 };
 
 export const mcpCatalog: MCPCatalogEntry[] = [
@@ -247,6 +248,159 @@ export const mcpCatalog: MCPCatalogEntry[] = [
     config_fields: [
       { key: 'api_key', label: 'Chargebee API Key', type: 'password', required: true },
       { key: 'site', label: 'Chargebee Site', type: 'text', placeholder: 'your-site', required: true },
+    ],
+  },
+
+  // ── Tier 1: Core Finance ─────────────────────────────────────────
+  {
+    id: 'quickbooks',
+    name: 'QuickBooks Online',
+    description: 'Full QuickBooks Online integration. Sync invoices, expenses, payroll, and financial reports with your FinanceFlow dashboard.',
+    category: 'finance',
+    github_url: 'https://github.com/intuit/quickbooks-mcp-server',
+    is_official: false,
+    icon: 'BookOpen',
+    tier: 1,
+    config_fields: [
+      { key: 'client_id', label: 'QuickBooks Client ID', type: 'text', required: true },
+      { key: 'client_secret', label: 'QuickBooks Client Secret', type: 'password', required: true },
+      { key: 'realm_id', label: 'Company ID (Realm ID)', type: 'text', placeholder: '1234567890', required: true },
+    ],
+  },
+  {
+    id: 'stripe',
+    name: 'Stripe',
+    description: 'Payment processing and subscription management. Create charges, manage customers, handle invoices, and track revenue.',
+    category: 'finance',
+    github_url: 'https://github.com/stripe/agent-toolkit',
+    is_official: true,
+    icon: 'Wallet',
+    tier: 1,
+    config_fields: [
+      { key: 'secret_key', label: 'Stripe Secret Key', type: 'password', placeholder: 'sk_live_...', required: true },
+    ],
+  },
+
+  // ── Tier 2: CRM & Sales (additional) ────────────────────────────
+  {
+    id: 'hubspot',
+    name: 'HubSpot',
+    description: 'Full CRM, marketing, and sales hub. Manage contacts, deals, email campaigns, and marketing automation from one platform.',
+    category: 'crm',
+    github_url: 'https://github.com/HubSpot/mcp-server',
+    is_official: false,
+    icon: 'Target',
+    tier: 2,
+    config_fields: [
+      { key: 'access_token', label: 'HubSpot Private App Token', type: 'password', placeholder: 'pat-...', required: true },
+    ],
+  },
+  {
+    id: 'salesforce',
+    name: 'Salesforce',
+    description: 'Enterprise CRM integration. Access accounts, contacts, opportunities, and reports from the world\'s leading CRM platform.',
+    category: 'crm',
+    github_url: 'https://github.com/salesforce/mcp-server',
+    is_official: false,
+    icon: 'Cloud',
+    tier: 2,
+    config_fields: [
+      { key: 'instance_url', label: 'Salesforce Instance URL', type: 'url', placeholder: 'https://yourorg.my.salesforce.com', required: true },
+      { key: 'client_id', label: 'Connected App Client ID', type: 'text', required: true },
+      { key: 'client_secret', label: 'Connected App Client Secret', type: 'password', required: true },
+    ],
+  },
+
+  // ── Tier 2: Finance (additional) ────────────────────────────────
+  {
+    id: 'paypal',
+    name: 'PayPal',
+    description: 'PayPal payment processing. Send and receive payments, manage invoices, and track transaction history.',
+    category: 'finance',
+    github_url: 'https://github.com/paypal/agent-toolkit',
+    is_official: true,
+    icon: 'DollarSign',
+    tier: 2,
+    config_fields: [
+      { key: 'client_id', label: 'PayPal Client ID', type: 'text', required: true },
+      { key: 'client_secret', label: 'PayPal Client Secret', type: 'password', required: true },
+      { key: 'environment', label: 'Environment', type: 'select', required: true, options: [{ value: 'sandbox', label: 'Sandbox' }, { value: 'production', label: 'Production' }] },
+    ],
+  },
+  {
+    id: 'avalara',
+    name: 'Avalara AvaTax',
+    description: 'Automated tax compliance and calculation. Calculate sales tax, manage exemptions, and file returns across jurisdictions.',
+    category: 'finance',
+    github_url: 'https://github.com/avalara/mcp-server',
+    is_official: false,
+    icon: 'Calculator',
+    tier: 2,
+    config_fields: [
+      { key: 'account_id', label: 'Avalara Account ID', type: 'text', required: true },
+      { key: 'license_key', label: 'Avalara License Key', type: 'password', required: true },
+      { key: 'environment', label: 'Environment', type: 'select', required: true, options: [{ value: 'sandbox', label: 'Sandbox' }, { value: 'production', label: 'Production' }] },
+    ],
+  },
+
+  // ── Tier 2: Marketing (additional) ──────────────────────────────
+  {
+    id: 'klaviyo',
+    name: 'Klaviyo',
+    description: 'Email and SMS marketing automation. Build customer segments, design campaigns, and track engagement metrics.',
+    category: 'marketing',
+    github_url: 'https://github.com/klaviyo/mcp-server',
+    is_official: false,
+    icon: 'Zap',
+    tier: 2,
+    config_fields: [
+      { key: 'api_key', label: 'Klaviyo Private API Key', type: 'password', placeholder: 'pk_...', required: true },
+    ],
+  },
+
+  // ── Tier 2: Productivity (additional) ───────────────────────────
+  {
+    id: 'asana',
+    name: 'Asana',
+    description: 'Project and task management. Create tasks, manage projects, track milestones, and coordinate team workflows.',
+    category: 'productivity',
+    github_url: 'https://github.com/asana/mcp-server',
+    is_official: false,
+    icon: 'ListTodo',
+    tier: 2,
+    config_fields: [
+      { key: 'access_token', label: 'Asana Personal Access Token', type: 'password', placeholder: '1/...', required: true },
+    ],
+  },
+  {
+    id: 'jira',
+    name: 'Jira',
+    description: 'Issue tracking and agile project management. Create and manage issues, sprints, boards, and project backlogs.',
+    category: 'productivity',
+    github_url: 'https://github.com/atlassian/mcp-server-jira',
+    is_official: false,
+    icon: 'Bug',
+    tier: 2,
+    config_fields: [
+      { key: 'instance_url', label: 'Jira Instance URL', type: 'url', placeholder: 'https://yourorg.atlassian.net', required: true },
+      { key: 'email', label: 'Atlassian Email', type: 'text', required: true },
+      { key: 'api_token', label: 'Atlassian API Token', type: 'password', required: true },
+    ],
+  },
+
+  // ── Tier 2: HR ──────────────────────────────────────────────────
+  {
+    id: 'bamboohr',
+    name: 'BambooHR',
+    description: 'HR and people management. Access employee records, manage time-off requests, run reports, and streamline onboarding.',
+    category: 'hr',
+    github_url: 'https://github.com/BambooHR/mcp-server',
+    is_official: false,
+    icon: 'UserCheck',
+    tier: 2,
+    config_fields: [
+      { key: 'subdomain', label: 'BambooHR Subdomain', type: 'text', placeholder: 'yourcompany', required: true },
+      { key: 'api_key', label: 'BambooHR API Key', type: 'password', required: true },
     ],
   },
 

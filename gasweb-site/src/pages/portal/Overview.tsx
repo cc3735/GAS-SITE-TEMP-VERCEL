@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { CheckCircle2, ExternalLink, Plus, Sparkles } from 'lucide-react';
+import { CheckCircle2, ExternalLink, Plus, Sparkles, ArrowRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
 import AddAppsModal, { ALL_APPS, INDIVIDUAL_PRICE, BUNDLE_PRICE } from '../../components/AddAppsModal';
@@ -17,20 +18,80 @@ const APP_DETAILS: AppDetail[] = [
     id: 'legalflow',
     tagline: 'AI-powered legal automation for small businesses',
     longDescription:
-      'LegalFlow brings enterprise-grade legal tools to small businesses. Draft contracts, manage compliance deadlines, and handle tax filings with AI assistance — without needing a full-time attorney on retainer. Spend less time on paperwork and more time running your business.',
+      'LegalFlow brings enterprise-grade legal tools to small businesses. Draft contracts, manage compliance deadlines, and protect your brand with trademark filing — all with AI assistance. Spend less time on paperwork and more time running your business.',
     features: [
       'AI contract & document drafting',
       'Template library (NDAs, MSAs, SoWs)',
-      'Tax filing assistance',
+      'Trademark search & filing',
       'Compliance deadline tracking',
       'E-signature workflows',
-      'Legal deadline reminders',
+      'Business entity management',
     ],
     useCases: [
       'Draft and send NDAs or service agreements in minutes',
       'Track regulatory filing deadlines automatically',
       'Manage client contracts from creation to signature',
-      'Stay compliant with local and federal requirements',
+      'Register and protect your trademarks',
+    ],
+  },
+  {
+    id: 'financeflow',
+    tagline: 'AI-powered bookkeeping, tax, and financial tools',
+    longDescription:
+      'FinanceFlow handles the financial backbone of your business — from day-to-day bookkeeping and bank reconciliation to tax filing, invoicing, and inventory management. Let AI automate data entry, categorize transactions, and keep your books clean so you can focus on growth.',
+    features: [
+      'Bookkeeping & bank reconciliation',
+      'Chart of accounts & journal entries',
+      'Federal and state tax filing',
+      'Professional invoicing & payments',
+      'Accounts receivable tracking',
+      'Inventory & stock management',
+    ],
+    useCases: [
+      'Automate transaction categorization and reconciliation',
+      'Prepare and file business tax returns on time',
+      'Send professional invoices and get paid faster',
+      'Track inventory levels and manage purchase orders',
+    ],
+  },
+  {
+    id: 'socialflow',
+    tagline: 'Unified messaging and marketing automation',
+    longDescription:
+      'SocialFlow centralizes all your customer communication and marketing in one place. Manage conversations across SMS, email, WhatsApp, and social DMs from a single inbox — then amplify your reach with campaign templates, social scheduling, and marketing automation.',
+    features: [
+      'Unified inbox (SMS, email, WhatsApp, social DMs)',
+      'Campaign builder & templates',
+      'Social media scheduling & management',
+      'Marketing analytics & tracking',
+      'Automated follow-up sequences',
+      'Multi-channel broadcast messaging',
+    ],
+    useCases: [
+      'Respond to all customer messages from one inbox',
+      'Launch marketing campaigns across email and SMS',
+      'Schedule and publish social media content',
+      'Automate follow-ups to nurture leads into customers',
+    ],
+  },
+  {
+    id: 'hrflow',
+    tagline: 'HR, payroll, and team management made simple',
+    longDescription:
+      'HRFlow gives small businesses the HR tools they need without the enterprise complexity. Manage employee onboarding, payroll processing, time tracking, and compliance — all from a single dashboard designed for growing teams.',
+    features: [
+      'Employee onboarding workflows',
+      'Payroll processing & direct deposit',
+      'Time tracking & PTO management',
+      'Benefits administration',
+      'HR compliance & document storage',
+      'Org chart & team directory',
+    ],
+    useCases: [
+      'Onboard new hires with automated checklists',
+      'Run payroll accurately and on time',
+      'Track employee hours and manage time-off requests',
+      'Stay compliant with labor laws and tax withholding',
     ],
   },
   {
@@ -155,7 +216,7 @@ export default function Overview() {
               <div>
                 <p className="text-sm font-semibold text-slate-900">All Apps Bundle</p>
                 <p className="text-xs text-primary-700">
-                  All {ALL_APPS.length} apps for {BUNDLE_PRICE} — save ${ALL_APPS.length * 25 - 100}/month
+                  All {ALL_APPS.length} apps for {BUNDLE_PRICE} — save ${ALL_APPS.length * 25 - 150}/month
                 </p>
               </div>
             </div>
@@ -203,14 +264,23 @@ export default function Overview() {
                 </div>
                 <div className="flex-shrink-0 text-right">
                   {subscribed ? (
-                    <a
-                      href={app.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={`inline-flex items-center gap-1.5 text-sm font-medium ${app.textColor} hover:underline`}
-                    >
-                      Open app <ExternalLink className="w-3.5 h-3.5" />
-                    </a>
+                    app.internalRoute ? (
+                      <Link
+                        to={app.internalRoute}
+                        className={`inline-flex items-center gap-1.5 text-sm font-medium ${app.textColor} hover:underline`}
+                      >
+                        Open app <ArrowRight className="w-3.5 h-3.5" />
+                      </Link>
+                    ) : (
+                      <a
+                        href={app.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`inline-flex items-center gap-1.5 text-sm font-medium ${app.textColor} hover:underline`}
+                      >
+                        Open app <ExternalLink className="w-3.5 h-3.5" />
+                      </a>
+                    )
                   ) : (
                     <div className="text-right">
                       <p className="text-sm font-bold text-slate-900">{INDIVIDUAL_PRICE}</p>

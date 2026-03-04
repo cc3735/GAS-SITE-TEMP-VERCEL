@@ -21,6 +21,11 @@ import Overview from './pages/portal/Overview';
 import Settings from './pages/portal/Settings';
 import LegalFlowHub from './pages/portal/legalflow/LegalFlowHub';
 import LegalFlowFrame from './pages/portal/legalflow/LegalFlowFrame';
+import FinanceFlowHub from './pages/portal/financeflow/FinanceFlowHub';
+import FinanceFlowFrame from './pages/portal/financeflow/FinanceFlowFrame';
+import SocialFlowHub from './pages/portal/socialflow/SocialFlowHub';
+import SocialFlowMessaging from './pages/portal/socialflow/SocialFlowMessaging';
+import SocialFlowMarketing from './pages/portal/socialflow/SocialFlowMarketing';
 import PortalCRM from './pages/portal/PortalCRM';
 import PortalProjects from './pages/portal/PortalProjects';
 import Profile from './pages/portal/settings/Profile';
@@ -85,6 +90,11 @@ function App(): JSX.Element {
             </Route>
             <Route path="legalflow" element={<LegalFlowHub />} />
             <Route path="legalflow/:section" element={<LegalFlowFrame />} />
+            <Route path="financeflow" element={<FinanceFlowHub />} />
+            <Route path="financeflow/:section" element={<FinanceFlowFrame />} />
+            <Route path="socialflow" element={<SocialFlowHub />} />
+            <Route path="socialflow/messaging" element={<SocialFlowMessaging />} />
+            <Route path="socialflow/marketing" element={<SocialFlowMarketing />} />
             <Route path="crm" element={<PortalCRM />} />
             <Route path="projects" element={<PortalProjects />} />
           </Route>

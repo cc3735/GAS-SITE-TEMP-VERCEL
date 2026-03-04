@@ -3,32 +3,34 @@ import { useAuth } from '../../../contexts/AuthContext';
 import { useState, useCallback } from 'react';
 import { ArrowLeft, Loader2, AlertCircle } from 'lucide-react';
 
-const LEGALFLOW_URL = import.meta.env.VITE_LEGALFLOW_URL ?? 'http://localhost:5173';
+const FINANCEFLOW_URL = import.meta.env.VITE_LEGALFLOW_URL ?? 'http://localhost:5173';
 
 const SECTION_MAP: Record<string, string> = {
-  legal:       '/legal',
-  trademark:   '/trademark',
-  businesses:  '/businesses',
+  bookkeeping: '/bookkeeping',
+  tax:         '/tax',
+  invoicing:   '/invoicing',
+  inventory:   '/inventory',
 };
 
 const SECTION_LABELS: Record<string, string> = {
-  legal:       'Legal Documents',
-  trademark:   'Trademark',
-  businesses:  'Businesses',
+  bookkeeping: 'Bookkeeping & Accounting',
+  tax:         'Tax Filing',
+  invoicing:   'Invoicing & Payments',
+  inventory:   'Inventory Management',
 };
 
-export default function LegalFlowFrame() {
-  const { section = 'legal' } = useParams<{ section: string }>();
+export default function FinanceFlowFrame() {
+  const { section = 'bookkeeping' } = useParams<{ section: string }>();
   const { session } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
 
-  const legalPath = SECTION_MAP[section] ?? '/legal';
+  const financePath = SECTION_MAP[section] ?? '/bookkeeping';
   const token = session?.access_token ?? '';
 
   const iframeSrc = token
-    ? `${LEGALFLOW_URL}${legalPath}?token=${encodeURIComponent(token)}&embedded=true`
-    : `${LEGALFLOW_URL}${legalPath}?embedded=true`;
+    ? `${FINANCEFLOW_URL}${financePath}?token=${encodeURIComponent(token)}&embedded=true`
+    : `${FINANCEFLOW_URL}${financePath}?embedded=true`;
 
   const handleLoad = useCallback(() => setIsLoading(false), []);
   const handleError = useCallback(() => { setIsLoading(false); setHasError(true); }, []);
@@ -38,11 +40,11 @@ export default function LegalFlowFrame() {
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 mb-3 flex-shrink-0">
         <Link
-          to="/portal/legalflow"
+          to="/portal/financeflow"
           className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-900 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
-          LegalFlow
+          FinanceFlow
         </Link>
         <span className="text-slate-300">/</span>
         <span className="text-sm font-medium text-slate-900">
@@ -54,23 +56,23 @@ export default function LegalFlowFrame() {
       <div className="relative flex-1 rounded-xl overflow-hidden border border-slate-200 bg-white">
         {isLoading && (
           <div className="absolute inset-0 flex items-center justify-center bg-slate-50 z-10">
-            <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+            <Loader2 className="w-8 h-8 animate-spin text-teal-600" />
           </div>
         )}
         {hasError ? (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-slate-50">
             <AlertCircle className="w-8 h-8 text-red-500" />
-            <p className="text-sm text-slate-600">Could not load LegalFlow.</p>
+            <p className="text-sm text-slate-600">Could not load FinanceFlow.</p>
             <p className="text-xs text-slate-400">
-              Make sure LegalFlow is running at{' '}
-              <code className="font-mono">{LEGALFLOW_URL}</code>
+              Make sure FinanceFlow is running at{' '}
+              <code className="font-mono">{FINANCEFLOW_URL}</code>
             </p>
           </div>
         ) : (
           <iframe
             key={section}
             src={iframeSrc}
-            title={`LegalFlow — ${SECTION_LABELS[section] ?? section}`}
+            title={`FinanceFlow — ${SECTION_LABELS[section] ?? section}`}
             className="w-full h-full border-0"
             onLoad={handleLoad}
             onError={handleError}

@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Scale, BookOpen, Truck, Building2, Key, X, Sparkles } from 'lucide-react';
+import { Scale, BookOpen, Truck, Building2, Key, X, Sparkles, Receipt, Share2, UserCheck } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 
 export const INDIVIDUAL_PRICE = '$25/mo';
-export const BUNDLE_PRICE = '$100/mo';
+export const BUNDLE_PRICE = '$150/mo';
 
 export interface AppDef {
   id: string;
@@ -15,18 +15,52 @@ export interface AppDef {
   textColor: string;
   dotColor: string;
   url: string;
+  internalRoute?: string;
 }
 
 export const ALL_APPS: AppDef[] = [
   {
     id: 'legalflow',
     name: 'LegalFlow',
-    description: 'AI-powered legal documents, tax filing, and legal automation.',
+    description: 'AI-powered legal documents, trademark filing, and business compliance.',
     icon: Scale,
     lightColor: 'bg-blue-50',
     textColor: 'text-blue-600',
     dotColor: 'bg-blue-600',
     url: 'http://localhost:5173',
+    internalRoute: '/portal/legalflow',
+  },
+  {
+    id: 'financeflow',
+    name: 'FinanceFlow',
+    description: 'AI-powered bookkeeping, tax filing, invoicing, and inventory management.',
+    icon: Receipt,
+    lightColor: 'bg-teal-50',
+    textColor: 'text-teal-600',
+    dotColor: 'bg-teal-600',
+    url: 'http://localhost:5173',
+    internalRoute: '/portal/financeflow',
+  },
+  {
+    id: 'socialflow',
+    name: 'SocialFlow',
+    description: 'Unified messaging, marketing campaigns, and social media management.',
+    icon: Share2,
+    lightColor: 'bg-pink-50',
+    textColor: 'text-pink-600',
+    dotColor: 'bg-pink-600',
+    url: '#',
+    internalRoute: '/portal/socialflow',
+  },
+  {
+    id: 'hrflow',
+    name: 'HRFlow',
+    description: 'HR management, payroll processing, and employee onboarding.',
+    icon: UserCheck,
+    lightColor: 'bg-rose-50',
+    textColor: 'text-rose-600',
+    dotColor: 'bg-rose-600',
+    url: '#',
   },
   {
     id: 'courseflow',
@@ -160,7 +194,7 @@ export default function AddAppsModal({ onClose, onSubscribed }: Props) {
                   <div>
                     <p className="font-bold text-slate-900 text-sm">All Apps Bundle</p>
                     <p className="text-xs text-primary-700 font-medium">
-                      Save ${ALL_APPS.length * 25 - 100}/month vs individual
+                      Save ${ALL_APPS.length * 25 - 150}/month vs individual
                     </p>
                   </div>
                 </div>
