@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabase';
 import { useOrganization } from '../contexts/OrganizationContext';
 import { useAuth } from '../contexts/AuthContext';
 
-interface MCPServer {
+export interface MCPServer {
   id: string;
   name: string;
   description: string | null;
@@ -13,6 +13,10 @@ interface MCPServer {
   health_status: string;
   version: string | null;
   capabilities: any;
+  config: Record<string, any>;
+  catalog_id: string | null;
+  category: string | null;
+  github_url: string | null;
   created_at: string;
 }
 
@@ -72,6 +76,10 @@ export function useMCPServers() {
     description?: string;
     server_type: string;
     endpoint_url?: string;
+    config?: Record<string, any>;
+    catalog_id?: string;
+    category?: string;
+    github_url?: string;
   }) => {
     if (!currentOrganization || !user) return null;
 
@@ -85,8 +93,12 @@ export function useMCPServers() {
           server_type: serverData.server_type,
           endpoint_url: serverData.endpoint_url || null,
           status: 'active',
-          health_status: 'healthy',
+          health_status: 'unknown',
           capabilities: {},
+          config: serverData.config || {},
+          catalog_id: serverData.catalog_id || null,
+          category: serverData.category || null,
+          github_url: serverData.github_url || null,
           created_by: user.id,
         })
         .select()
@@ -100,5 +112,49 @@ export function useMCPServers() {
     }
   };
 
-  return { servers, loading, createServer, refetch: fetchServers };
+  const updateServer = async (serverId: string, updates: Partial<MCPServer>) => {
+    if (!currentOrganization) return null;
+
+    try {
+      const { data, error } = await supabase
+        .from('mcp_servers')
+        .update({
+          ...updates,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', serverId)
+        .eq('organization_id', currentOrganization.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error updating MCP server:', error);
+      throw error;
+    }
+  };
+
+  const deleteServer = async (serverId: string) => {
+    if (!currentOrganization) return;
+
+    try {
+      const { error } = await supabase
+        .from('mcp_servers')
+        .delete()
+        .eq('id', serverId)
+        .eq('organization_id', currentOrganization.id);
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error deleting MCP server:', error);
+      throw error;
+    }
+  };
+
+  const isInstalled = (catalogId: string): boolean => {
+    return servers.some(s => s.catalog_id === catalogId);
+  };
+
+  return { servers, loading, createServer, updateServer, deleteServer, isInstalled, refetch: fetchServers };
 }

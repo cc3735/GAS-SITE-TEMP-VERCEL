@@ -2,9 +2,12 @@ import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAgents } from '../../hooks/useAgents';
 import { useMCPServers } from '../../hooks/useMCPServers';
-import { Bot, Plus, X, Loader2, Sparkles, MessageSquare, Phone, Zap, Share2, Activity, Edit, Power, Code, FileText, Settings, Copy, Eye, Server, Cloud, CheckCircle, AlertCircle } from 'lucide-react';
+import { Bot, Plus, X, Loader2, Sparkles, MessageSquare, Phone, Zap, Share2, Activity, Edit, Power, Code, FileText, Settings, Copy, Eye, Server, Cloud, CheckCircle, AlertCircle, Store, ExternalLink, Trash2 } from 'lucide-react';
 import EnhancedAgentModal from '../../components/os/EnhancedAgentModal';
 import AgentManagementModal from '../../components/os/AgentManagementModal';
+import MCPInstallModal from '../../components/os/MCPInstallModal';
+import { mcpCatalog, CATEGORY_LABELS } from '../../data/mcpCatalog';
+import type { MCPCatalogEntry } from '../../data/mcpCatalog';
 
 const agentTypes = [
   {
@@ -67,7 +70,7 @@ const serverTypes = [
 
 export default function OSAgents() {
   const { agents, loading, createAgent, updateAgent, deleteAgent } = useAgents();
-  const { servers, loading: mcpLoading, createServer } = useMCPServers();
+  const { servers, loading: mcpLoading, createServer, deleteServer, isInstalled } = useMCPServers();
 
   const [searchParams] = useSearchParams();
   const tabParam = searchParams.get('tab');
@@ -87,6 +90,12 @@ export default function OSAgents() {
   const [showEditServer, setShowEditServer] = useState(false);
   const [serverFormData, setServerFormData] = useState({ name: '', description: '', endpoint_url: '' });
   const [editServerFormData, setEditServerFormData] = useState({ name: '', description: '', endpoint_url: '' });
+
+  // Catalog state
+  const [mcpSubTab, setMcpSubTab] = useState<'my-servers' | 'catalog'>('catalog');
+  const [catalogFilter, setCatalogFilter] = useState<string>('all');
+  const [installEntry, setInstallEntry] = useState<MCPCatalogEntry | null>(null);
+  const [deletingServerId, setDeletingServerId] = useState<string | null>(null);
 
   const handleCreateAgent = async (config: any) => {
     try {
@@ -175,6 +184,33 @@ export default function OSAgents() {
     }
   };
 
+  const handleInstallFromCatalog = async (entry: MCPCatalogEntry, config: Record<string, string>) => {
+    await createServer({
+      name: entry.name,
+      description: entry.description,
+      server_type: 'external',
+      config,
+      catalog_id: entry.id,
+      category: entry.category,
+      github_url: entry.github_url,
+    });
+  };
+
+  const handleDeleteServer = async (serverId: string) => {
+    setDeletingServerId(serverId);
+    try {
+      await deleteServer(serverId);
+    } catch (error) {
+      console.error('Failed to delete server:', error);
+    } finally {
+      setDeletingServerId(null);
+    }
+  };
+
+  const filteredCatalog = catalogFilter === 'all'
+    ? mcpCatalog
+    : mcpCatalog.filter(e => e.category === catalogFilter);
+
   if (loading && mcpLoading) {
     return (
       <div className="p-6 lg:p-8 flex items-center justify-center min-h-[400px]">
@@ -199,13 +235,13 @@ export default function OSAgents() {
             Create Agent
           </button>
         )}
-        {activeTab === 'mcp' && (
+        {activeTab === 'mcp' && mcpSubTab === 'my-servers' && (
           <button
             onClick={() => setShowNewServer(true)}
             className="flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg transition"
           >
             <Plus className="w-5 h-5" />
-            Add Server
+            Add Custom Server
           </button>
         )}
       </div>
@@ -429,77 +465,230 @@ export default function OSAgents() {
 
       {activeTab === 'mcp' && (
         <>
-          {servers.length === 0 ? (
-            <div className="bg-gray-900 rounded-xl border border-gray-700 p-12 text-center">
-              <Server className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-white mb-2">No MCP servers yet</h3>
-              <p className="text-gray-400 mb-6">
-                Connect or create MCP servers to extend your AI capabilities with custom tools and resources
-              </p>
-              <button
-                onClick={() => setShowNewServer(true)}
-                className="bg-primary-600 hover:bg-primary-700 text-white px-6 py-3 rounded-lg transition"
-              >
-                Add Your First Server
-              </button>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {servers.map((server) => {
-                const HealthIcon = getHealthIcon(server.health_status);
-                const healthColor = getHealthColor(server.health_status);
+          {/* MCP Sub-tabs */}
+          <div className="flex items-center gap-2 mb-6">
+            <button
+              onClick={() => setMcpSubTab('catalog')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition ${
+                mcpSubTab === 'catalog'
+                  ? 'bg-primary-600 text-white'
+                  : 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-gray-300'
+              }`}
+            >
+              <Store className="w-4 h-4" />
+              Catalog
+            </button>
+            <button
+              onClick={() => setMcpSubTab('my-servers')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition ${
+                mcpSubTab === 'my-servers'
+                  ? 'bg-primary-600 text-white'
+                  : 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-gray-300'
+              }`}
+            >
+              <Server className="w-4 h-4" />
+              My Servers
+              {servers.length > 0 && (
+                <span className="ml-1 bg-gray-700 text-gray-300 text-xs px-1.5 py-0.5 rounded-full">
+                  {servers.length}
+                </span>
+              )}
+            </button>
+          </div>
 
-                return (
-                  <div
-                    key={server.id}
-                    onClick={() => {
-                      setEditingServer(server);
-                      setEditServerFormData({
-                        name: server.name,
-                        description: server.description || '',
-                        endpoint_url: server.endpoint_url || '',
-                      });
-                      setShowEditServer(true);
-                    }}
-                    className="bg-gray-900 rounded-xl border border-gray-700 p-6 hover:border-gray-600 transition cursor-pointer"
+          {/* Catalog View */}
+          {mcpSubTab === 'catalog' && (
+            <>
+              {/* Category filters */}
+              <div className="flex flex-wrap gap-2 mb-6">
+                <button
+                  onClick={() => setCatalogFilter('all')}
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium transition ${
+                    catalogFilter === 'all'
+                      ? 'bg-white text-gray-900'
+                      : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                  }`}
+                >
+                  All
+                </button>
+                {Object.entries(CATEGORY_LABELS).map(([key, { label, color }]) => (
+                  <button
+                    key={key}
+                    onClick={() => setCatalogFilter(key)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium transition ${
+                      catalogFilter === key
+                        ? `${color} text-white`
+                        : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                    }`}
                   >
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center">
-                        <Server className="w-6 h-6 text-white" />
+                    {label}
+                  </button>
+                ))}
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filteredCatalog.map((entry) => {
+                  const installed = isInstalled(entry.id);
+                  const catInfo = CATEGORY_LABELS[entry.category];
+
+                  return (
+                    <div
+                      key={entry.id}
+                      className={`bg-gray-900 rounded-xl border p-5 transition cursor-pointer hover:border-gray-500 ${
+                        installed ? 'border-green-700/50' : 'border-gray-700'
+                      }`}
+                      onClick={() => setInstallEntry(entry)}
+                    >
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                          <span className={`text-xs px-2 py-0.5 rounded-full text-white ${catInfo.color}`}>
+                            {catInfo.label}
+                          </span>
+                          {entry.is_official && (
+                            <span className="text-xs px-2 py-0.5 rounded-full bg-blue-900 text-blue-300">Official</span>
+                          )}
+                        </div>
+                        {installed && (
+                          <CheckCircle className="w-5 h-5 text-green-400" />
+                        )}
                       </div>
-                      <div className="flex items-center gap-2">
-                        <HealthIcon className={`w-5 h-5 ${healthColor}`} />
-                        <span className={`text-xs px-2 py-1 rounded ${getServerStatusColor(server.status)}`}>
-                          {server.status}
+
+                      <h3 className="text-base font-semibold text-white mb-1">{entry.name}</h3>
+                      <p className="text-sm text-gray-400 line-clamp-2 mb-4">{entry.description}</p>
+
+                      <div className="flex items-center justify-between">
+                        <a
+                          href={entry.github_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={e => e.stopPropagation()}
+                          className="text-xs text-gray-500 hover:text-gray-300 flex items-center gap-1 transition"
+                        >
+                          <ExternalLink className="w-3 h-3" /> GitHub
+                        </a>
+                        <span className={`text-xs font-medium ${
+                          installed ? 'text-green-400' : 'text-primary-400'
+                        }`}>
+                          {installed ? 'Installed' : 'Install'}
                         </span>
                       </div>
                     </div>
+                  );
+                })}
+              </div>
+            </>
+          )}
 
-                    <h3 className="text-lg font-semibold text-white mb-2">{server.name}</h3>
-                    <p className="text-sm text-gray-400 mb-4">{server.description || `${server.server_type} server`}</p>
-
-                    <div className="space-y-2 pt-4 border-t border-gray-700">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-500">Type</span>
-                        <span className="font-medium text-white">{server.server_type}</span>
-                      </div>
-                      {server.endpoint_url && (
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-gray-500">Endpoint</span>
-                          <span className="font-mono text-xs text-white truncate max-w-[150px]">{server.endpoint_url}</span>
-                        </div>
-                      )}
-                      {server.version && (
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-gray-500">Version</span>
-                          <span className="font-medium text-white">{server.version}</span>
-                        </div>
-                      )}
-                    </div>
+          {/* My Servers View */}
+          {mcpSubTab === 'my-servers' && (
+            <>
+              {servers.length === 0 ? (
+                <div className="bg-gray-900 rounded-xl border border-gray-700 p-12 text-center">
+                  <Server className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-white mb-2">No MCP servers installed</h3>
+                  <p className="text-gray-400 mb-6">
+                    Browse the catalog to install pre-configured servers, or add a custom server.
+                  </p>
+                  <div className="flex items-center justify-center gap-3">
+                    <button
+                      onClick={() => setMcpSubTab('catalog')}
+                      className="bg-primary-600 hover:bg-primary-700 text-white px-6 py-3 rounded-lg transition"
+                    >
+                      Browse Catalog
+                    </button>
+                    <button
+                      onClick={() => setShowNewServer(true)}
+                      className="bg-gray-800 hover:bg-gray-700 text-white px-6 py-3 rounded-lg transition border border-gray-600"
+                    >
+                      Add Custom Server
+                    </button>
                   </div>
-                );
-              })}
-            </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {servers.map((server) => {
+                    const HealthIcon = getHealthIcon(server.health_status);
+                    const healthColor = getHealthColor(server.health_status);
+                    const catInfo = server.category ? CATEGORY_LABELS[server.category] : null;
+
+                    return (
+                      <div
+                        key={server.id}
+                        className="bg-gray-900 rounded-xl border border-gray-700 p-6 hover:border-gray-600 transition"
+                      >
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center">
+                            <Server className="w-6 h-6 text-white" />
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <HealthIcon className={`w-5 h-5 ${healthColor}`} />
+                            <span className={`text-xs px-2 py-1 rounded ${getServerStatusColor(server.status)}`}>
+                              {server.status}
+                            </span>
+                          </div>
+                        </div>
+
+                        <h3 className="text-lg font-semibold text-white mb-1">{server.name}</h3>
+                        {catInfo && (
+                          <span className={`text-xs px-2 py-0.5 rounded-full text-white ${catInfo.color} inline-block mb-2`}>
+                            {catInfo.label}
+                          </span>
+                        )}
+                        <p className="text-sm text-gray-400 mb-4">{server.description || `${server.server_type} server`}</p>
+
+                        <div className="space-y-2 pt-4 border-t border-gray-700">
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-gray-500">Type</span>
+                            <span className="font-medium text-white">{server.server_type}</span>
+                          </div>
+                          {server.github_url && (
+                            <div className="flex items-center justify-between text-sm">
+                              <span className="text-gray-500">Source</span>
+                              <a
+                                href={server.github_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs text-primary-400 hover:text-primary-300 flex items-center gap-1"
+                              >
+                                <ExternalLink className="w-3 h-3" /> GitHub
+                              </a>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="flex gap-2 mt-4 pt-4 border-t border-gray-700">
+                          <button
+                            onClick={() => {
+                              setEditingServer(server);
+                              setEditServerFormData({
+                                name: server.name,
+                                description: server.description || '',
+                                endpoint_url: server.endpoint_url || '',
+                              });
+                              setShowEditServer(true);
+                            }}
+                            className="flex-1 px-3 py-2 text-sm bg-gray-800 text-gray-300 rounded-lg hover:bg-gray-700 transition"
+                          >
+                            Configure
+                          </button>
+                          <button
+                            onClick={() => handleDeleteServer(server.id)}
+                            disabled={deletingServerId === server.id}
+                            className="px-3 py-2 text-sm bg-red-900/30 text-red-400 rounded-lg hover:bg-red-900/50 transition disabled:opacity-50"
+                          >
+                            {deletingServerId === server.id ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <Trash2 className="w-4 h-4" />
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </>
           )}
         </>
       )}
@@ -616,6 +805,16 @@ export default function OSAgents() {
             </form>
           </div>
         </div>
+      )}
+
+      {/* Install from Catalog Modal */}
+      {installEntry && (
+        <MCPInstallModal
+          entry={installEntry}
+          isInstalled={isInstalled(installEntry.id)}
+          onInstall={handleInstallFromCatalog}
+          onClose={() => setInstallEntry(null)}
+        />
       )}
 
       {/* Edit MCP Server Modal */}
