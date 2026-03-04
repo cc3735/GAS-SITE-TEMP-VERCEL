@@ -1,4 +1,4 @@
-import { NavLink, Outlet } from 'react-router-dom';
+import { NavLink, Outlet, useOutletContext } from 'react-router-dom';
 import { User, CreditCard, Bell, Shield } from 'lucide-react';
 
 const tabs = [
@@ -9,6 +9,8 @@ const tabs = [
 ];
 
 export default function Settings() {
+  const context = useOutletContext();
+
   return (
     <div>
       <div className="mb-8">
@@ -38,7 +40,7 @@ export default function Settings() {
 
       {/* Sub-page content */}
       <div className="max-w-2xl">
-        <Outlet />
+        <Outlet context={context} />
       </div>
     </div>
   );

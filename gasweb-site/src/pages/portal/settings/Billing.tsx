@@ -1,15 +1,19 @@
 import { useState, useEffect } from 'react';
-import { Scale, BookOpen, Truck, Building2, Key, Plus } from 'lucide-react';
+import { useOutletContext } from 'react-router-dom';
+import { Scale, BookOpen, Truck, Building2, Key, Plus, Receipt, Share2, UserCheck } from 'lucide-react';
 import { useAuth } from '../../../contexts/AuthContext';
 import { supabase } from '../../../lib/supabase';
 import AddAppsModal from '../../../components/AddAppsModal';
 
 const APP_META: Record<string, { name: string; icon: React.ElementType; color: string }> = {
-  legalflow:  { name: 'LegalFlow',  icon: Scale,      color: 'text-blue-600 bg-blue-50' },
-  courseflow: { name: 'CourseFlow', icon: BookOpen,    color: 'text-emerald-600 bg-emerald-50' },
-  foodtruck:  { name: 'FoodTruck',  icon: Truck,       color: 'text-orange-600 bg-orange-50' },
-  buildflow:  { name: 'BuildFlow',  icon: Building2,   color: 'text-yellow-600 bg-yellow-50' },
-  keysflow:   { name: 'KeysFlow',   icon: Key,         color: 'text-purple-600 bg-purple-50' },
+  legalflow:   { name: 'LegalFlow',   icon: Scale,      color: 'text-blue-600 bg-blue-50' },
+  financeflow: { name: 'FinanceFlow', icon: Receipt,    color: 'text-teal-600 bg-teal-50' },
+  socialflow:  { name: 'SocialFlow',  icon: Share2,     color: 'text-pink-600 bg-pink-50' },
+  hrflow:      { name: 'HRFlow',      icon: UserCheck,  color: 'text-rose-600 bg-rose-50' },
+  courseflow:   { name: 'CourseFlow',  icon: BookOpen,   color: 'text-emerald-600 bg-emerald-50' },
+  foodtruck:   { name: 'FoodTruck',   icon: Truck,      color: 'text-orange-600 bg-orange-50' },
+  buildflow:   { name: 'BuildFlow',   icon: Building2,  color: 'text-yellow-600 bg-yellow-50' },
+  keysflow:    { name: 'KeysFlow',    icon: Key,        color: 'text-purple-600 bg-purple-50' },
 };
 
 const STATUS_COLORS: Record<string, string> = {
@@ -29,6 +33,7 @@ interface Subscription {
 
 export default function Billing() {
   const { user } = useAuth();
+  const { refreshSubscriptions } = useOutletContext<{ refreshSubscriptions: () => void }>();
   const [subs, setSubs] = useState<Subscription[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [cancelling, setCancelling] = useState<string | null>(null);
@@ -43,6 +48,7 @@ export default function Billing() {
       .order('subscribed_at', { ascending: false });
     setSubs(data || []);
     setIsLoading(false);
+    refreshSubscriptions();
   };
 
   useEffect(() => { fetchSubs(); }, [user]);

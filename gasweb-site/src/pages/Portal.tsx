@@ -26,6 +26,7 @@ import {
   Share2,
   MessageCircle,
   Megaphone,
+  Monitor,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
@@ -77,6 +78,7 @@ interface SidebarContentProps {
   setIsFinanceFlowOpen: (open: boolean) => void;
   isSocialFlowOpen: boolean;
   setIsSocialFlowOpen: (open: boolean) => void;
+  isGasStaff: boolean;
   handleSignOut: () => void;
 }
 
@@ -86,6 +88,7 @@ function SidebarContent({
   isLegalFlowOpen, setIsLegalFlowOpen,
   isFinanceFlowOpen, setIsFinanceFlowOpen,
   isSocialFlowOpen, setIsSocialFlowOpen,
+  isGasStaff,
   handleSignOut,
 }: SidebarContentProps) {
   return (
@@ -161,6 +164,15 @@ function SidebarContent({
             <p className="text-xs text-slate-500 truncate">{user.email}</p>
           </div>
         </div>
+        {isGasStaff && (
+          <NavLink
+            to="/os"
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-primary-600 hover:bg-primary-50 transition-colors"
+          >
+            <Monitor className="w-4 h-4" />
+            Switch to OS
+          </NavLink>
+        )}
         <button
           onClick={handleSignOut}
           className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-red-50 hover:text-red-600 transition-colors"
@@ -224,7 +236,7 @@ function NavItem({ to, icon: Icon, label, end }: { to: string; icon: React.Eleme
 }
 
 export default function Portal() {
-  const { user, signOut } = useAuth();
+  const { user, signOut, isGasStaff } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
@@ -286,6 +298,7 @@ export default function Portal() {
     setIsFinanceFlowOpen,
     isSocialFlowOpen,
     setIsSocialFlowOpen,
+    isGasStaff,
     handleSignOut,
   };
 

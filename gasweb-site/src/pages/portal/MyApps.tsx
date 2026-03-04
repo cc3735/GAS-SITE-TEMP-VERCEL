@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
-import { Plus, ExternalLink, Lock, ArrowRight } from 'lucide-react';
+import { Plus, ExternalLink, Lock, ArrowRight, Trash2 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
 import AddAppsModal, { ALL_APPS, INDIVIDUAL_PRICE } from '../../components/AddAppsModal';
 
 interface Subscription {
+  id: string;
   app_id: string;
   plan: string;
   status: string;
@@ -17,16 +18,28 @@ export default function MyApps() {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [removing, setRemoving] = useState<string | null>(null);
 
   const fetchSubs = async () => {
     if (!user) return;
     const { data } = await supabase
       .from('user_app_subscriptions')
-      .select('app_id, plan, status')
+      .select('id, app_id, plan, status')
       .eq('user_id', user.id);
     setSubscriptions(data || []);
     setIsLoading(false);
     refreshSubscriptions();
+  };
+
+  const handleRemove = async (sub: Subscription) => {
+    if (!confirm(`Remove ${ALL_APPS.find((a) => a.id === sub.app_id)?.name ?? sub.app_id}? You can re-add it anytime.`)) return;
+    setRemoving(sub.id);
+    await supabase
+      .from('user_app_subscriptions')
+      .update({ status: 'cancelled' })
+      .eq('id', sub.id);
+    await fetchSubs();
+    setRemoving(null);
   };
 
   useEffect(() => { fetchSubs(); }, [user]);
@@ -116,12 +129,22 @@ export default function MyApps() {
                         Open app <ExternalLink className="w-3.5 h-3.5" />
                       </a>
                     )}
-                    <Link
-                      to={`/portal/overview#${app.id}`}
-                      className="text-xs text-slate-400 hover:text-slate-600 transition-colors"
-                    >
-                      Learn more
-                    </Link>
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={() => handleRemove(sub)}
+                        disabled={removing === sub.id}
+                        className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-red-500 transition-colors disabled:opacity-50"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                        {removing === sub.id ? 'Removing…' : 'Remove'}
+                      </button>
+                      <Link
+                        to={`/portal/overview#${app.id}`}
+                        className="text-xs text-slate-400 hover:text-slate-600 transition-colors"
+                      >
+                        Learn more
+                      </Link>
+                    </div>
                   </div>
                 ) : (
                   <div className="flex items-center justify-between">

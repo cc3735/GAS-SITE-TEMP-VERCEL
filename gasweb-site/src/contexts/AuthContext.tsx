@@ -7,6 +7,7 @@ interface AuthContextValue {
   session: Session | null;
   isLoading: boolean;
   loading: boolean;
+  isGasStaff: boolean;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signUp: (email: string, password: string, fullName?: string) => Promise<{ error: string | null; needsVerification?: boolean }>;
   signInWithGoogle: () => Promise<void>;
@@ -19,17 +20,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isGasStaff, setIsGasStaff] = useState(false);
 
   useEffect(() => {
+    const fetchStaffFlag = async (uid: string) => {
+      const { data } = await supabase
+        .from('user_profiles')
+        .select('is_gas_staff')
+        .eq('id', uid)
+        .single();
+      setIsGasStaff(data?.is_gas_staff ?? false);
+    };
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
+      if (session?.user) fetchStaffFlag(session.user.id);
       setIsLoading(false);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
+      if (session?.user) {
+        fetchStaffFlag(session.user.id);
+      } else {
+        setIsGasStaff(false);
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -66,7 +83,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, isLoading, loading: isLoading, signIn, signUp, signInWithGoogle, signOut }}>
+    <AuthContext.Provider value={{ user, session, isLoading, loading: isLoading, isGasStaff, signIn, signUp, signInWithGoogle, signOut }}>
       {children}
     </AuthContext.Provider>
   );
