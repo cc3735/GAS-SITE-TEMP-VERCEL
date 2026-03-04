@@ -16,7 +16,10 @@ interface AppEntry {
 
 // Fallback catalog in case business_apps table is empty
 const FALLBACK_APPS = [
-  { slug: 'legalflow', display_name: 'LegalFlow', description: 'AI-powered legal automation, contracts, tax filing, and trademark services.' },
+  { slug: 'legalflow', display_name: 'LegalFlow', description: 'AI-powered legal documents, trademark filing, and business compliance.' },
+  { slug: 'financeflow', display_name: 'FinanceFlow', description: 'AI-powered bookkeeping, tax filing, invoicing, and inventory management.' },
+  { slug: 'socialflow', display_name: 'SocialFlow', description: 'Unified messaging inbox and marketing automation.' },
+  { slug: 'hrflow', display_name: 'HRFlow', description: 'HR, payroll, onboarding, and team management.' },
   { slug: 'courseflow', display_name: 'CourseFlow', description: 'Create and sell online courses with a fully managed LMS.' },
   { slug: 'foodtruck', display_name: 'FoodTruck', description: 'Food truck ordering, operations, and location tracking.' },
   { slug: 'buildflow', display_name: 'BuildFlow', description: 'Construction project management and scheduling.' },

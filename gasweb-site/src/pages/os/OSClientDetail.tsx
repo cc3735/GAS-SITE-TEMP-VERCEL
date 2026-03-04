@@ -41,6 +41,9 @@ interface Business {
 
 const APP_LABELS: Record<string, string> = {
   legalflow: 'LegalFlow',
+  financeflow: 'FinanceFlow',
+  socialflow: 'SocialFlow',
+  hrflow: 'HRFlow',
   courseflow: 'CourseFlow',
   foodtruck: 'FoodTruck',
   buildflow: 'BuildFlow',

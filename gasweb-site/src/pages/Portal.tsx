@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Outlet, NavLink, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import {
   LayoutGrid,
@@ -28,6 +28,7 @@ import {
   Megaphone,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../lib/supabase';
 import PortalChatBot from '../components/portal/PortalChatBot';
 
 const appNavItems = [
@@ -67,6 +68,7 @@ const socialFlowNavItems = [
 interface SidebarContentProps {
   initials: string;
   user: { email?: string; user_metadata?: Record<string, unknown> };
+  subscribedApps: Set<string>;
   isSettingsOpen: boolean;
   setIsSettingsOpen: (open: boolean) => void;
   isLegalFlowOpen: boolean;
@@ -79,7 +81,7 @@ interface SidebarContentProps {
 }
 
 function SidebarContent({
-  initials, user,
+  initials, user, subscribedApps,
   isSettingsOpen, setIsSettingsOpen,
   isLegalFlowOpen, setIsLegalFlowOpen,
   isFinanceFlowOpen, setIsFinanceFlowOpen,
@@ -102,32 +104,38 @@ function SidebarContent({
           <NavItem key={item.to} {...item} />
         ))}
 
-        {/* LegalFlow group */}
-        <CollapsibleGroup
-          icon={Scale}
-          label="LegalFlow"
-          isOpen={isLegalFlowOpen}
-          onToggle={() => setIsLegalFlowOpen(!isLegalFlowOpen)}
-          items={legalFlowNavItems}
-        />
+        {/* LegalFlow group — only if subscribed */}
+        {subscribedApps.has('legalflow') && (
+          <CollapsibleGroup
+            icon={Scale}
+            label="LegalFlow"
+            isOpen={isLegalFlowOpen}
+            onToggle={() => setIsLegalFlowOpen(!isLegalFlowOpen)}
+            items={legalFlowNavItems}
+          />
+        )}
 
-        {/* FinanceFlow group */}
-        <CollapsibleGroup
-          icon={Receipt}
-          label="FinanceFlow"
-          isOpen={isFinanceFlowOpen}
-          onToggle={() => setIsFinanceFlowOpen(!isFinanceFlowOpen)}
-          items={financeFlowNavItems}
-        />
+        {/* FinanceFlow group — only if subscribed */}
+        {subscribedApps.has('financeflow') && (
+          <CollapsibleGroup
+            icon={Receipt}
+            label="FinanceFlow"
+            isOpen={isFinanceFlowOpen}
+            onToggle={() => setIsFinanceFlowOpen(!isFinanceFlowOpen)}
+            items={financeFlowNavItems}
+          />
+        )}
 
-        {/* SocialFlow group */}
-        <CollapsibleGroup
-          icon={Share2}
-          label="SocialFlow"
-          isOpen={isSocialFlowOpen}
-          onToggle={() => setIsSocialFlowOpen(!isSocialFlowOpen)}
-          items={socialFlowNavItems}
-        />
+        {/* SocialFlow group — only if subscribed */}
+        {subscribedApps.has('socialflow') && (
+          <CollapsibleGroup
+            icon={Share2}
+            label="SocialFlow"
+            isOpen={isSocialFlowOpen}
+            onToggle={() => setIsSocialFlowOpen(!isSocialFlowOpen)}
+            items={socialFlowNavItems}
+          />
+        )}
 
         {/* Settings group */}
         <CollapsibleGroup
@@ -232,6 +240,20 @@ export default function Portal() {
   const [isSocialFlowOpen, setIsSocialFlowOpen] = useState(
     location.pathname.startsWith('/portal/socialflow')
   );
+  const [subscribedApps, setSubscribedApps] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from('user_app_subscriptions')
+      .select('app_id')
+      .eq('user_id', user.id)
+      .eq('status', 'active')
+      .then(({ data }) => {
+        setSubscribedApps(new Set((data ?? []).map((r: { app_id: string }) => r.app_id)));
+      });
+  }, [user]);
+
   const isFrameRoute =
     location.pathname.startsWith('/portal/legalflow/') ||
     location.pathname.startsWith('/portal/financeflow/');
@@ -253,6 +275,7 @@ export default function Portal() {
   const sidebarProps: SidebarContentProps = {
     initials,
     user,
+    subscribedApps,
     isSettingsOpen,
     setIsSettingsOpen,
     isLegalFlowOpen,
