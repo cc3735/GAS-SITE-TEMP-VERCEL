@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
-import { Plus, ExternalLink, Lock, ArrowRight, Trash2 } from 'lucide-react';
+import { Plus, ExternalLink, Lock, ArrowRight, Trash2, CheckCircle2, Circle, Clock } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
 import AddAppsModal, { ALL_APPS, INDIVIDUAL_PRICE } from '../../components/AddAppsModal';
+import { useComplianceChecklist, type ComplianceItem } from '../../hooks/useComplianceChecklist';
 
 interface Subscription {
   id: string;
@@ -12,6 +13,12 @@ interface Subscription {
   status: string;
 }
 
+const STATUS_CFG: Record<string, { label: string; icon: typeof Circle; color: string; bg: string }> = {
+  pending: { label: 'Pending', icon: Circle, color: 'text-amber-600', bg: 'bg-amber-50' },
+  in_progress: { label: 'In Progress', icon: Clock, color: 'text-blue-600', bg: 'bg-blue-50' },
+  completed: { label: 'Completed', icon: CheckCircle2, color: 'text-green-600', bg: 'bg-green-50' },
+};
+
 export default function MyApps() {
   const { user } = useAuth();
   const { refreshSubscriptions } = useOutletContext<{ refreshSubscriptions: () => void }>();
@@ -19,6 +26,7 @@ export default function MyApps() {
   const [isLoading, setIsLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [removing, setRemoving] = useState<string | null>(null);
+  const { items: checklistItems, updateStatus } = useComplianceChecklist();
 
   const fetchSubs = async () => {
     if (!user) return;
@@ -67,6 +75,56 @@ export default function MyApps() {
           </button>
         )}
       </div>
+
+      {/* Compliance Checklist */}
+      {checklistItems.length > 0 && (
+        <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-8">
+          <div className="flex items-center justify-between mb-1">
+            <h2 className="text-lg font-bold text-slate-900">Compliance Checklist</h2>
+            <span className="text-xs font-medium text-slate-500">
+              {checklistItems.filter((i) => i.status === 'completed').length}/{checklistItems.length} complete
+            </span>
+          </div>
+          <p className="text-sm text-slate-500 mb-4">
+            Items that need your attention to get your business fully set up.
+          </p>
+          <div className="space-y-2">
+            {checklistItems.map((item) => {
+              const cfg = STATUS_CFG[item.status] || STATUS_CFG.pending;
+              const StatusIcon = cfg.icon;
+              return (
+                <div key={item.id} className="flex items-center gap-3 p-3 rounded-xl border border-slate-100 hover:bg-slate-50 transition-colors">
+                  <button
+                    onClick={() =>
+                      updateStatus(item.id, item.status === 'completed' ? 'pending' : 'completed')
+                    }
+                    className={`flex-shrink-0 ${cfg.color}`}
+                    title={item.status === 'completed' ? 'Mark as pending' : 'Mark as completed'}
+                  >
+                    <StatusIcon className="w-5 h-5" />
+                  </button>
+                  <div className="flex-1 min-w-0">
+                    <p className={`text-sm font-medium ${item.status === 'completed' ? 'text-slate-400 line-through' : 'text-slate-900'}`}>
+                      {item.title}
+                    </p>
+                    {item.description && (
+                      <p className="text-xs text-slate-500 mt-0.5">{item.description}</p>
+                    )}
+                  </div>
+                  {item.portal_link && item.status !== 'completed' && (
+                    <Link
+                      to={item.portal_link}
+                      className="text-xs font-medium text-primary-600 hover:text-primary-700 flex-shrink-0"
+                    >
+                      Go &rarr;
+                    </Link>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {isLoading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">

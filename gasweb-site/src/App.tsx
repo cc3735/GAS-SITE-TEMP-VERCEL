@@ -20,12 +20,17 @@ import MyApps from './pages/portal/MyApps';
 import Overview from './pages/portal/Overview';
 import Settings from './pages/portal/Settings';
 import LegalFlowHub from './pages/portal/legalflow/LegalFlowHub';
-import LegalFlowFrame from './pages/portal/legalflow/LegalFlowFrame';
+import LegalFlowBusinesses from './pages/portal/legalflow/LegalFlowBusinesses';
+import LegalFlowLegal from './pages/portal/legalflow/LegalFlowLegal';
+import LegalFlowTrademark from './pages/portal/legalflow/LegalFlowTrademark';
+import LegalFlowSigning from './pages/portal/legalflow/LegalFlowSigning';
+import LegalFlowDigitalPresence from './pages/portal/legalflow/LegalFlowDigitalPresence';
 import FinanceFlowHub from './pages/portal/financeflow/FinanceFlowHub';
 import FinanceFlowFrame from './pages/portal/financeflow/FinanceFlowFrame';
 import SocialFlowHub from './pages/portal/socialflow/SocialFlowHub';
 import SocialFlowMessaging from './pages/portal/socialflow/SocialFlowMessaging';
 import SocialFlowMarketing from './pages/portal/socialflow/SocialFlowMarketing';
+import ClientIntake from './pages/portal/intake/ClientIntake';
 import PortalCRM from './pages/portal/PortalCRM';
 import PortalProjects from './pages/portal/PortalProjects';
 import Profile from './pages/portal/settings/Profile';
@@ -80,6 +85,7 @@ function App(): JSX.Element {
           <Route path="/portal" element={<ProtectedRoute><OrganizationProvider><Portal /></OrganizationProvider></ProtectedRoute>}>
             <Route index element={<Navigate to="/portal/apps" replace />} />
             <Route path="apps" element={<MyApps />} />
+            <Route path="intake" element={<ClientIntake />} />
             <Route path="overview" element={<Overview />} />
             <Route path="settings" element={<Settings />}>
               <Route index element={<Navigate to="/portal/settings/profile" replace />} />
@@ -89,7 +95,11 @@ function App(): JSX.Element {
               <Route path="security" element={<Security />} />
             </Route>
             <Route path="legalflow" element={<LegalFlowHub />} />
-            <Route path="legalflow/:section" element={<LegalFlowFrame />} />
+            <Route path="legalflow/signing" element={<LegalFlowSigning />} />
+            <Route path="legalflow/digital-presence" element={<LegalFlowDigitalPresence />} />
+            <Route path="legalflow/businesses" element={<LegalFlowBusinesses />} />
+            <Route path="legalflow/legal" element={<LegalFlowLegal />} />
+            <Route path="legalflow/trademark" element={<LegalFlowTrademark />} />
             <Route path="financeflow" element={<FinanceFlowHub />} />
             <Route path="financeflow/:section" element={<FinanceFlowFrame />} />
             <Route path="socialflow" element={<SocialFlowHub />} />

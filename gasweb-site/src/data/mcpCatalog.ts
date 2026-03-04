@@ -11,7 +11,7 @@ export interface MCPCatalogEntry {
   id: string;
   name: string;
   description: string;
-  category: 'productivity' | 'crm' | 'marketing' | 'communication' | 'finance' | 'ai' | 'developer' | 'hr';
+  category: 'productivity' | 'crm' | 'marketing' | 'communication' | 'finance' | 'ai' | 'developer' | 'hr' | 'legal' | 'infrastructure';
   github_url: string;
   npm_package?: string;
   is_official: boolean;
@@ -29,6 +29,8 @@ export const CATEGORY_LABELS: Record<string, { label: string; color: string }> =
   ai: { label: 'AI & Knowledge', color: 'bg-cyan-600' },
   developer: { label: 'Developer', color: 'bg-orange-600' },
   hr: { label: 'HR & Payroll', color: 'bg-rose-600' },
+  legal: { label: 'Legal & Compliance', color: 'bg-indigo-600' },
+  infrastructure: { label: 'Hosting & Domains', color: 'bg-slate-600' },
 };
 
 export const mcpCatalog: MCPCatalogEntry[] = [
@@ -402,6 +404,80 @@ export const mcpCatalog: MCPCatalogEntry[] = [
       { key: 'subdomain', label: 'BambooHR Subdomain', type: 'text', placeholder: 'yourcompany', required: true },
       { key: 'api_key', label: 'BambooHR API Key', type: 'password', required: true },
     ],
+  },
+
+  // ── Tier 1: Legal & Compliance ───────────────────────────────────
+  {
+    id: 'zoho-sign',
+    name: 'Zoho Sign',
+    description: 'E-signature and document signing. Send documents for signature, track signing status, and download signed PDFs.',
+    category: 'legal',
+    github_url: 'https://github.com/nicholasgriffintn/zoho-mcp-server',
+    is_official: false,
+    icon: 'PenTool',
+    tier: 1,
+    config_fields: [
+      { key: 'client_id', label: 'Zoho Client ID', type: 'text', required: true },
+      { key: 'client_secret', label: 'Zoho Client Secret', type: 'password', required: true },
+      { key: 'refresh_token', label: 'Zoho Refresh Token', type: 'password', required: true },
+      { key: 'domain', label: 'Zoho Domain', type: 'select', required: true, options: [{ value: 'com', label: 'zoho.com (US)' }, { value: 'eu', label: 'zoho.eu (EU)' }, { value: 'in', label: 'zoho.in (India)' }] },
+    ],
+  },
+
+  // ── Tier 1: Hosting & Domains ──────────────────────────────────
+  {
+    id: 'hostinger',
+    name: 'Hostinger',
+    description: 'Domain registration, DNS management, and web hosting. Automate domain setup, DNS records, and hosting provisioning for clients.',
+    category: 'infrastructure',
+    github_url: 'https://github.com/jpollock/hostinger-mcp',
+    is_official: false,
+    icon: 'Globe',
+    tier: 1,
+    config_fields: [
+      { key: 'api_token', label: 'Hostinger API Token', type: 'password', placeholder: 'Bearer token from Hostinger', required: true },
+    ],
+  },
+
+  // ── Tier 2: Legal (additional) ─────────────────────────────────
+  {
+    id: 'zoho-crm',
+    name: 'Zoho CRM',
+    description: 'Zoho CRM integration. Manage leads, contacts, deals, and accounts across the Zoho ecosystem.',
+    category: 'crm',
+    github_url: 'https://github.com/nicholasgriffintn/zoho-mcp-server',
+    is_official: false,
+    icon: 'UserPlus',
+    tier: 2,
+    config_fields: [
+      { key: 'client_id', label: 'Zoho Client ID', type: 'text', required: true },
+      { key: 'client_secret', label: 'Zoho Client Secret', type: 'password', required: true },
+      { key: 'refresh_token', label: 'Zoho Refresh Token', type: 'password', required: true },
+    ],
+  },
+  {
+    id: 'pandadoc',
+    name: 'PandaDoc',
+    description: 'Document automation and e-signatures. Create proposals, contracts, and quotes with templates and collect signatures.',
+    category: 'legal',
+    github_url: 'https://github.com/PandaDoc/mcp-server',
+    is_official: false,
+    icon: 'FileSignature',
+    tier: 2,
+    config_fields: [
+      { key: 'api_key', label: 'PandaDoc API Key', type: 'password', placeholder: 'your-api-key', required: true },
+    ],
+  },
+  {
+    id: 'uspto-patent',
+    name: 'USPTO Patent Search',
+    description: 'Search the US Patent and Trademark Office database. Find existing patents, trademarks, and check availability for filings.',
+    category: 'legal',
+    github_url: 'https://github.com/devinbarry/patent-mcp-server',
+    is_official: false,
+    icon: 'Search',
+    tier: 2,
+    config_fields: [],
   },
 
   // ── Tier 3: AI & Knowledge ────────────────────────────────────────

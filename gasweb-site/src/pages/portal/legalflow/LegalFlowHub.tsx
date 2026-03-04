@@ -3,10 +3,21 @@ import {
   FileText,
   Award,
   Briefcase,
+  PenTool,
+  Globe,
   ArrowRight,
 } from 'lucide-react';
 
 const FEATURES = [
+  {
+    slug: 'businesses',
+    label: 'Businesses',
+    description: 'Manage your registered business entities and filings.',
+    icon: Briefcase,
+    color: 'bg-slate-100',
+    textColor: 'text-slate-600',
+    dotColor: 'bg-slate-600',
+  },
   {
     slug: 'legal',
     label: 'Legal Documents',
@@ -15,6 +26,15 @@ const FEATURES = [
     color: 'bg-purple-50',
     textColor: 'text-purple-600',
     dotColor: 'bg-purple-600',
+  },
+  {
+    slug: 'digital-presence',
+    label: 'Digital Presence',
+    description: 'Register a domain, set up business email, and launch your website.',
+    icon: Globe,
+    color: 'bg-teal-50',
+    textColor: 'text-teal-600',
+    dotColor: 'bg-teal-600',
   },
   {
     slug: 'trademark',
@@ -26,13 +46,13 @@ const FEATURES = [
     dotColor: 'bg-orange-600',
   },
   {
-    slug: 'businesses',
-    label: 'Businesses',
-    description: 'Manage your registered business entities and filings.',
-    icon: Briefcase,
-    color: 'bg-slate-100',
-    textColor: 'text-slate-600',
-    dotColor: 'bg-slate-600',
+    slug: 'signing',
+    label: 'Document Signing',
+    description: 'Send documents for e-signature, track signing status, and download signed copies.',
+    icon: PenTool,
+    color: 'bg-blue-50',
+    textColor: 'text-blue-600',
+    dotColor: 'bg-blue-600',
   },
 ] as const;
 

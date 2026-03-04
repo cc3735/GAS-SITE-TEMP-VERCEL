@@ -27,6 +27,8 @@ import {
   MessageCircle,
   Megaphone,
   Monitor,
+  PenTool,
+  Globe,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
@@ -46,10 +48,12 @@ const settingsNavItems = [
 ];
 
 const legalFlowNavItems = [
-  { to: '/portal/legalflow',             icon: LayoutGrid,  label: 'Overview',        end: true },
-  { to: '/portal/legalflow/legal',       icon: FileText,    label: 'Legal Documents' },
-  { to: '/portal/legalflow/trademark',   icon: Award,       label: 'Trademark' },
-  { to: '/portal/legalflow/businesses',  icon: Briefcase,   label: 'Businesses' },
+  { to: '/portal/legalflow',                  icon: LayoutGrid, label: 'Overview',          end: true },
+  { to: '/portal/legalflow/businesses',       icon: Briefcase,  label: 'Businesses' },
+  { to: '/portal/legalflow/legal',            icon: FileText,   label: 'Legal Documents' },
+  { to: '/portal/legalflow/digital-presence', icon: Globe,      label: 'Digital Presence' },
+  { to: '/portal/legalflow/trademark',        icon: Award,      label: 'Trademark' },
+  { to: '/portal/legalflow/signing',          icon: PenTool,    label: 'Document Signing' },
 ];
 
 const financeFlowNavItems = [

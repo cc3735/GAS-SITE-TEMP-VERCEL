@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import type { Session, User } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 
@@ -8,6 +8,8 @@ interface AuthContextValue {
   isLoading: boolean;
   loading: boolean;
   isGasStaff: boolean;
+  intakeCompleted: boolean;
+  refetchIntakeStatus: () => void;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signUp: (email: string, password: string, fullName?: string) => Promise<{ error: string | null; needsVerification?: boolean }>;
   signInWithGoogle: () => Promise<void>;
@@ -21,21 +23,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isGasStaff, setIsGasStaff] = useState(false);
+  const [intakeCompleted, setIntakeCompleted] = useState(true); // default true to prevent flash-redirect
+
+  const fetchProfileFlags = useCallback(async (uid: string) => {
+    const { data } = await supabase
+      .from('user_profiles')
+      .select('is_gas_staff, intake_completed')
+      .eq('id', uid)
+      .single();
+    setIsGasStaff(data?.is_gas_staff ?? false);
+    setIntakeCompleted(data?.intake_completed ?? false);
+  }, []);
 
   useEffect(() => {
-    const fetchStaffFlag = async (uid: string) => {
-      const { data } = await supabase
-        .from('user_profiles')
-        .select('is_gas_staff')
-        .eq('id', uid)
-        .single();
-      setIsGasStaff(data?.is_gas_staff ?? false);
-    };
-
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
-      if (session?.user) fetchStaffFlag(session.user.id);
+      if (session?.user) fetchProfileFlags(session.user.id);
       setIsLoading(false);
     });
 
@@ -43,14 +47,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        fetchStaffFlag(session.user.id);
+        fetchProfileFlags(session.user.id);
       } else {
         setIsGasStaff(false);
+        setIntakeCompleted(true);
       }
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [fetchProfileFlags]);
 
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -83,7 +88,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, isLoading, loading: isLoading, isGasStaff, signIn, signUp, signInWithGoogle, signOut }}>
+    <AuthContext.Provider value={{ user, session, isLoading, loading: isLoading, isGasStaff, intakeCompleted, refetchIntakeStatus: () => { if (user) fetchProfileFlags(user.id); }, signIn, signUp, signInWithGoogle, signOut }}>
       {children}
     </AuthContext.Provider>
   );

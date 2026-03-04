@@ -1,10 +1,21 @@
 import { useState, useEffect } from 'react';
-import { Check } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Check, PenLine } from 'lucide-react';
 import { useAuth } from '../../../contexts/AuthContext';
 import { supabase } from '../../../lib/supabase';
+import { useClientIntake } from '../../../hooks/useClientIntake';
+
+const ENTITY_LABELS: Record<string, string> = {
+  llc: 'LLC',
+  s_corp: 'S-Corp',
+  c_corp: 'C-Corp',
+  partnership: 'Partnership',
+  sole_prop: 'Sole Proprietorship',
+};
 
 export default function Profile() {
   const { user } = useAuth();
+  const { intake } = useClientIntake();
   const [fullName, setFullName] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -102,6 +113,60 @@ export default function Profile() {
           </button>
         </form>
       </section>
+      {/* Business Information */}
+      {intake && (
+        <section className="bg-white rounded-2xl border border-slate-200 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-semibold text-slate-900">Business Information</h2>
+            <Link
+              to="/portal/intake"
+              className="inline-flex items-center gap-1.5 text-sm text-primary-600 hover:text-primary-700 font-medium"
+            >
+              <PenLine className="w-3.5 h-3.5" /> Edit
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+            <div>
+              <p className="text-slate-500">Domain</p>
+              <p className="font-medium text-slate-900">
+                {intake.has_domain ? intake.domain_name || 'Yes' : 'Not registered'}
+              </p>
+            </div>
+            <div>
+              <p className="text-slate-500">Business Registration</p>
+              <p className="font-medium text-slate-900">
+                {intake.is_registered
+                  ? `${ENTITY_LABELS[intake.entity_type || ''] || intake.entity_type} in ${intake.registration_state}`
+                  : 'Not registered'}
+              </p>
+            </div>
+            <div>
+              <p className="text-slate-500">Registered Agent</p>
+              <p className="font-medium text-slate-900">
+                {intake.has_registered_agent ? intake.agent_name || 'Yes' : 'Not appointed'}
+              </p>
+            </div>
+            <div>
+              <p className="text-slate-500">Operating Agreement</p>
+              <p className="font-medium text-slate-900">
+                {intake.has_operating_agreement ? 'On file' : 'Not drafted'}
+              </p>
+            </div>
+            <div>
+              <p className="text-slate-500">Trademark</p>
+              <p className="font-medium text-slate-900">
+                {intake.has_filed_trademark ? `${intake.trademark_name} (${intake.trademark_status})` : 'Not filed'}
+              </p>
+            </div>
+            <div>
+              <p className="text-slate-500">State of Origination</p>
+              <p className="font-medium text-slate-900">
+                {intake.preferred_state_of_origination || 'Not selected'}
+              </p>
+            </div>
+          </div>
+        </section>
+      )}
     </div>
   );
 }
