@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Outlet, NavLink, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import {
   LayoutGrid,
@@ -242,7 +242,7 @@ export default function Portal() {
   );
   const [subscribedApps, setSubscribedApps] = useState<Set<string>>(new Set());
 
-  useEffect(() => {
+  const refreshSubscriptions = useCallback(() => {
     if (!user) return;
     supabase
       .from('user_app_subscriptions')
@@ -253,6 +253,8 @@ export default function Portal() {
         setSubscribedApps(new Set((data ?? []).map((r: { app_id: string }) => r.app_id)));
       });
   }, [user]);
+
+  useEffect(() => { refreshSubscriptions(); }, [refreshSubscriptions]);
 
   const isFrameRoute =
     location.pathname.startsWith('/portal/legalflow/') ||
@@ -331,7 +333,7 @@ export default function Portal() {
 
         {/* Page content — strip padding when iframe fills the area */}
         <main className={`flex-1 ${isFrameRoute ? 'overflow-hidden p-4' : 'p-6 md:p-8'}`}>
-          <Outlet />
+          <Outlet context={{ refreshSubscriptions }} />
         </main>
       </div>
 

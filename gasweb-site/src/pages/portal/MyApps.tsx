@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useOutletContext } from 'react-router-dom';
 import { Plus, ExternalLink, Lock, ArrowRight } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
@@ -13,6 +13,7 @@ interface Subscription {
 
 export default function MyApps() {
   const { user } = useAuth();
+  const { refreshSubscriptions } = useOutletContext<{ refreshSubscriptions: () => void }>();
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -25,6 +26,7 @@ export default function MyApps() {
       .eq('user_id', user.id);
     setSubscriptions(data || []);
     setIsLoading(false);
+    refreshSubscriptions();
   };
 
   useEffect(() => { fetchSubs(); }, [user]);
