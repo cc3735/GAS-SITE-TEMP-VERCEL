@@ -13,6 +13,8 @@ import Education from './pages/Education';
 import CaseStudies from './pages/CaseStudies';
 import LandingPage from './pages/LandingPage';
 import Contact from './pages/Contact';
+import Privacy from './pages/Privacy';
+import Terms from './pages/Terms';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Portal from './pages/Portal';
@@ -126,6 +128,8 @@ function App(): JSX.Element {
             <Route path="education" element={<Education />} />
             <Route path="case-studies" element={<CaseStudies />} />
             <Route path="contact" element={<Contact />} />
+            <Route path="privacy" element={<Privacy />} />
+            <Route path="terms" element={<Terms />} />
           </Route>
 
           {/* GAS-OS login — standalone, no layout */}
