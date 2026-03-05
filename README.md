@@ -67,6 +67,16 @@ npm run dev    # http://localhost:3000
 | `/portal/projects` | Portal Projects |
 | `/portal/settings` | Account Settings (profile, billing, notifications, security) |
 | `/portal/legalflow` | LegalFlow Hub |
+| `/portal/legalflow/legal` | Legal Documents |
+| `/portal/legalflow/trademark` | Trademark Search & Filing |
+| `/portal/legalflow/businesses` | Business Formation |
+| `/portal/legalflow/signing` | Document Signing |
+| `/portal/legalflow/digital-presence` | Digital Presence |
+| `/portal/financeflow` | FinanceFlow Hub |
+| `/portal/financeflow/bookkeeping` | Bookkeeping & Accounting |
+| `/portal/financeflow/tax` | Tax Filing |
+| `/portal/financeflow/invoicing` | Invoicing & Payments (AP/AR) |
+| `/portal/financeflow/inventory` | Inventory (Coming Soon) |
 
 **OS routes:**
 | Route | Page |
@@ -127,7 +137,9 @@ GAS-SITE-TEMP-VERCEL/
 │   ├── config.toml
 │   └── migrations/
 │
-├── business-apps/         # Business app subdirectories
+├── business-apps/         # Backend API services
+│   ├── LegalFlow/         # Legal services API (port 3002)
+│   └── FinanceFlow/       # Financial services API (port 3003)
 ├── _archive/              # OLD projects — reference only, do NOT run
 │   └── project/           # Former standalone GAS OS (has unmigrated
 │                          # Edge Functions and features to port later)
@@ -136,14 +148,48 @@ GAS-SITE-TEMP-VERCEL/
 └── README.md              # This file
 ```
 
+## Business Apps (Backend APIs)
+
+The `business-apps/` directory contains standalone Express.js backend APIs that serve the portal frontend:
+
+| App | Port | Description | Frontend Pages |
+|-----|------|-------------|----------------|
+| **LegalFlow** | 3002 | Legal documents, trademark, business formation, court filings | `gasweb-site/src/pages/portal/legalflow/` |
+| **FinanceFlow** | 3003 | Tax filing, bookkeeping, AP/AR, accounting, Plaid banking | `gasweb-site/src/pages/portal/financeflow/` |
+
+### Integration Pattern
+
+Each business app follows the same integration pattern:
+
+1. **Backend**: Standalone Express.js API with Supabase Auth
+2. **API Client**: Service layer in `gasweb-site/src/lib/<appName>Api.ts`
+3. **Vite Proxy**: Dev proxy in `gasweb-site/vite.config.ts` routes `/api/<appname>/*` to the backend port
+4. **Auth**: Frontend passes Supabase session token as `Authorization: Bearer <token>`
+
+### Running Business Apps
+
+```bash
+# Terminal 1 — Frontend
+cd gasweb-site && npm run dev        # http://localhost:3000
+
+# Terminal 2 — LegalFlow backend
+cd business-apps/LegalFlow && npm run dev   # http://localhost:3002
+
+# Terminal 3 — FinanceFlow backend
+cd business-apps/FinanceFlow && npm run dev  # http://localhost:3003
+```
+
+The frontend works without backends running — API calls will fail gracefully and pages show empty states.
+
 ## Important Notes for AI Agents
 
-1. **Only run `gasweb-site/`** — all other project directories are archived or inactive
+1. **Only run `gasweb-site/`** for the frontend — backend APIs are in `business-apps/`
 2. **GCP = GAS Client Portal**, not Google Cloud Platform
 3. **OS dashboard route is `/os`**, not `/os/dashboard` — it's an index route
 4. **OS requires staff flag** — the user must have `is_gas_staff = true` in the `user_profiles` Supabase table
 5. **`_archive/project/`** contains unmigrated Supabase Edge Functions (e.g., `submit-contact-form`) and features (KanbanBoard, CommandPalette, LeadEngagement, etc.) that may be ported to `gasweb-site/` in the future
 6. **If `npm install` fails** with code signature errors, delete `node_modules` and reinstall — Google Drive corrupts native binaries
+7. **Business app integration**: Each backend has its own API client in `gasweb-site/src/lib/` — use the established pattern when adding new apps
 
 ---
 

@@ -63,13 +63,13 @@ Run all migrations in order in your Supabase SQL Editor:
 
 | Order | Migration File | Description |
 |-------|----------------|-------------|
-| 1 | `001_initial_schema.sql` | Core tables (users, tax returns, legal documents, etc.) |
-| 2 | `002_data_ingestion_schema.sql` | Data tables for tax/legal reference data |
-| 3 | `003_seed_federal_tax_data.sql` | 2024 federal tax brackets, deductions, credits |
-| 4 | `004_seed_state_tax_data.sql` | All 50 states tax configurations and brackets |
+| 1 | `001_initial_schema.sql` | Core tables (users, legal documents, etc.) |
+| 2 | `002_data_ingestion_schema.sql` | Data tables for reference data |
 | 5 | `005_seed_child_support_data.sql` | Child support guidelines for all 50 states |
 | 6 | `006_seed_business_formation_data.sql` | LLC/Corp formation requirements by state |
 | 7 | `007_seed_legal_filing_requirements.sql` | Divorce filing requirements by state |
+
+> **Note:** Tax-related migrations (003, 004) are now part of [FinanceFlow](../../FinanceFlow/).
 
 **Important:** Run migrations in sequential order as later migrations depend on earlier ones.
 
@@ -82,11 +82,7 @@ After running all migrations, verify the data was seeded correctly:
 
 ```sql
 -- Check record counts
-SELECT 'Federal Tax Brackets' as table_name, COUNT(*) as count FROM lf_federal_tax_brackets
-UNION ALL
-SELECT 'State Tax Configs', COUNT(*) FROM lf_state_tax_config
-UNION ALL
-SELECT 'Child Support Guidelines', COUNT(*) FROM lf_child_support_guidelines
+SELECT 'Child Support Guidelines' as table_name, COUNT(*) as count FROM lf_child_support_guidelines
 UNION ALL
 SELECT 'Business Formation', COUNT(*) FROM lf_business_formation_requirements
 UNION ALL
@@ -140,15 +136,17 @@ STRIPE_PRICE_PREMIUM_MONTHLY=price_xxxxx
    - `customer.subscription.deleted`
 4. Copy the webhook signing secret to `STRIPE_WEBHOOK_SECRET`
 
-## Frontend Setup
+## Frontend Integration
+
+The LegalFlow frontend pages live in `gasweb-site/src/pages/portal/legalflow/` and connect to this API via `gasweb-site/src/lib/legalFlowApi.ts`.
 
 ```bash
-cd frontend
-npm install
-npm run dev
+# Run the frontend from the main project
+cd gasweb-site
+npm run dev    # http://localhost:3000
 ```
 
-The frontend will start at `http://localhost:5173`
+The Vite dev server proxies `/api/legalflow/*` to `localhost:3002`.
 
 ## Testing
 

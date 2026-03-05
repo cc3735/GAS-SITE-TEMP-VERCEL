@@ -25,8 +25,12 @@ import LegalFlowLegal from './pages/portal/legalflow/LegalFlowLegal';
 import LegalFlowTrademark from './pages/portal/legalflow/LegalFlowTrademark';
 import LegalFlowSigning from './pages/portal/legalflow/LegalFlowSigning';
 import LegalFlowDigitalPresence from './pages/portal/legalflow/LegalFlowDigitalPresence';
+import LegalFlowDocumentDetail from './pages/portal/legalflow/LegalFlowDocumentDetail';
 import FinanceFlowHub from './pages/portal/financeflow/FinanceFlowHub';
-import FinanceFlowFrame from './pages/portal/financeflow/FinanceFlowFrame';
+import FinanceFlowBookkeeping from './pages/portal/financeflow/FinanceFlowBookkeeping';
+import FinanceFlowTax from './pages/portal/financeflow/FinanceFlowTax';
+import FinanceFlowInvoicing from './pages/portal/financeflow/FinanceFlowInvoicing';
+import FinanceFlowInventory from './pages/portal/financeflow/FinanceFlowInventory';
 import SocialFlowHub from './pages/portal/socialflow/SocialFlowHub';
 import SocialFlowMessaging from './pages/portal/socialflow/SocialFlowMessaging';
 import SocialFlowMarketing from './pages/portal/socialflow/SocialFlowMarketing';
@@ -99,9 +103,13 @@ function App(): JSX.Element {
             <Route path="legalflow/digital-presence" element={<LegalFlowDigitalPresence />} />
             <Route path="legalflow/businesses" element={<LegalFlowBusinesses />} />
             <Route path="legalflow/legal" element={<LegalFlowLegal />} />
+            <Route path="legalflow/legal/:id" element={<LegalFlowDocumentDetail />} />
             <Route path="legalflow/trademark" element={<LegalFlowTrademark />} />
             <Route path="financeflow" element={<FinanceFlowHub />} />
-            <Route path="financeflow/:section" element={<FinanceFlowFrame />} />
+            <Route path="financeflow/bookkeeping" element={<FinanceFlowBookkeeping />} />
+            <Route path="financeflow/tax" element={<FinanceFlowTax />} />
+            <Route path="financeflow/invoicing" element={<FinanceFlowInvoicing />} />
+            <Route path="financeflow/inventory" element={<FinanceFlowInventory />} />
             <Route path="socialflow" element={<SocialFlowHub />} />
             <Route path="socialflow/messaging" element={<SocialFlowMessaging />} />
             <Route path="socialflow/marketing" element={<SocialFlowMarketing />} />

@@ -1,6 +1,6 @@
 // Legal document types
 
-export type DocumentCategory = 'business' | 'estate' | 'trademark' | 'contract';
+export type DocumentCategory = 'business' | 'estate' | 'estate_planning' | 'contract' | 'contracts' | 'trademark' | 'personal';
 
 export type DocumentStatus = 'draft' | 'in_progress' | 'completed' | 'signed' | 'filed';
 

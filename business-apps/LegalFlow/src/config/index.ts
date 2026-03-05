@@ -52,12 +52,11 @@ export const config = {
     max: 100, // limit each IP to 100 requests per windowMs
   },
 
-  // Pricing Tiers
+  // Pricing Tiers (legal services only — tax/financial tiers are in FinanceFlow)
   pricing: {
     tiers: {
       free: {
         name: 'Free',
-        taxReturnsPerYear: 1,
         legalDocsPerMonth: 0,
         childSupportCalcsPerMonth: 5,
         aiFeatures: false,
@@ -65,8 +64,6 @@ export const config = {
       basic: {
         name: 'Basic',
         monthlyPrice: 19,
-        perReturnPrice: 29,
-        taxReturnsPerYear: -1, // unlimited
         legalDocsPerMonth: 5,
         childSupportCalcsPerMonth: -1, // unlimited
         aiFeatures: true,
@@ -74,19 +71,13 @@ export const config = {
       premium: {
         name: 'Premium',
         monthlyPrice: 49,
-        perReturnPrice: 79,
-        taxReturnsPerYear: -1,
         legalDocsPerMonth: -1,
         childSupportCalcsPerMonth: -1,
         aiFeatures: true,
-        auditProtection: true,
         prioritySupport: true,
       },
       pro: {
         name: 'Pro',
-        perReturnPrice: 99,
-        expertReview: true,
-        businessReturns: true,
         attorneyConsultation: true,
       },
     },

@@ -59,8 +59,11 @@ export const createTaxReturnSchema = z.object({
 export const documentCategorySchema = z.enum([
   'business',
   'estate',
-  'trademark',
+  'estate_planning',
   'contract',
+  'contracts',
+  'trademark',
+  'personal',
 ]);
 
 export const createLegalDocumentSchema = z.object({

@@ -2,24 +2,26 @@
 
 ## System Overview
 
-LegalFlow is built as a modern full-stack application with a focus on security, scalability, and maintainability.
+LegalFlow is the legal services backend for the GAS platform, providing document preparation, trademark search, business formation, court filings, and child support calculations.
+
+> **Note:** Financial services (tax filing, bookkeeping, AP/AR, accounting, Plaid) have been extracted into [FinanceFlow](../../FinanceFlow/docs/ARCHITECTURE.md).
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                        CLIENT LAYER                              │
 │  ┌─────────────────────────────────────────────────────────┐    │
-│  │           React 18 + TypeScript + Vite                   │    │
+│  │     gasweb-site — React 18 + TypeScript + Vite           │    │
 │  │   ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐   │    │
-│  │   │   Tax    │ │  Legal   │ │  Filing  │ │ Support  │   │    │
-│  │   │  Module  │ │  Module  │ │  Module  │ │   Calc   │   │    │
+│  │   │  Legal   │ │Trademark │ │  Filing  │ │ Support  │   │    │
+│  │   │  Docs    │ │  Module  │ │  Module  │ │   Calc   │   │    │
 │  │   └──────────┘ └──────────┘ └──────────┘ └──────────┘   │    │
 │  └─────────────────────────────────────────────────────────┘    │
 └─────────────────────────────────────────────────────────────────┘
                               │
-                              │ HTTPS / REST API
+                              │ Vite Proxy /api/legalflow
                               ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│                        API LAYER                                 │
+│                     LegalFlow API (port 3002)                    │
 │  ┌─────────────────────────────────────────────────────────┐    │
 │  │           Node.js 20 + Express + TypeScript              │    │
 │  │   ┌──────────────────────────────────────────────────┐  │    │
@@ -28,7 +30,7 @@ LegalFlow is built as a modern full-stack application with a focus on security, 
 │  │   └──────────────────────────────────────────────────┘  │    │
 │  │   ┌──────────────────────────────────────────────────┐  │    │
 │  │   │                   Routes                          │  │    │
-│  │   │  /auth │ /tax │ /legal │ /filing │ /child-support│  │    │
+│  │   │  /auth │ /legal │ /filing │ /child-support       │  │    │
 │  │   └──────────────────────────────────────────────────┘  │    │
 │  └─────────────────────────────────────────────────────────┘    │
 └─────────────────────────────────────────────────────────────────┘
@@ -60,22 +62,25 @@ src/
 ├── routes/
 │   ├── auth.ts           # Authentication endpoints
 │   ├── users.ts          # User management
-│   ├── tax/              # Tax module routes
-│   │   ├── returns.ts
-│   │   ├── interview.ts
-│   │   ├── documents.ts
-│   │   └── calculations.ts
+│   ├── mfa.ts            # Multi-factor authentication
 │   ├── legal/            # Legal documents routes
 │   │   ├── documents.ts
 │   │   ├── templates.ts
-│   │   └── business-formation.ts
+│   │   ├── business-formation.ts
+│   │   ├── expanded-services.ts
+│   │   └── trademark.ts
 │   ├── filing/           # Legal filing routes
 │   │   ├── filings.ts
 │   │   └── interview.ts
 │   ├── child-support/    # Child support calculator
 │   │   └── calculator.ts
 │   ├── payments.ts       # Stripe payments
-│   └── subscriptions.ts  # Subscription management
+│   ├── subscriptions.ts  # Subscription management
+│   ├── admin/            # Admin endpoints
+│   │   ├── data-management.ts
+│   │   └── technical.ts
+│   └── collaboration/
+│       └── portal.ts     # Client collaboration
 ├── services/
 │   ├── ai/
 │   │   └── openai-client.ts  # AI integration
@@ -211,8 +216,6 @@ class ApiClient {
 | Table | Purpose |
 |-------|---------|
 | `user_profiles` | User account information |
-| `tax_returns` | Tax filing data |
-| `tax_documents` | Uploaded tax documents |
 | `legal_documents` | Created legal documents |
 | `legal_templates` | Document templates |
 | `legal_filings` | Court filing records |
@@ -287,8 +290,6 @@ export async function generate(
 
 | Feature | Module | Purpose |
 |---------|--------|---------|
-| Tax Interview | Tax | Guide users through tax questions |
-| Tax Suggestions | Tax | Recommend deductions/credits |
 | Document Generation | Legal | Create legal documents from input |
 | Document Review | Legal | Check for completeness/issues |
 | Form Population | Filing | Auto-fill court forms |

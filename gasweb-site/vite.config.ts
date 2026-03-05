@@ -14,6 +14,20 @@ export default defineConfig({
   server: {
     port: 3000,
     open: true,
+    proxy: {
+      // LegalFlow backend API (Express, port 3002)
+      '/api/legalflow': {
+        target: 'http://localhost:3002',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/legalflow/, '/api'),
+      },
+      // FinanceFlow backend API (Express, port 3003)
+      '/api/financeflow': {
+        target: 'http://localhost:3003',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/financeflow/, '/api'),
+      },
+    },
   },
   build: {
     outDir: 'dist',

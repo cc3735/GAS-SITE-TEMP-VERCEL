@@ -1,7 +1,7 @@
 {
   "name": "legalflow",
   "version": "1.0.0",
-  "description": "LegalFlow - AI-powered tax filing, legal documents, and legal filing automation platform",
+  "description": "LegalFlow - AI-powered legal documents, trademark, business formation, and court filing platform",
   "main": "dist/index.js",
   "scripts": {
     "dev": "tsx watch src/index.ts",
@@ -11,17 +11,15 @@
     "typecheck": "tsc --noEmit",
     "db:generate": "supabase gen types typescript --project-id $SUPABASE_PROJECT_ID > src/types/database.ts",
     "seed": "tsx scripts/seed-data.ts",
-    "seed:federal-tax": "tsx -e \"require('./src/services/data-ingestion/federal-tax').FederalTaxDataIngestion(2024).ingestAll()\"",
-    "seed:state-tax": "tsx -e \"require('./src/services/data-ingestion/state-tax').StateTaxDataIngestion(2024).ingestAll()\"",
     "seed:child-support": "tsx -e \"require('./src/services/data-ingestion/child-support').ChildSupportDataIngestion().ingestAll()\""
   },
   "keywords": [
-    "tax-filing",
     "legal-documents",
+    "trademark",
+    "business-formation",
     "ai",
     "automation",
-    "legaltech",
-    "fintech"
+    "legaltech"
   ],
   "author": "",
   "license": "MIT",

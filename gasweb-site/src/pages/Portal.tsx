@@ -272,9 +272,8 @@ export default function Portal() {
 
   useEffect(() => { refreshSubscriptions(); }, [refreshSubscriptions]);
 
-  const isFrameRoute =
-    location.pathname.startsWith('/portal/legalflow/') ||
-    location.pathname.startsWith('/portal/financeflow/');
+  // No more iframe routes — all app pages are native components
+  const isFrameRoute = false;
 
   if (!user) return <Navigate to="/login" replace />;
 

@@ -103,26 +103,30 @@ router.post('/', asyncHandler(async (req, res) => {
 
   const { documentType, documentCategory, title, templateId } = validation.data;
 
-  // Check tier limits
+  // Check tier limits (gasweb.info users bypass all tier restrictions)
   const tier = req.user!.subscriptionTier;
-  if (tier === 'free') {
-    throw new AuthorizationError('Free tier cannot create legal documents. Please upgrade to Basic or higher.');
-  }
+  const isGasUser = req.user!.email?.endsWith('@gasweb.info');
 
-  if (tier === 'basic') {
-    // Check monthly limit (5 documents)
-    const startOfMonth = new Date();
-    startOfMonth.setDate(1);
-    startOfMonth.setHours(0, 0, 0, 0);
+  if (!isGasUser) {
+    if (tier === 'free') {
+      throw new AuthorizationError('Free tier cannot create legal documents. Please upgrade to Basic or higher.');
+    }
 
-    const { count } = await supabaseAdmin
-      .from('legal_documents')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', req.user!.id)
-      .gte('created_at', startOfMonth.toISOString());
+    if (tier === 'basic') {
+      // Check monthly limit (5 documents)
+      const startOfMonth = new Date();
+      startOfMonth.setDate(1);
+      startOfMonth.setHours(0, 0, 0, 0);
 
-    if (count && count >= 5) {
-      throw new AuthorizationError('Basic tier limit reached (5 documents/month). Please upgrade to Premium.');
+      const { count } = await supabaseAdmin
+        .from('legal_documents')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', req.user!.id)
+        .gte('created_at', startOfMonth.toISOString());
+
+      if (count && count >= 5) {
+        throw new AuthorizationError('Basic tier limit reached (5 documents/month). Please upgrade to Premium.');
+      }
     }
   }
 
