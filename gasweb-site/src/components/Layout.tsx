@@ -59,6 +59,7 @@ export default function Layout(): JSX.Element {
   const [showBackToTop, setShowBackToTop] = useState(false);
   const location = useLocation();
   const { user, signOut } = useAuth();
+  const isDarkHero = !isScrolled && location.pathname === '/';
 
   // Handle scroll events for header styling and back-to-top button
   useEffect(() => {
@@ -94,57 +95,63 @@ export default function Layout(): JSX.Element {
         <nav className="section-container">
           <div className="flex items-center justify-between h-20 md:h-28">
             {/* Logo */}
-            <Link 
-              to="/" 
+            <Link
+              to="/"
               className="flex items-center"
             >
-              <img src="/logo.png" alt="Global Automation Solutions" className="h-24 w-auto" />
+              <img src="/logo.png" alt="Global Automation Solutions" className={`h-24 w-auto transition-all duration-300 ${isDarkHero ? 'brightness-0 invert' : ''}`} />
             </Link>
 
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center gap-8">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.path}
-                  to={link.path}
-                  className={`font-medium transition-colors duration-200 ${
-                    location.pathname === link.path
-                      ? 'text-primary-600'
-                      : 'text-slate-600 hover:text-primary-600'
-                  }`}
-                >
-                  {link.name}
-                </Link>
-              ))}
-              {user ? (
-                <div className="flex items-center gap-3">
-                  <Link to="/portal" className="flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-primary-600 transition-colors">
-                    <LayoutDashboard className="w-4 h-4" />
-                    My Apps
-                  </Link>
-                  <button
-                    onClick={signOut}
-                    className="flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-red-600 transition-colors"
-                  >
-                    <LogOut className="w-4 h-4" />
-                    Sign out
-                  </button>
-                </div>
-              ) : (
-                <div className="flex items-center gap-3">
-                  <Link to="/login" className="text-sm font-medium text-slate-600 hover:text-primary-600 transition-colors">
-                    Sign in
-                  </Link>
-                  <Link to="/contact" className="btn-primary">
-                    Get Started
-                  </Link>
-                </div>
-              )}
+              {(() => {
+                const linkBase = isDarkHero ? 'text-white/80 hover:text-white' : 'text-slate-600 hover:text-primary-600';
+                const activeClass = isDarkHero ? 'text-white' : 'text-primary-600';
+                return (
+                  <>
+                    {navLinks.map((link) => (
+                      <Link
+                        key={link.path}
+                        to={link.path}
+                        className={`font-medium transition-colors duration-200 ${
+                          location.pathname === link.path ? activeClass : linkBase
+                        }`}
+                      >
+                        {link.name}
+                      </Link>
+                    ))}
+                    {user ? (
+                      <div className="flex items-center gap-3">
+                        <Link to="/portal" className={`flex items-center gap-1.5 text-sm font-medium transition-colors ${linkBase}`}>
+                          <LayoutDashboard className="w-4 h-4" />
+                          My Apps
+                        </Link>
+                        <button
+                          onClick={signOut}
+                          className={`flex items-center gap-1.5 text-sm font-medium transition-colors ${isDarkHero ? 'text-white/80 hover:text-red-400' : 'text-slate-600 hover:text-red-600'}`}
+                        >
+                          <LogOut className="w-4 h-4" />
+                          Sign out
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-3">
+                        <Link to="/login" className={`text-sm font-medium transition-colors ${linkBase}`}>
+                          Sign in
+                        </Link>
+                        <Link to="/contact" className="btn-primary">
+                          Get Started
+                        </Link>
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
             </div>
 
             {/* Mobile Menu Button */}
             <button
-              className="md:hidden p-2 text-slate-600 hover:text-primary-600"
+              className={`md:hidden p-2 ${!isScrolled && location.pathname === '/' ? 'text-white' : 'text-slate-600 hover:text-primary-600'}`}
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
             >

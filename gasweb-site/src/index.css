@@ -82,6 +82,29 @@
            shadow-soft hover:shadow-glow-accent;
   }
   
+  /* Gradient cyan button for dark backgrounds */
+  .btn-gradient-cyan {
+    @apply inline-flex items-center justify-center px-8 py-4
+           bg-gradient-to-r from-secondary-500 to-secondary-400
+           text-white font-bold rounded-full
+           hover:shadow-lg hover:shadow-secondary-500/25
+           transition-all duration-200 ease-in-out
+           transform hover:scale-105;
+  }
+
+  /* White outline button for dark backgrounds */
+  .btn-outline-white {
+    @apply inline-flex items-center justify-center px-8 py-4
+           border-2 border-white text-white font-bold rounded-full
+           hover:bg-white hover:text-slate-900
+           transition-all duration-200 ease-in-out;
+  }
+
+  /* Cyan gradient text for dark backgrounds */
+  .gradient-text-cyan {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-secondary-400 to-secondary-300;
+  }
+
   /* Card component */
   .card {
     @apply bg-white rounded-2xl shadow-soft 
