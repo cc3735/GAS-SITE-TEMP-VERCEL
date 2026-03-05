@@ -301,4 +301,126 @@ router.delete('/ar/:id', async (req: Request, res: Response, next: NextFunction)
   }
 });
 
+// ============================================================================
+// PAYMENT RECORDING
+// ============================================================================
+
+/** POST /ap/:id/pay — record a payment on a payable */
+router.post('/ap/:id/pay', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.user!.id;
+    const { id } = req.params;
+    const { amount, notes, paidDate } = req.body;
+
+    if (!amount || Number(amount) <= 0) {
+      return res.status(400).json({ success: false, error: { message: 'amount is required and must be > 0' } });
+    }
+
+    const { data: existing, error: fetchErr } = await supabaseAdmin
+      .from('accounts_payable')
+      .select('amount, amount_paid')
+      .eq('id', id)
+      .eq('user_id', userId)
+      .single();
+
+    if (fetchErr || !existing) {
+      return res.status(404).json({ success: false, error: { message: 'Payable not found' } });
+    }
+
+    const newAmountPaid = Number(existing.amount_paid) + Number(amount);
+    const newStatus = newAmountPaid >= Number(existing.amount) ? 'paid' : 'partial';
+
+    const updates: Record<string, unknown> = {
+      amount_paid: newAmountPaid,
+      status: newStatus,
+      updated_at: new Date().toISOString(),
+    };
+    if (newStatus === 'paid') {
+      updates.paid_date = paidDate || new Date().toISOString().split('T')[0];
+    }
+
+    const { data, error } = await supabaseAdmin
+      .from('accounts_payable')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    // Record in payment history
+    await supabaseAdmin.from('payment_history').insert({
+      user_id: userId,
+      record_type: 'ap',
+      record_id: id,
+      amount: Number(amount),
+      payment_method: 'manual',
+      notes: notes || null,
+    });
+
+    res.json({ success: true, data });
+  } catch (err) {
+    next(err);
+  }
+});
+
+/** POST /ar/:id/payment — record a payment on a receivable */
+router.post('/ar/:id/payment', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.user!.id;
+    const { id } = req.params;
+    const { amount, notes, paymentMethod } = req.body;
+
+    if (!amount || Number(amount) <= 0) {
+      return res.status(400).json({ success: false, error: { message: 'amount is required and must be > 0' } });
+    }
+
+    const { data: existing, error: fetchErr } = await supabaseAdmin
+      .from('accounts_receivable')
+      .select('amount, amount_received')
+      .eq('id', id)
+      .eq('user_id', userId)
+      .single();
+
+    if (fetchErr || !existing) {
+      return res.status(404).json({ success: false, error: { message: 'Receivable not found' } });
+    }
+
+    const newAmountReceived = Number(existing.amount_received) + Number(amount);
+    const newStatus = newAmountReceived >= Number(existing.amount) ? 'paid' : 'partial';
+
+    const updates: Record<string, unknown> = {
+      amount_received: newAmountReceived,
+      status: newStatus,
+      updated_at: new Date().toISOString(),
+    };
+    if (newStatus === 'paid') {
+      updates.received_date = new Date().toISOString().split('T')[0];
+    }
+
+    const { data, error } = await supabaseAdmin
+      .from('accounts_receivable')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    // Record in payment history
+    await supabaseAdmin.from('payment_history').insert({
+      user_id: userId,
+      record_type: 'ar',
+      record_id: id,
+      amount: Number(amount),
+      payment_method: paymentMethod || 'manual',
+      notes: notes || null,
+    });
+
+    res.json({ success: true, data });
+  } catch (err) {
+    next(err);
+  }
+});
+
 export default router;

@@ -31,6 +31,7 @@ import FinanceFlowBookkeeping from './pages/portal/financeflow/FinanceFlowBookke
 import FinanceFlowTax from './pages/portal/financeflow/FinanceFlowTax';
 import FinanceFlowInvoicing from './pages/portal/financeflow/FinanceFlowInvoicing';
 import FinanceFlowInventory from './pages/portal/financeflow/FinanceFlowInventory';
+import FinanceFlowReports from './pages/portal/financeflow/FinanceFlowReports';
 import SocialFlowHub from './pages/portal/socialflow/SocialFlowHub';
 import SocialFlowMessaging from './pages/portal/socialflow/SocialFlowMessaging';
 import SocialFlowMarketing from './pages/portal/socialflow/SocialFlowMarketing';
@@ -110,6 +111,7 @@ function App(): JSX.Element {
             <Route path="financeflow/tax" element={<FinanceFlowTax />} />
             <Route path="financeflow/invoicing" element={<FinanceFlowInvoicing />} />
             <Route path="financeflow/inventory" element={<FinanceFlowInventory />} />
+            <Route path="financeflow/reports" element={<FinanceFlowReports />} />
             <Route path="socialflow" element={<SocialFlowHub />} />
             <Route path="socialflow/messaging" element={<SocialFlowMessaging />} />
             <Route path="socialflow/marketing" element={<SocialFlowMarketing />} />

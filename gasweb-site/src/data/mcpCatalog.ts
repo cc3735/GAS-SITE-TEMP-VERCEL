@@ -270,6 +270,23 @@ export const mcpCatalog: MCPCatalogEntry[] = [
     ],
   },
   {
+    id: 'zoho-books',
+    name: 'Zoho Books',
+    description: 'Full accounting engine integration. Sync invoices, bills, chart of accounts, and pull P&L, Balance Sheet, and Cash Flow reports into FinanceFlow.',
+    category: 'finance',
+    github_url: 'https://github.com/nicholasgriffintn/zoho-mcp-server',
+    is_official: false,
+    icon: 'BookOpen',
+    tier: 1,
+    config_fields: [
+      { key: 'client_id', label: 'Zoho Client ID', type: 'text', required: true },
+      { key: 'client_secret', label: 'Zoho Client Secret', type: 'password', required: true },
+      { key: 'refresh_token', label: 'Zoho Refresh Token', type: 'password', required: true },
+      { key: 'organization_id', label: 'Organization ID', type: 'text', required: true },
+      { key: 'domain', label: 'Zoho Domain', type: 'select', required: true, options: [{ value: 'com', label: 'zoho.com (US)' }, { value: 'eu', label: 'zoho.eu (EU)' }, { value: 'in', label: 'zoho.in (India)' }] },
+    ],
+  },
+  {
     id: 'stripe',
     name: 'Stripe',
     description: 'Payment processing and subscription management. Create charges, manage customers, handle invoices, and track revenue.',

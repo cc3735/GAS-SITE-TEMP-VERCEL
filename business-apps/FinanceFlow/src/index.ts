@@ -22,6 +22,8 @@ import bankStatementsRoutes from './routes/bookkeeping/bank-statements.js';
 import apArRoutes from './routes/bookkeeping/ap-ar.js';
 import accountingRoutes from './routes/accounting.js';
 import plaidRoutes from './routes/integrations/plaid.js';
+import stripeRoutes, { stripeWebhookHandler } from './routes/integrations/stripe.js';
+import zohoBooksRoutes from './routes/integrations/zoho-books.js';
 import aiTaxAdvisorRoutes from './routes/ai/tax-advisor.js';
 
 const app = express();
@@ -38,6 +40,9 @@ app.use(cors({
     : process.env.ALLOWED_ORIGINS?.split(',') || [],
   credentials: true,
 }));
+
+// Stripe webhook needs raw body for signature verification (before JSON parser)
+app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), stripeWebhookHandler);
 
 // Body parsing
 app.use(express.json({ limit: '10mb' }));
@@ -82,6 +87,8 @@ app.use('/api/accounting', accountingRoutes);
 
 // API Routes — Integrations
 app.use('/api/plaid', plaidRoutes);
+app.use('/api/stripe', stripeRoutes);
+app.use('/api/zoho-books', zohoBooksRoutes);
 
 // API Routes — AI
 app.use('/api/ai/tax-advisor', aiTaxAdvisorRoutes);
@@ -126,6 +133,7 @@ app.listen(port, () => {
   logger.info(`💳 Payments: Stripe`);
   logger.info(`🤖 AI: OpenAI ${config.openai.model}`);
   logger.info(`🏦 Banking: Plaid`);
+  logger.info(`📖 Accounting: Zoho Books`);
 });
 
 export default app;

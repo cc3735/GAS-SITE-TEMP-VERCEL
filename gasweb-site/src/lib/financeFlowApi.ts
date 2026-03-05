@@ -142,6 +142,9 @@ export interface Receivable {
   status: string;
   invoice_number?: string;
   business_id?: string;
+  payment_link_url?: string;
+  stripe_payment_intent_id?: string;
+  stripe_checkout_session_id?: string;
 }
 
 export interface ChartOfAccount {
@@ -297,8 +300,8 @@ export const accountsPayable = {
   update: (id: string, data: Partial<Payable>) =>
     put<Payable>(`/bookkeeping/ap/${id}`, data),
 
-  markPaid: (id: string, amount: number) =>
-    post<Payable>(`/bookkeeping/ap/${id}/pay`, { amount }),
+  markPaid: (id: string, data: { amount: number; notes?: string }) =>
+    post<Payable>(`/bookkeeping/ap/${id}/pay`, data),
 };
 
 export const accountsReceivable = {
@@ -318,8 +321,8 @@ export const accountsReceivable = {
   update: (id: string, data: Partial<Receivable>) =>
     put<Receivable>(`/bookkeeping/ar/${id}`, data),
 
-  recordPayment: (id: string, amount: number) =>
-    post<Receivable>(`/bookkeeping/ar/${id}/payment`, { amount }),
+  recordPayment: (id: string, data: { amount: number; notes?: string; paymentMethod?: string }) =>
+    post<Receivable>(`/bookkeeping/ar/${id}/payment`, data),
 };
 
 /* ------------------------------------------------------------------ */
@@ -360,6 +363,71 @@ export const plaid = {
 };
 
 /* ------------------------------------------------------------------ */
+/*  Stripe Integration API                                             */
+/* ------------------------------------------------------------------ */
+
+export const stripe = {
+  createPaymentLink: (arId: string) =>
+    post<{ paymentLinkUrl: string; paymentLinkId: string }>(`/stripe/payment-link/${arId}`),
+
+  createCheckoutSession: (arId: string, successUrl?: string, cancelUrl?: string) =>
+    post<{ sessionUrl: string; sessionId: string }>(`/stripe/checkout-session/${arId}`, {
+      successUrl,
+      cancelUrl,
+    }),
+
+  getPaymentStatus: (arId: string) =>
+    get<{ status: string; amount: number; amountReceived: number; balanceDue: number; hasPaymentLink: boolean; paymentLinkUrl?: string }>(`/stripe/payment-status/${arId}`),
+
+  getStatus: () =>
+    get<{ configured: boolean }>('/stripe/status'),
+};
+
+/* ------------------------------------------------------------------ */
+/*  Zoho Books Integration API                                         */
+/* ------------------------------------------------------------------ */
+
+export interface ZohoReport {
+  report_name: string;
+  start_date: string;
+  end_date: string;
+  rows: Record<string, string | number>[];
+  total?: Record<string, number>;
+}
+
+export const zohoBooks = {
+  getStatus: () =>
+    get<{ configured: boolean; lastSync: string | null }>('/zoho-books/status'),
+
+  sync: (type: 'invoices' | 'bills' | 'full' = 'full') =>
+    post<{ syncId: string; status: string; recordsSynced: number }>('/zoho-books/sync', { type }),
+
+  getSyncStatus: (syncId: string) =>
+    get<{ id: string; sync_type: string; status: string; records_synced: number; error_message?: string }>(`/zoho-books/sync/${syncId}`),
+
+  profitAndLoss: (from?: string, to?: string) => {
+    const qs = new URLSearchParams();
+    if (from) qs.set('from', from);
+    if (to) qs.set('to', to);
+    const q = qs.toString();
+    return get<ZohoReport>(`/zoho-books/reports/profit-loss${q ? `?${q}` : ''}`);
+  },
+
+  balanceSheet: (date?: string) => {
+    const qs = date ? `?date=${date}` : '';
+    return get<ZohoReport>(`/zoho-books/reports/balance-sheet${qs}`);
+  },
+
+  cashFlow: (from?: string, to?: string) => {
+    const qs = new URLSearchParams();
+    if (from) qs.set('from', from);
+    if (to) qs.set('to', to);
+    const q = qs.toString();
+    return get<ZohoReport>(`/zoho-books/reports/cash-flow${q ? `?${q}` : ''}`);
+  },
+};
+
+/* ------------------------------------------------------------------ */
 /*  Consolidated export                                                */
 /* ------------------------------------------------------------------ */
 
@@ -374,6 +442,8 @@ const financeFlowApi = {
   accountsReceivable,
   accounting,
   plaid,
+  stripe,
+  zohoBooks,
 };
 
 export default financeFlowApi;

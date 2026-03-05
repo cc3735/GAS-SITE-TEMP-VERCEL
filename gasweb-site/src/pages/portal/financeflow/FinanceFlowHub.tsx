@@ -4,6 +4,7 @@ import {
   Calculator,
   FileSpreadsheet,
   Package,
+  BarChart3,
   ArrowRight,
 } from 'lucide-react';
 
@@ -34,6 +35,15 @@ const FEATURES = [
     color: 'bg-cyan-50',
     textColor: 'text-cyan-600',
     dotColor: 'bg-cyan-600',
+  },
+  {
+    slug: 'reports',
+    label: 'Financial Reports',
+    description: 'Profit & Loss, Balance Sheet, and Cash Flow reports powered by Zoho Books.',
+    icon: BarChart3,
+    color: 'bg-purple-50',
+    textColor: 'text-purple-600',
+    dotColor: 'bg-purple-600',
   },
   {
     slug: 'inventory',
