@@ -16,6 +16,7 @@
  */
 
 import { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import {
   Mail,
   Phone,
@@ -479,6 +480,16 @@ export default function Contact(): JSX.Element {
                     </div>
                   </div>
                   
+                  {/* SMS consent disclosure */}
+                  <p className="text-xs text-slate-500 leading-relaxed">
+                    By providing your phone number and submitting this form, you consent to receive text
+                    messages from Global Automation Solutions, including service updates, marketing promotions,
+                    and customer support. Message frequency varies. Message and data rates may apply. Reply
+                    STOP to opt out at any time. Reply HELP for assistance. Consent is not a condition of
+                    purchase. View our <Link to="/privacy" className="text-primary-600 hover:underline">Privacy Policy</Link> and{' '}
+                    <Link to="/terms" className="text-primary-600 hover:underline">Terms of Service</Link>.
+                  </p>
+
                   {/* Submit button */}
                   <button
                     type="submit"
