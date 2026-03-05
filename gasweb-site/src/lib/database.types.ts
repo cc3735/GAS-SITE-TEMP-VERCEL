@@ -474,6 +474,66 @@ export interface Database {
         }
       }
       
+      // =============================================
+      // VOICEMAILS
+      // =============================================
+      voicemails: {
+        Row: {
+          id: string
+          call_sid: string
+          recording_sid: string | null
+          recording_url: string | null
+          recording_duration: number | null
+          transcription_sid: string | null
+          transcription_text: string | null
+          caller_phone: string | null
+          called_number: string | null
+          caller_city: string | null
+          caller_state: string | null
+          caller_country: string | null
+          speech_result: string | null
+          status: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          call_sid: string
+          recording_sid?: string | null
+          recording_url?: string | null
+          recording_duration?: number | null
+          transcription_sid?: string | null
+          transcription_text?: string | null
+          caller_phone?: string | null
+          called_number?: string | null
+          caller_city?: string | null
+          caller_state?: string | null
+          caller_country?: string | null
+          speech_result?: string | null
+          status?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          call_sid?: string
+          recording_sid?: string | null
+          recording_url?: string | null
+          recording_duration?: number | null
+          transcription_sid?: string | null
+          transcription_text?: string | null
+          caller_phone?: string | null
+          called_number?: string | null
+          caller_city?: string | null
+          caller_state?: string | null
+          caller_country?: string | null
+          speech_result?: string | null
+          status?: string
+          created_at?: string
+          updated_at?: string
+        }
+      }
+
       landing_page_analytics: {
         Row: {
           id: string

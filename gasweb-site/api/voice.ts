@@ -21,10 +21,14 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
       { voice: VOICE },
       'If you would like to leave a detailed message, please do so after the beep. Press the pound key when finished.'
     );
+    const encodedSpeech = encodeURIComponent(speechResult);
     twiml.record({
       maxLength: 120,
       finishOnKey: '#',
       transcribe: true,
+      transcribeCallback: '/api/voice-status',
+      recordingStatusCallback: `/api/voice-status?speech=${encodedSpeech}`,
+      recordingStatusCallbackEvent: ['completed'],
       playBeep: true,
     });
     twiml.say({ voice: VOICE }, 'We did not receive a recording. Goodbye.');
@@ -51,6 +55,9 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
       maxLength: 120,
       finishOnKey: '#',
       transcribe: true,
+      transcribeCallback: '/api/voice-status',
+      recordingStatusCallback: '/api/voice-status',
+      recordingStatusCallbackEvent: ['completed'],
       playBeep: true,
     });
     twiml.say({ voice: VOICE }, 'Goodbye.');
