@@ -1,3 +1,4 @@
+// Voice AI — Gemini-powered conversational turn handler
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import twilio from 'twilio';
 import { createClient } from '@supabase/supabase-js';
