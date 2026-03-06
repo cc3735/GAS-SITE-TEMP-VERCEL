@@ -13,7 +13,7 @@
 import { supabase } from './supabase';
 
 const API_BASE =
-  import.meta.env.VITE_FINANCEFLOW_API_URL || 'http://localhost:3003/api';
+  import.meta.env.VITE_FINANCEFLOW_API_URL || '/api/financeflow';
 
 /* ------------------------------------------------------------------ */
 /*  Generic helpers                                                    */

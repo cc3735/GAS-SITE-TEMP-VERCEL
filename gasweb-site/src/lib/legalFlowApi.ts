@@ -13,7 +13,7 @@
 import { supabase } from './supabase';
 
 const API_BASE =
-  import.meta.env.VITE_LEGALFLOW_API_URL || 'http://localhost:3002/api';
+  import.meta.env.VITE_LEGALFLOW_API_URL || '/api/legalflow';
 
 /* ------------------------------------------------------------------ */
 /*  Generic helpers                                                    */

@@ -37,7 +37,7 @@ app.use(helmet({
 app.use(cors({
   origin: config.isDev
     ? ['http://localhost:5173', 'http://localhost:3000']
-    : process.env.ALLOWED_ORIGINS?.split(',') || [],
+    : process.env.ALLOWED_ORIGINS?.split(',') || ['https://www.gasweb.info', 'https://gasweb.info'],
   credentials: true,
 }));
 
@@ -123,17 +123,19 @@ app.use(notFoundHandler);
 // Error handler
 app.use(errorHandler);
 
-// Start server
+// Start server (skip in Vercel serverless)
 const port = config.port;
 
-app.listen(port, () => {
-  logger.info(`🚀 FinanceFlow API server running on port ${port}`);
-  logger.info(`📚 Environment: ${config.nodeEnv}`);
-  logger.info(`🔐 Auth: Supabase + JWT`);
-  logger.info(`💳 Payments: Stripe`);
-  logger.info(`🤖 AI: OpenAI ${config.openai.model}`);
-  logger.info(`🏦 Banking: Plaid`);
-  logger.info(`📖 Accounting: Zoho Books`);
-});
+if (!process.env.VERCEL) {
+  app.listen(port, () => {
+    logger.info(`🚀 FinanceFlow API server running on port ${port}`);
+    logger.info(`📚 Environment: ${config.nodeEnv}`);
+    logger.info(`🔐 Auth: Supabase + JWT`);
+    logger.info(`💳 Payments: Stripe`);
+    logger.info(`🤖 AI: OpenAI ${config.openai.model}`);
+    logger.info(`🏦 Banking: Plaid`);
+    logger.info(`📖 Accounting: Zoho Books`);
+  });
+}
 
 export default app;
