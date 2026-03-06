@@ -1,4 +1,5 @@
 {
+  "installCommand": "npm install && cd ../business-apps/LegalFlow && npm install --production && cd ../FinanceFlow && npm install --production",
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "rewrites": [
