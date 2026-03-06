@@ -62,6 +62,7 @@ import OSAnalytics from './pages/os/OSAnalytics';
 import OSSettings from './pages/os/OSSettings';
 import OSSubscriptions from './pages/os/OSSubscriptions';
 import OSSupportTickets from './pages/os/OSSupportTickets';
+import OSVoice from './pages/os/OSVoice';
 
 // Redirect already-authenticated users away from auth pages
 function AuthRoute({ children }: { children: React.ReactNode }) {
@@ -151,6 +152,7 @@ function App(): JSX.Element {
             <Route path="clients/:id" element={<OSClientDetail />} />
             <Route path="apps" element={<OSApps />} />
             <Route path="subscriptions" element={<OSSubscriptions />} />
+            <Route path="voice" element={<OSVoice />} />
             <Route path="support-tickets" element={<OSSupportTickets />} />
             <Route path="settings" element={<OSSettings />} />
           </Route>

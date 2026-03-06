@@ -30,9 +30,9 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Call ElevenLabs TTS API - request mp3 format (Twilio supports mp3)
+    // Call ElevenLabs TTS API - request ulaw 8kHz (native Twilio telephony codec)
     const response = await fetch(
-      `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}?output_format=mp3_44100_128`,
+      `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}?output_format=ulaw_8000`,
       {
         method: 'POST',
         headers: {
@@ -43,10 +43,10 @@ Deno.serve(async (req) => {
           text,
           model_id: 'eleven_turbo_v2_5',
           voice_settings: {
-            stability: 0.5,
+            stability: 0.7,
             similarity_boost: 0.75,
             style: 0.0,
-            use_speaker_boost: true,
+            use_speaker_boost: false,
           },
         }),
       }
@@ -58,12 +58,13 @@ Deno.serve(async (req) => {
       return new Response(`TTS error: ${response.status}`, { status: 502 })
     }
 
-    // Stream the audio bytes back as mp3
+    // Stream the audio bytes back as mulaw
     const audioBytes = await response.arrayBuffer()
 
     return new Response(audioBytes, {
       headers: {
-        'Content-Type': 'audio/mpeg',
+        'Content-Type': 'audio/basic',
+        'Content-Length': audioBytes.byteLength.toString(),
         'Cache-Control': 'no-cache',
         'Access-Control-Allow-Origin': '*',
       },

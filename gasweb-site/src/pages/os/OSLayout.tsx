@@ -9,6 +9,7 @@ import {
   Settings,
   AppWindow,
   LifeBuoy,
+  Phone,
   LogOut,
   ChevronRight,
   ChevronDown,
@@ -27,6 +28,7 @@ const MAIN_NAV = [
   { to: '/os/marketing', label: 'Marketing & Social', icon: Mail, end: false },
   { to: '/os/agents', label: 'AI & Automation', icon: Bot, end: false },
   { to: '/os/apps', label: 'App Catalog', icon: AppWindow, end: false },
+  { to: '/os/voice', label: 'Voice & Calls', icon: Phone, end: false },
   { to: '/os/support-tickets', label: 'Support Tickets', icon: LifeBuoy, end: false },
 ];
 
