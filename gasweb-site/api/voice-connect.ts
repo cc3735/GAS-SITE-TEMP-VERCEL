@@ -1,3 +1,4 @@
+// Voice Connect — AI-powered inbound call handler
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import twilio from 'twilio';
 import { createClient } from '@supabase/supabase-js';
