@@ -6,6 +6,10 @@ const VoiceResponse = twilio.twiml.VoiceResponse;
 const VOICE = 'Polly.Joanna' as const;
 const COMPANY = 'Global Automation Solutions';
 
+// This handler serves as the fallback voice flow (gather + voicemail).
+// The primary entry point is /api/voice-connect which routes to AI voice relay
+// when a voice_agent_config exists for the called number.
+// Set your Twilio webhook to /api/voice-connect for AI-powered calls.
 export default function handler(req: VercelRequest, res: VercelResponse) {
   const twiml = new VoiceResponse();
   const speechResult = req.body?.SpeechResult as string | undefined;

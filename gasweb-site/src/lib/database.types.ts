@@ -534,6 +534,138 @@ export interface Database {
         }
       }
 
+      // =============================================
+      // VOICE AGENT CONFIGS
+      // =============================================
+      voice_agent_configs: {
+        Row: {
+          id: string
+          agent_id: string | null
+          organization_id: string
+          twilio_phone_number: string
+          voice_provider: string
+          voice_id: string
+          system_prompt: string
+          greeting_message: string
+          tools_config: Json
+          business_hours: Json
+          fallback_action: string
+          fallback_number: string | null
+          max_call_duration: number
+          is_active: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          agent_id?: string | null
+          organization_id: string
+          twilio_phone_number: string
+          voice_provider?: string
+          voice_id?: string
+          system_prompt?: string
+          greeting_message?: string
+          tools_config?: Json
+          business_hours?: Json
+          fallback_action?: string
+          fallback_number?: string | null
+          max_call_duration?: number
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          agent_id?: string | null
+          organization_id?: string
+          twilio_phone_number?: string
+          voice_provider?: string
+          voice_id?: string
+          system_prompt?: string
+          greeting_message?: string
+          tools_config?: Json
+          business_hours?: Json
+          fallback_action?: string
+          fallback_number?: string | null
+          max_call_duration?: number
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+      }
+
+      // =============================================
+      // VOICE CALL LOGS
+      // =============================================
+      voice_call_logs: {
+        Row: {
+          id: string
+          agent_id: string | null
+          organization_id: string
+          config_id: string | null
+          call_sid: string | null
+          caller_phone: string | null
+          called_number: string | null
+          direction: string
+          status: string
+          duration_seconds: number | null
+          transcript: Json
+          tool_calls: Json
+          sentiment: string | null
+          summary: string | null
+          recording_url: string | null
+          cost_cents: number
+          metadata: Json
+          started_at: string
+          ended_at: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          agent_id?: string | null
+          organization_id: string
+          config_id?: string | null
+          call_sid?: string | null
+          caller_phone?: string | null
+          called_number?: string | null
+          direction?: string
+          status?: string
+          duration_seconds?: number | null
+          transcript?: Json
+          tool_calls?: Json
+          sentiment?: string | null
+          summary?: string | null
+          recording_url?: string | null
+          cost_cents?: number
+          metadata?: Json
+          started_at?: string
+          ended_at?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          agent_id?: string | null
+          organization_id?: string
+          config_id?: string | null
+          call_sid?: string | null
+          caller_phone?: string | null
+          called_number?: string | null
+          direction?: string
+          status?: string
+          duration_seconds?: number | null
+          transcript?: Json
+          tool_calls?: Json
+          sentiment?: string | null
+          summary?: string | null
+          recording_url?: string | null
+          cost_cents?: number
+          metadata?: Json
+          started_at?: string
+          ended_at?: string | null
+          created_at?: string
+        }
+      }
+
       landing_page_analytics: {
         Row: {
           id: string
