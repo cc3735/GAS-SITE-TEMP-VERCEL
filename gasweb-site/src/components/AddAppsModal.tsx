@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Scale, BookOpen, Truck, Building2, Key, X, Sparkles, Receipt, Share2, UserCheck } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
@@ -121,6 +122,7 @@ interface Props {
 
 export default function AddAppsModal({ onClose, onSubscribed }: Props) {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [activeSubs, setActiveSubs] = useState<ActiveSub[]>([]);
   const [subscribing, setSubscribing] = useState<string | null>(null);
 
@@ -150,8 +152,12 @@ export default function AddAppsModal({ onClose, onSubscribed }: Props) {
       { onConflict: 'user_id,app_id' }
     );
     await fetchActiveSubs();
-    onSubscribed?.();
+    await onSubscribed?.();
     setSubscribing(null);
+    onClose();
+    if (app.internalRoute) {
+      navigate(app.internalRoute);
+    }
   };
 
   const handleSubscribeBundle = async () => {

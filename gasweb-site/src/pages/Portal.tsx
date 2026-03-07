@@ -393,16 +393,14 @@ export default function Portal() {
   );
   const [subscribedApps, setSubscribedApps] = useState<Set<string>>(new Set());
 
-  const refreshSubscriptions = useCallback(() => {
+  const refreshSubscriptions = useCallback(async () => {
     if (!user) return;
-    supabase
+    const { data } = await supabase
       .from('user_app_subscriptions')
       .select('app_id')
       .eq('user_id', user.id)
-      .eq('status', 'active')
-      .then(({ data }) => {
-        setSubscribedApps(new Set((data ?? []).map((r: { app_id: string }) => r.app_id)));
-      });
+      .eq('status', 'active');
+    setSubscribedApps(new Set((data ?? []).map((r: { app_id: string }) => r.app_id)));
   }, [user]);
 
   useEffect(() => { refreshSubscriptions(); }, [refreshSubscriptions]);

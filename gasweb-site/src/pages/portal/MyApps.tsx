@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useOutletContext } from 'react-router-dom';
+import { Link, useOutletContext, useNavigate } from 'react-router-dom';
 import { Plus, ExternalLink, Lock, ArrowRight, Trash2, CheckCircle2, Circle, Clock } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
@@ -21,11 +21,13 @@ const STATUS_CFG: Record<string, { label: string; icon: typeof Circle; color: st
 
 export default function MyApps() {
   const { user } = useAuth();
-  const { refreshSubscriptions } = useOutletContext<{ refreshSubscriptions: () => void }>();
+  const navigate = useNavigate();
+  const { refreshSubscriptions } = useOutletContext<{ refreshSubscriptions: () => Promise<void> | void }>();
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [removing, setRemoving] = useState<string | null>(null);
+  const [subscribing, setSubscribing] = useState<string | null>(null);
   const { items: checklistItems, updateStatus } = useComplianceChecklist();
 
   const fetchSubs = async () => {
@@ -36,7 +38,21 @@ export default function MyApps() {
       .eq('user_id', user.id);
     setSubscriptions(data || []);
     setIsLoading(false);
-    refreshSubscriptions();
+    await refreshSubscriptions();
+  };
+
+  const handleQuickSubscribe = async (app: typeof ALL_APPS[number]) => {
+    if (!user) return;
+    setSubscribing(app.id);
+    await supabase.from('user_app_subscriptions').upsert(
+      { user_id: user.id, app_id: app.id, plan: 'individual', status: 'active' },
+      { onConflict: 'user_id,app_id' }
+    );
+    await fetchSubs();
+    setSubscribing(null);
+    if (app.internalRoute) {
+      navigate(app.internalRoute);
+    }
   };
 
   const handleRemove = async (sub: Subscription) => {
@@ -209,10 +225,11 @@ export default function MyApps() {
                     <div className="flex items-center gap-3">
                       <span className="text-sm font-semibold text-slate-700">{INDIVIDUAL_PRICE}</span>
                       <button
-                        onClick={() => setShowModal(true)}
-                        className="inline-flex items-center gap-1.5 text-sm font-medium text-primary-600 hover:text-primary-700"
+                        onClick={() => handleQuickSubscribe(app)}
+                        disabled={subscribing === app.id}
+                        className="inline-flex items-center gap-1.5 text-sm font-medium text-primary-600 hover:text-primary-700 disabled:opacity-50"
                       >
-                        <Plus className="w-3.5 h-3.5" /> Add
+                        <Plus className="w-3.5 h-3.5" /> {subscribing === app.id ? 'Adding...' : 'Add'}
                       </button>
                     </div>
                     <Link
