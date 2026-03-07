@@ -3,10 +3,12 @@ import {
   CheckCircle, XCircle, ChevronRight, RotateCcw, Trophy, AlertCircle,
 } from 'lucide-react';
 import type { CourseModule } from '../../data/courseContent';
+import { syncProgress } from '../../lib/courseProgress';
 
 interface Props {
   courseId: string;
   modules: CourseModule[];
+  userId?: string;
 }
 
 function getQuizKey(courseId: string) {
@@ -26,7 +28,7 @@ function saveScores(courseId: string, scores: Record<string, { score: number; to
   localStorage.setItem(getQuizKey(courseId), JSON.stringify(scores));
 }
 
-export default function ModuleQuiz({ courseId, modules }: Props) {
+export default function ModuleQuiz({ courseId, modules, userId }: Props) {
   const [scores, setScores] = useState(() => loadScores(courseId));
   const [activeModuleId, setActiveModuleId] = useState<string | null>(null);
 
@@ -46,6 +48,7 @@ export default function ModuleQuiz({ courseId, modules }: Props) {
           }
           setScores(next);
           saveScores(courseId, next);
+          if (userId) syncProgress(courseId, userId);
           setActiveModuleId(null);
         }}
         onBack={() => setActiveModuleId(null)}

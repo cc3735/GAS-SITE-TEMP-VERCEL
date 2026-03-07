@@ -4,10 +4,12 @@ import {
   ArrowLeft, ArrowRight, Clock, Target, Lightbulb,
 } from 'lucide-react';
 import type { FullCourse } from '../../data/courseContent';
+import { syncProgress } from '../../lib/courseProgress';
 
 interface Props {
   course: FullCourse;
   initialLessonId?: string;
+  userId?: string;
 }
 
 function getProgressKey(courseId: string) {
@@ -23,11 +25,15 @@ function loadProgress(courseId: string): Set<string> {
   }
 }
 
-function saveProgress(courseId: string, completed: Set<string>) {
+function saveProgressLocal(courseId: string, completed: Set<string>, totalLessons: number) {
   localStorage.setItem(getProgressKey(courseId), JSON.stringify([...completed]));
+  localStorage.setItem(`gas_course_summary_${courseId}`, JSON.stringify({
+    completed: completed.size,
+    total: totalLessons,
+  }));
 }
 
-export default function LessonViewer({ course, initialLessonId }: Props) {
+export default function LessonViewer({ course, initialLessonId, userId }: Props) {
   const [completed, setCompleted] = useState<Set<string>>(() => loadProgress(course.id));
   const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set());
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -70,7 +76,8 @@ export default function LessonViewer({ course, initialLessonId }: Props) {
     const next = new Set(completed);
     next.add(lesson.id);
     setCompleted(next);
-    saveProgress(course.id, next);
+    saveProgressLocal(course.id, next, allLessons.length);
+    if (userId) syncProgress(course.id, userId);
     // Auto-advance to next lesson
     if (currentIdx < allLessons.length - 1) {
       setCurrentIdx(currentIdx + 1);
@@ -81,7 +88,8 @@ export default function LessonViewer({ course, initialLessonId }: Props) {
     const next = new Set(completed);
     next.delete(lesson.id);
     setCompleted(next);
-    saveProgress(course.id, next);
+    saveProgressLocal(course.id, next, allLessons.length);
+    if (userId) syncProgress(course.id, userId);
   };
 
   const totalLessons = allLessons.length;

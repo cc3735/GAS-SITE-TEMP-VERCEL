@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
+import { enrollInCourse, loadProgress } from '../../lib/courseProgress';
 import { createStripeCheckout, type PurchaseRequest } from '../../lib/payment';
 import {
   CATALOG_MAP, CATEGORY_GRADIENT,
@@ -42,16 +43,15 @@ export default function PortalCourseDetail() {
       .finally(() => setContentLoading(false));
   }, [courseId]);
 
-  // Load user enrollment/purchase data
+  // Load user enrollment/purchase data + hydrate progress from Supabase
   useEffect(() => {
     if (!user || !courseId) return;
     Promise.all([
       supabase
-        .from('courseflow_enrollments')
+        .from('education_progress')
         .select('id')
         .eq('course_id', courseId)
-        .eq('user_id', user.id)
-        .eq('status', 'active'),
+        .eq('user_id', user.id),
       supabase
         .from('course_purchases')
         .select('id')
@@ -66,6 +66,7 @@ export default function PortalCourseDetail() {
         .eq('is_subscription', true)
         .eq('subscription_status', 'active')
         .limit(1),
+      loadProgress(courseId, user.id),
     ]).then(([enrollRes, purchaseRes, proRes]) => {
       setIsEnrolled((enrollRes.data?.length ?? 0) > 0);
       setAssessmentPurchased((purchaseRes.data?.length ?? 0) > 0);
@@ -76,12 +77,7 @@ export default function PortalCourseDetail() {
   async function handleEnroll() {
     if (!user || !courseId) return;
     setEnrolling(true);
-    await supabase.from('courseflow_enrollments').insert({
-      course_id: courseId,
-      user_id: user.id,
-      enrolled_by: user.id,
-      status: 'active',
-    });
+    await enrollInCourse(courseId, user.id);
     setIsEnrolled(true);
     setEnrolling(false);
   }
@@ -325,7 +321,7 @@ export default function PortalCourseDetail() {
 
       {activeTab === 'Lessons' && (
         isEnrolled ? (
-          <LessonViewer course={courseContent} />
+          <LessonViewer course={courseContent} userId={user?.id} />
         ) : (
           <div className="bg-white rounded-xl border border-slate-200 p-8 text-center">
             <BookOpen className="w-12 h-12 text-slate-300 mx-auto mb-4" />
@@ -348,7 +344,7 @@ export default function PortalCourseDetail() {
 
       {activeTab === 'Quizzes' && (
         isEnrolled ? (
-          <ModuleQuiz courseId={courseId!} modules={courseContent.modules} />
+          <ModuleQuiz courseId={courseId!} modules={courseContent.modules} userId={user?.id} />
         ) : (
           <div className="bg-white rounded-xl border border-slate-200 p-8 text-center">
             <CheckCircle className="w-12 h-12 text-slate-300 mx-auto mb-4" />

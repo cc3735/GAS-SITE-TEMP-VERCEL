@@ -83,8 +83,8 @@ export async function createStripeCheckout(request: PurchaseRequest): Promise<Pa
         userId: request.userId,
         isSubscription: request.isSubscription,
         couponCode: request.couponCode,
-        successUrl: `${window.location.origin}/education/success?session_id={CHECKOUT_SESSION_ID}`,
-        cancelUrl: `${window.location.origin}/education?cancelled=true`,
+        successUrl: `${window.location.origin}/portal/courses?purchase=success&course_id=${request.courseId}`,
+        cancelUrl: `${window.location.origin}/portal/courses?cancelled=true`,
       }),
     });
 

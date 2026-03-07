@@ -221,3 +221,45 @@ export const CATEGORIES = [
 export const DIFFICULTIES = ['All', 'Beginner', 'Intermediate', 'Advanced'] as const;
 
 export const PRO_PRICE = 29;
+
+// ── Learning Paths ──────────────────────────────────────────────────
+
+export interface LearningPath {
+  id: string;
+  title: string;
+  description: string;
+  category: 'ai' | 'security' | 'cloud';
+  courses: string[];
+  estimatedWeeks: number;
+  outcome: string;
+}
+
+export const LEARNING_PATHS: LearningPath[] = [
+  {
+    id: 'ai-mastery',
+    title: 'AI & Automation Mastery',
+    description: 'Go from AI fundamentals to building autonomous agents and automation workflows.',
+    category: 'ai',
+    courses: ['intro-ai-ml', 'n8n-zapier-mastery', 'advanced-ai-automation', 'ai-agent-development'],
+    estimatedWeeks: 26,
+    outcome: 'Build and deploy production AI agents and automation pipelines',
+  },
+  {
+    id: 'cybersecurity-pro',
+    title: 'Cybersecurity Professional',
+    description: 'Build security expertise from networking basics through advanced threat hunting.',
+    category: 'security',
+    courses: ['network-fundamentals', 'cybersecurity-fundamentals', 'advanced-cybersecurity'],
+    estimatedWeeks: 21,
+    outcome: 'Qualified for CompTIA Security+, Network+, and CySA+ certifications',
+  },
+  {
+    id: 'cloud-architect',
+    title: 'Cloud Architecture & Administration',
+    description: 'Progress from cloud basics to enterprise architecture across AWS and Azure.',
+    category: 'cloud',
+    courses: ['it-support-foundations', 'cloud-computing-basics', 'azure-cloud-admin', 'enterprise-cloud-architecture'],
+    estimatedWeeks: 28,
+    outcome: 'Design and manage enterprise cloud infrastructure on AWS and Azure',
+  },
+];
