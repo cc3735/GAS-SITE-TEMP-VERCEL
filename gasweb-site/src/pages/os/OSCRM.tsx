@@ -152,16 +152,65 @@ export default function OSCRM() {
     return phone;
   };
 
-  const getLastCorrespondenceDate = (contactId: string) => {
-    const hash = contactId.split('').reduce((a, b) => {
-      return ((a << 5) - a + b.charCodeAt(0)) | 0;
-    }, 0);
-    const daysAgo = Math.abs(hash) % 30;
-    const date = new Date();
-    date.setDate(date.getDate() - daysAgo);
-    date.setHours(Math.abs(hash) % 24);
-    date.setMinutes(Math.abs(hash) % 60);
-    return date;
+  // Last correspondence lookup: contactId/clientUserId → { date, channel }
+  const [lastCorrespondence, setLastCorrespondence] = useState<Record<string, { date: string; channel: string }>>({});
+  // Upcoming activities lookup: contactId → { type, subject, scheduled_at }
+  const [upcomingActivities, setUpcomingActivities] = useState<Record<string, { type: string; subject: string | null; scheduled_at: string }>>({});
+
+  useEffect(() => {
+    async function loadCorrespondence() {
+      const [convRes, actRes] = await Promise.all([
+        supabase
+          .from('conversations')
+          .select('contact_id, client_user_id, channel, last_message_at')
+          .order('last_message_at', { ascending: false }),
+        supabase
+          .from('activities')
+          .select('contact_id, activity_type, subject, scheduled_at')
+          .gte('scheduled_at', new Date().toISOString())
+          .eq('is_completed', false)
+          .order('scheduled_at', { ascending: true }),
+      ]);
+
+      // Build last correspondence map (keep only most recent per contact)
+      const corrMap: Record<string, { date: string; channel: string }> = {};
+      (convRes.data ?? []).forEach((c: any) => {
+        const key = c.client_user_id || c.contact_id;
+        if (key && !corrMap[key]) {
+          corrMap[key] = { date: c.last_message_at, channel: c.channel || 'email' };
+        }
+      });
+      setLastCorrespondence(corrMap);
+
+      // Build upcoming activities map (keep only next upcoming per contact)
+      const actMap: Record<string, { type: string; subject: string | null; scheduled_at: string }> = {};
+      (actRes.data ?? []).forEach((a: any) => {
+        if (a.contact_id && !actMap[a.contact_id]) {
+          actMap[a.contact_id] = { type: a.activity_type, subject: a.subject, scheduled_at: a.scheduled_at };
+        }
+      });
+      setUpcomingActivities(actMap);
+    }
+    loadCorrespondence();
+  }, []);
+
+  const getChannelIcon = (channel: string) => {
+    switch (channel) {
+      case 'sms': return Phone;
+      case 'phone': case 'call': return Phone;
+      case 'email': return Mail;
+      default: return MessageCircle;
+    }
+  };
+
+  const getChannelLabel = (channel: string) => {
+    switch (channel) {
+      case 'sms': return 'SMS';
+      case 'phone': case 'call': return 'Call';
+      case 'email': return 'Email';
+      case 'whatsapp': return 'WhatsApp';
+      default: return channel;
+    }
   };
 
   const handleCreateContact = async (e: React.FormEvent) => {
@@ -232,7 +281,7 @@ export default function OSCRM() {
       phone: c.phone,
       title: c.subscription_tier ? `${c.subscription_tier} tier` : null,
       company_id: null,
-      company_name: (c.app_ids ?? []).map((a: string) => APP_LABELS[a] ?? a).join(', ') || null,
+      company_name: null,
       date_of_birth: null,
       notes: null,
       lead_status: c.subscription_status === 'active' ? 'qualified' : 'new',
@@ -486,18 +535,27 @@ export default function OSCRM() {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-white">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setActiveTab('messages');
-                            }}
-                            className="text-primary-400 hover:text-primary-300 flex items-center gap-2 transition"
-                          >
-                            <Clock className="w-4 h-4" />
-                            {getLastCorrespondenceDate(contact.id).toLocaleDateString()}
-                          </button>
-                        </div>
+                        {lastCorrespondence[contact.id] ? (() => {
+                          const lc = lastCorrespondence[contact.id];
+                          const ChannelIcon = getChannelIcon(lc.channel);
+                          return (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setActiveTab('messages');
+                              }}
+                              className="text-primary-400 hover:text-primary-300 flex items-center gap-2 transition text-sm"
+                            >
+                              <ChannelIcon className="w-3.5 h-3.5" />
+                              {new Date(lc.date).toLocaleDateString()}
+                              <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-800 text-gray-400">
+                                {getChannelLabel(lc.channel)}
+                              </span>
+                            </button>
+                          );
+                        })() : (
+                          <span className="text-sm text-gray-600">-</span>
+                        )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(contact.lead_status)}`}>
@@ -640,6 +698,8 @@ export default function OSCRM() {
                     <th className="text-left px-5 py-3 text-xs text-gray-500 uppercase tracking-wide font-medium hidden md:table-cell">Apps</th>
                     <th className="text-left px-5 py-3 text-xs text-gray-500 uppercase tracking-wide font-medium hidden lg:table-cell">Tier</th>
                     <th className="text-left px-5 py-3 text-xs text-gray-500 uppercase tracking-wide font-medium hidden lg:table-cell">Joined</th>
+                    <th className="text-left px-5 py-3 text-xs text-gray-500 uppercase tracking-wide font-medium hidden lg:table-cell">Last Contact</th>
+                    <th className="text-left px-5 py-3 text-xs text-gray-500 uppercase tracking-wide font-medium hidden xl:table-cell">Upcoming</th>
                     <th className="px-5 py-3" />
                   </tr>
                 </thead>
@@ -677,6 +737,41 @@ export default function OSCRM() {
                       </td>
                       <td className="px-5 py-3.5 hidden lg:table-cell text-gray-500 text-xs">
                         {new Date(client.created_at).toLocaleDateString()}
+                      </td>
+                      <td className="px-5 py-3.5 hidden lg:table-cell">
+                        {lastCorrespondence[client.id] ? (() => {
+                          const lc = lastCorrespondence[client.id];
+                          const ChannelIcon = getChannelIcon(lc.channel);
+                          return (
+                            <div className="flex items-center gap-1.5 text-xs text-gray-400">
+                              <ChannelIcon className="w-3 h-3" />
+                              {new Date(lc.date).toLocaleDateString()}
+                              <span className="text-[10px] px-1 py-0.5 rounded bg-gray-800 text-gray-500">
+                                {getChannelLabel(lc.channel)}
+                              </span>
+                            </div>
+                          );
+                        })() : (
+                          <span className="text-xs text-gray-600">None</span>
+                        )}
+                      </td>
+                      <td className="px-5 py-3.5 hidden xl:table-cell">
+                        {upcomingActivities[client.id] ? (() => {
+                          const act = upcomingActivities[client.id];
+                          return (
+                            <div className="flex items-center gap-1.5 text-xs">
+                              <Calendar className="w-3 h-3 text-primary-400" />
+                              <span className="text-gray-400">
+                                {new Date(act.scheduled_at).toLocaleDateString()}
+                              </span>
+                              <span className="text-[10px] px-1 py-0.5 rounded bg-primary-900/30 text-primary-400 capitalize">
+                                {act.type}
+                              </span>
+                            </div>
+                          );
+                        })() : (
+                          <span className="text-xs text-gray-600">None</span>
+                        )}
                       </td>
                       <td className="px-5 py-3.5 text-right">
                         <div className="flex items-center justify-end gap-2">
