@@ -1,11 +1,16 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import {
   ChevronRight, ChevronDown, CheckCircle, Circle, BookOpen,
   ArrowLeft, ArrowRight, Clock, Target, Lightbulb,
-  Volume2, Pause, Square,
+  Volume2, Pause, Square, Sparkles, Loader2, ShoppingCart,
 } from 'lucide-react';
 import type { FullCourse } from '../../data/courseContent';
 import { syncProgress } from '../../lib/courseProgress';
+import { supabase } from '../../lib/supabase';
+import {
+  getCreditsBalance, estimateCharacters, purchaseCredits, playHDAudio,
+  CREDIT_PACKAGES, type CreditBalance,
+} from '../../lib/ttsCredits';
 
 interface Props {
   course: FullCourse;
@@ -139,9 +144,97 @@ export default function LessonViewer({ course, initialLessonId, userId }: Props)
     }
   }
 
+  // ── HD Audio (ElevenLabs) ──────────────────────────────────────────
+  const [audioMode, setAudioMode] = useState<'standard' | 'hd'>('standard');
+  const [hdLoading, setHdLoading] = useState(false);
+  const [hdPlaying, setHdPlaying] = useState(false);
+  const [hdPaused, setHdPaused] = useState(false);
+  const [credits, setCredits] = useState<CreditBalance | null>(null);
+  const [showPurchase, setShowPurchase] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Load credit balance on mount
+  useEffect(() => {
+    if (userId) {
+      getCreditsBalance(userId).then(setCredits);
+    }
+  }, [userId]);
+
+  async function handlePlayHD() {
+    if (!userId) return;
+    const text = extractPlainText();
+    const chars = estimateCharacters(text);
+
+    if (!credits || credits.credits_remaining < chars) {
+      setShowPurchase(true);
+      return;
+    }
+
+    stopSpeech(); // stop browser TTS if playing
+    setHdLoading(true);
+
+    const result = await playHDAudio(text, course.id, lesson.id);
+
+    if ('error' in result) {
+      if (result.error === 'insufficient_credits') {
+        setShowPurchase(true);
+      }
+      setHdLoading(false);
+      return;
+    }
+
+    const url = URL.createObjectURL(result.blob);
+    if (!audioRef.current) {
+      audioRef.current = new Audio();
+    }
+    audioRef.current.src = url;
+    audioRef.current.onended = () => { setHdPlaying(false); setHdPaused(false); };
+    audioRef.current.play();
+    setHdPlaying(true);
+    setHdPaused(false);
+    setHdLoading(false);
+
+    // Refresh balance after play
+    getCreditsBalance(userId).then(setCredits);
+  }
+
+  function toggleHdPause() {
+    if (!audioRef.current) return;
+    if (hdPaused) {
+      audioRef.current.play();
+      setHdPaused(false);
+    } else {
+      audioRef.current.pause();
+      setHdPaused(true);
+    }
+  }
+
+  function stopHdAudio() {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
+    setHdPlaying(false);
+    setHdPaused(false);
+  }
+
+  async function handlePurchase(packageId: string) {
+    if (!userId) return;
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user?.email) return;
+    const url = await purchaseCredits(packageId, userId, user.email);
+    if (url) window.location.href = url;
+  }
+
   // Stop speech on lesson change or unmount
   useEffect(() => {
-    return () => { window.speechSynthesis?.cancel(); };
+    return () => {
+      window.speechSynthesis?.cancel();
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      }
+    };
   }, [currentIdx]);
 
   // Auto-expand the module of the current lesson
@@ -272,51 +365,157 @@ export default function LessonViewer({ course, initialLessonId, userId }: Props)
           </div>
           {/* Audio controls */}
           <div className="ml-auto flex items-center gap-2">
-            {isPlaying ? (
+            {/* Mode toggle */}
+            <div className="flex rounded-md border border-slate-200 overflow-hidden">
+              <button
+                onClick={() => { setAudioMode('standard'); stopHdAudio(); }}
+                className={`px-2 py-1 text-xs font-medium transition-colors ${
+                  audioMode === 'standard' ? 'bg-slate-100 text-slate-700' : 'text-slate-400 hover:text-slate-600'
+                }`}
+              >
+                Standard
+              </button>
+              <button
+                onClick={() => { setAudioMode('hd'); stopSpeech(); }}
+                className={`px-2 py-1 text-xs font-medium transition-colors flex items-center gap-1 ${
+                  audioMode === 'hd' ? 'bg-amber-50 text-amber-700' : 'text-slate-400 hover:text-slate-600'
+                }`}
+              >
+                <Sparkles className="w-3 h-3" />
+                HD
+              </button>
+            </div>
+
+            {/* Playback controls */}
+            {audioMode === 'standard' ? (
               <>
-                <button
-                  onClick={togglePause}
-                  className="flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-md bg-primary-50 text-primary-700 hover:bg-primary-100 transition-colors"
-                  title={isPaused ? 'Resume' : 'Pause'}
+                {isPlaying ? (
+                  <>
+                    <button
+                      onClick={togglePause}
+                      className="flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-md bg-primary-50 text-primary-700 hover:bg-primary-100 transition-colors"
+                      title={isPaused ? 'Resume' : 'Pause'}
+                    >
+                      {isPaused ? <Volume2 className="w-3.5 h-3.5" /> : <Pause className="w-3.5 h-3.5" />}
+                      {isPaused ? 'Resume' : 'Pause'}
+                    </button>
+                    <button
+                      onClick={stopSpeech}
+                      className="p-1 rounded-md text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                      title="Stop"
+                    >
+                      <Square className="w-3.5 h-3.5" />
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    onClick={startSpeech}
+                    className="flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-md text-slate-500 hover:bg-slate-100 transition-colors"
+                    title="Listen (browser voice)"
+                  >
+                    <Volume2 className="w-3.5 h-3.5" />
+                    Listen
+                  </button>
+                )}
+                <select
+                  value={speechRate}
+                  onChange={(e) => changeSpeed(parseFloat(e.target.value))}
+                  className="text-xs bg-transparent border border-slate-200 rounded-md px-1 py-0.5 text-slate-500 cursor-pointer"
                 >
-                  {isPaused ? <Volume2 className="w-3.5 h-3.5" /> : <Pause className="w-3.5 h-3.5" />}
-                  {isPaused ? 'Resume' : 'Pause'}
-                </button>
-                <button
-                  onClick={stopSpeech}
-                  className="p-1 rounded-md text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors"
-                  title="Stop"
-                >
-                  <Square className="w-3.5 h-3.5" />
-                </button>
+                  <option value={0.75}>0.75x</option>
+                  <option value={1}>1x</option>
+                  <option value={1.25}>1.25x</option>
+                  <option value={1.5}>1.5x</option>
+                  <option value={2}>2x</option>
+                </select>
               </>
             ) : (
-              <button
-                onClick={startSpeech}
-                className="flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-md text-slate-500 hover:bg-slate-100 transition-colors"
-                title="Listen to lesson"
-              >
-                <Volume2 className="w-3.5 h-3.5" />
-                Listen
-              </button>
+              <>
+                {hdLoading ? (
+                  <span className="flex items-center gap-1 px-2 py-1 text-xs text-amber-600">
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    Generating...
+                  </span>
+                ) : hdPlaying ? (
+                  <>
+                    <button
+                      onClick={toggleHdPause}
+                      className="flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-md bg-amber-50 text-amber-700 hover:bg-amber-100 transition-colors"
+                      title={hdPaused ? 'Resume' : 'Pause'}
+                    >
+                      {hdPaused ? <Volume2 className="w-3.5 h-3.5" /> : <Pause className="w-3.5 h-3.5" />}
+                      {hdPaused ? 'Resume' : 'Pause'}
+                    </button>
+                    <button
+                      onClick={stopHdAudio}
+                      className="p-1 rounded-md text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                      title="Stop"
+                    >
+                      <Square className="w-3.5 h-3.5" />
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    onClick={() => userId ? handlePlayHD() : null}
+                    disabled={!userId}
+                    className="flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-md text-amber-600 hover:bg-amber-50 transition-colors disabled:opacity-40"
+                    title={userId ? `Play HD (~${estimateCharacters(extractPlainText()).toLocaleString()} chars)` : 'Sign in to use HD Audio'}
+                  >
+                    <Sparkles className="w-3.5 h-3.5" />
+                    Play HD
+                  </button>
+                )}
+                {credits && (
+                  <span className="text-xs text-slate-400">
+                    {credits.credits_remaining.toLocaleString()} credits
+                  </span>
+                )}
+              </>
             )}
-            <select
-              value={speechRate}
-              onChange={(e) => changeSpeed(parseFloat(e.target.value))}
-              className="text-xs bg-transparent border border-slate-200 rounded-md px-1 py-0.5 text-slate-500 cursor-pointer"
-            >
-              <option value={0.75}>0.75x</option>
-              <option value={1}>1x</option>
-              <option value={1.25}>1.25x</option>
-              <option value={1.5}>1.5x</option>
-              <option value={2}>2x</option>
-            </select>
+
             <div className="flex items-center gap-1.5 text-xs text-slate-400 ml-1">
               <Clock className="w-3.5 h-3.5" />
               {lesson.estimatedMinutes} min
             </div>
           </div>
         </div>
+
+        {/* Credit purchase prompt */}
+        {showPurchase && (
+          <div className="px-6 py-4 bg-amber-50 border-b border-amber-200">
+            <div className="flex items-start justify-between mb-3">
+              <div>
+                <h3 className="text-sm font-semibold text-amber-800 flex items-center gap-1.5">
+                  <ShoppingCart className="w-4 h-4" />
+                  HD Audio Credits Required
+                </h3>
+                <p className="text-xs text-amber-700 mt-1">
+                  This lesson needs ~{estimateCharacters(extractPlainText()).toLocaleString()} characters.
+                  {credits ? ` You have ${credits.credits_remaining.toLocaleString()} remaining.` : ' You have no credits yet.'}
+                </p>
+              </div>
+              <button
+                onClick={() => setShowPurchase(false)}
+                className="text-amber-400 hover:text-amber-600 text-lg leading-none"
+              >
+                &times;
+              </button>
+            </div>
+            <div className="flex gap-2 flex-wrap">
+              {CREDIT_PACKAGES.map((pkg) => (
+                <button
+                  key={pkg.id}
+                  onClick={() => handlePurchase(pkg.id)}
+                  className="flex-1 min-w-[140px] px-3 py-2 bg-white border border-amber-200 rounded-lg hover:border-amber-400 transition-colors text-left"
+                >
+                  <div className="text-sm font-semibold text-slate-900">{pkg.priceLabel}</div>
+                  <div className="text-xs text-slate-500">{pkg.characters.toLocaleString()} characters</div>
+                  <div className="text-xs text-amber-600 font-medium">{pkg.label}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Lesson content */}
         <div className="flex-1 overflow-y-auto px-6 md:px-10 py-8 bg-slate-50">

@@ -35,8 +35,34 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     switch (event.type) {
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session;
-        const { courseId, userId } = session.metadata || {};
+        const { courseId, userId, purchaseType, creditAmount } = session.metadata || {};
 
+        // TTS credit fulfillment
+        if (purchaseType === 'tts_credits' && userId && creditAmount) {
+          const amt = parseInt(creditAmount);
+          const { data: existing } = await supabase
+            .from('tts_credit_balances')
+            .select('credits_remaining, credits_purchased')
+            .eq('user_id', userId)
+            .single();
+
+          if (existing) {
+            await supabase.from('tts_credit_balances').update({
+              credits_remaining: existing.credits_remaining + amt,
+              credits_purchased: existing.credits_purchased + amt,
+              updated_at: new Date().toISOString(),
+            }).eq('user_id', userId);
+          } else {
+            await supabase.from('tts_credit_balances').insert({
+              user_id: userId,
+              credits_remaining: amt,
+              credits_purchased: amt,
+            });
+          }
+          break;
+        }
+
+        // Course purchase fulfillment (existing)
         if (courseId) {
           await supabase.from('course_purchases').insert({
             course_id: courseId,

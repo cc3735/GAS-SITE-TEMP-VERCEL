@@ -13,8 +13,35 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const { courseId, amount, currency, email, userId, isSubscription, couponCode, successUrl, cancelUrl } = req.body;
+    const { courseId, amount, currency, email, userId, isSubscription, couponCode, successUrl, cancelUrl, purchaseType, creditAmount, price } = req.body;
 
+    // TTS credit purchase flow
+    if (purchaseType === 'tts_credits') {
+      if (!creditAmount || !price || !email || !userId) {
+        return res.status(400).json({ error: 'Missing required fields for credit purchase' });
+      }
+
+      const creditSession = await stripe.checkout.sessions.create({
+        payment_method_types: ['card'],
+        customer_email: email,
+        mode: 'payment',
+        metadata: { purchaseType: 'tts_credits', userId, creditAmount: String(creditAmount) },
+        line_items: [{
+          price_data: {
+            currency: 'usd',
+            product_data: { name: `HD Audio Credits — ${Number(creditAmount).toLocaleString()} characters` },
+            unit_amount: Math.round(price),
+          },
+          quantity: 1,
+        }],
+        success_url: successUrl || `${req.headers.origin}/portal/courses?credits_purchased=true`,
+        cancel_url: cancelUrl || `${req.headers.origin}/portal/courses?cancelled=true`,
+      });
+
+      return res.status(200).json({ url: creditSession.url, sessionId: creditSession.id });
+    }
+
+    // Course purchase flow (existing)
     if (!courseId || !amount || !email) {
       return res.status(400).json({ error: 'Missing required fields: courseId, amount, email' });
     }
