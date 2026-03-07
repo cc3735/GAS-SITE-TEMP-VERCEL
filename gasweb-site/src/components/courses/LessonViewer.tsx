@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import {
   ChevronRight, ChevronDown, CheckCircle, Circle, BookOpen,
   ArrowLeft, ArrowRight, Clock, Target, Lightbulb,
+  Volume2, Pause, Square,
 } from 'lucide-react';
 import type { FullCourse } from '../../data/courseContent';
 import { syncProgress } from '../../lib/courseProgress';
@@ -55,6 +56,93 @@ export default function LessonViewer({ course, initialLessonId, userId }: Props)
   });
 
   const lesson = allLessons[currentIdx];
+
+  // ── Speech / Audio ──────────────────────────────────────────────────
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
+  const [speechRate, setSpeechRate] = useState(() => {
+    try { return parseFloat(localStorage.getItem('gas_tts_speed') || '1'); }
+    catch { return 1; }
+  });
+
+  function extractPlainText() {
+    if (!lesson) return '';
+    const parts: string[] = [];
+    parts.push(lesson.title + '.');
+    if (lesson.objectives.length) {
+      parts.push('Learning Objectives: ' + lesson.objectives.join('. ') + '.');
+    }
+    // Strip markdown from content
+    const clean = lesson.content
+      .replace(/```[\s\S]*?```/g, '') // remove code blocks
+      .replace(/^#{1,3}\s+/gm, '')    // remove heading markers
+      .replace(/^>\s+/gm, '')         // remove blockquote markers
+      .replace(/^[-*]\s+/gm, '')      // remove list markers
+      .replace(/^\d+\.\s+/gm, '')     // remove ordered list markers
+      .replace(/\*\*(.+?)\*\*/g, '$1') // bold → text
+      .replace(/\*(.+?)\*/g, '$1')     // italic → text
+      .replace(/`([^`]+)`/g, '$1')     // inline code → text
+      .replace(/\n{2,}/g, '. ')
+      .replace(/\n/g, ' ')
+      .trim();
+    parts.push(clean);
+    if (lesson.keyTakeaways.length) {
+      parts.push('Key Takeaways: ' + lesson.keyTakeaways.join('. ') + '.');
+    }
+    return parts.join(' ');
+  }
+
+  function startSpeech() {
+    if (!window.speechSynthesis) return;
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(extractPlainText());
+    utterance.rate = speechRate;
+    utterance.onend = () => { setIsPlaying(false); setIsPaused(false); };
+    utterance.onerror = () => { setIsPlaying(false); setIsPaused(false); };
+    window.speechSynthesis.speak(utterance);
+    setIsPlaying(true);
+    setIsPaused(false);
+  }
+
+  function togglePause() {
+    if (!window.speechSynthesis) return;
+    if (isPaused) {
+      window.speechSynthesis.resume();
+      setIsPaused(false);
+    } else {
+      window.speechSynthesis.pause();
+      setIsPaused(true);
+    }
+  }
+
+  function stopSpeech() {
+    if (!window.speechSynthesis) return;
+    window.speechSynthesis.cancel();
+    setIsPlaying(false);
+    setIsPaused(false);
+  }
+
+  function changeSpeed(rate: number) {
+    setSpeechRate(rate);
+    localStorage.setItem('gas_tts_speed', String(rate));
+    if (isPlaying) {
+      // Restart with new speed
+      stopSpeech();
+      setTimeout(() => {
+        const utterance = new SpeechSynthesisUtterance(extractPlainText());
+        utterance.rate = rate;
+        utterance.onend = () => { setIsPlaying(false); setIsPaused(false); };
+        utterance.onerror = () => { setIsPlaying(false); setIsPaused(false); };
+        window.speechSynthesis.speak(utterance);
+        setIsPlaying(true);
+      }, 100);
+    }
+  }
+
+  // Stop speech on lesson change or unmount
+  useEffect(() => {
+    return () => { window.speechSynthesis?.cancel(); };
+  }, [currentIdx]);
 
   // Auto-expand the module of the current lesson
   useEffect(() => {
@@ -182,9 +270,51 @@ export default function LessonViewer({ course, initialLessonId, userId }: Props)
           <div className="text-sm text-slate-500 truncate">
             {lesson.moduleTitle} &gt; {lesson.title}
           </div>
-          <div className="ml-auto flex items-center gap-1.5 text-xs text-slate-400">
-            <Clock className="w-3.5 h-3.5" />
-            {lesson.estimatedMinutes} min
+          {/* Audio controls */}
+          <div className="ml-auto flex items-center gap-2">
+            {isPlaying ? (
+              <>
+                <button
+                  onClick={togglePause}
+                  className="flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-md bg-primary-50 text-primary-700 hover:bg-primary-100 transition-colors"
+                  title={isPaused ? 'Resume' : 'Pause'}
+                >
+                  {isPaused ? <Volume2 className="w-3.5 h-3.5" /> : <Pause className="w-3.5 h-3.5" />}
+                  {isPaused ? 'Resume' : 'Pause'}
+                </button>
+                <button
+                  onClick={stopSpeech}
+                  className="p-1 rounded-md text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                  title="Stop"
+                >
+                  <Square className="w-3.5 h-3.5" />
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={startSpeech}
+                className="flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-md text-slate-500 hover:bg-slate-100 transition-colors"
+                title="Listen to lesson"
+              >
+                <Volume2 className="w-3.5 h-3.5" />
+                Listen
+              </button>
+            )}
+            <select
+              value={speechRate}
+              onChange={(e) => changeSpeed(parseFloat(e.target.value))}
+              className="text-xs bg-transparent border border-slate-200 rounded-md px-1 py-0.5 text-slate-500 cursor-pointer"
+            >
+              <option value={0.75}>0.75x</option>
+              <option value={1}>1x</option>
+              <option value={1.25}>1.25x</option>
+              <option value={1.5}>1.5x</option>
+              <option value={2}>2x</option>
+            </select>
+            <div className="flex items-center gap-1.5 text-xs text-slate-400 ml-1">
+              <Clock className="w-3.5 h-3.5" />
+              {lesson.estimatedMinutes} min
+            </div>
           </div>
         </div>
 
