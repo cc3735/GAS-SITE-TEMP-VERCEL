@@ -11,6 +11,7 @@ import {
   ChevronRight,
   Loader2,
   ExternalLink,
+  X,
 } from 'lucide-react';
 
 type Step = 'domain' | 'email' | 'website';
@@ -31,46 +32,67 @@ export default function LegalFlowDigitalPresence() {
   const [domainRegistered, setDomainRegistered] = useState(false);
   const [emailProvider, setEmailProvider] = useState<EmailProvider | null>(null);
   const [websiteStarted, setWebsiteStarted] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [isRegistering, setIsRegistering] = useState(false);
+  const [isProvisioning, setIsProvisioning] = useState(false);
 
   const handleDomainSearch = async () => {
     if (!domainQuery.trim()) return;
     setIsSearching(true);
     setDomainResult(null);
+    setErrorMsg(null);
     const domain = domainQuery.includes('.') ? domainQuery : `${domainQuery}.com`;
-    const { data, error } = await supabase.functions.invoke('hostinger', {
-      body: { action: 'domain_search', domain },
-    });
-    if (error) {
-      console.error('Hostinger search error:', error);
+    try {
+      const { data, error } = await supabase.functions.invoke('hostinger', {
+        body: { action: 'domain_search', domain },
+      });
+      if (error) {
+        setErrorMsg('Domain search failed. Please try again later.');
+        setDomainResult({ available: false, domain });
+      } else {
+        setDomainResult({ available: data.available, domain: data.domain || domain });
+      }
+    } catch {
+      setErrorMsg('Unable to connect to domain service. Please try again later.');
       setDomainResult({ available: false, domain });
-    } else {
-      setDomainResult({ available: data.available, domain: data.domain || domain });
     }
     setIsSearching(false);
   };
 
   const handleRegisterDomain = async () => {
-    const { data, error } = await supabase.functions.invoke('hostinger', {
-      body: { action: 'domain_register', domain: domainResult?.domain },
-    });
-    if (error) {
-      console.error('Hostinger register error:', error);
-    } else {
-      console.log('Domain registered:', data);
-      setDomainRegistered(true);
+    setIsRegistering(true);
+    setErrorMsg(null);
+    try {
+      const { data, error } = await supabase.functions.invoke('hostinger', {
+        body: { action: 'domain_register', domain: domainResult?.domain },
+      });
+      if (error) {
+        setErrorMsg('Domain registration failed. Please try again or contact support.');
+      } else {
+        setDomainRegistered(true);
+      }
+    } catch {
+      setErrorMsg('Unable to connect to domain service. Please try again later.');
     }
+    setIsRegistering(false);
   };
 
   const handleSetupWebsite = async () => {
-    const { data, error } = await supabase.functions.invoke('hostinger', {
-      body: { action: 'hosting_provision', domain: domainResult?.domain },
-    });
-    if (error) {
-      console.error('Hostinger hosting error:', error);
-    } else {
-      console.log('Hosting provisioned:', data);
-      setWebsiteStarted(true);
+    setIsProvisioning(true);
+    setErrorMsg(null);
+    try {
+      const { data, error } = await supabase.functions.invoke('hostinger', {
+        body: { action: 'hosting_provision', domain: domainResult?.domain },
+      });
+      if (error) {
+        setErrorMsg('Website setup failed. Please try again or contact support.');
+      } else {
+        setWebsiteStarted(true);
+      }
+    } catch {
+      setErrorMsg('Unable to connect to hosting service. Please try again later.');
     }
+    setIsProvisioning(false);
   };
 
   const stepIdx = STEPS.findIndex((s) => s.key === activeStep);
@@ -90,6 +112,16 @@ export default function LegalFlowDigitalPresence() {
           Get your business online — register a domain, set up email, and launch your website.
         </p>
       </div>
+
+      {/* Error Banner */}
+      {errorMsg && (
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center justify-between">
+          <p className="text-sm text-red-700">{errorMsg}</p>
+          <button onClick={() => setErrorMsg(null)} className="text-red-400 hover:text-red-600 ml-4">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
 
       {/* Stepper */}
       <div className="flex items-center gap-2 mb-8">

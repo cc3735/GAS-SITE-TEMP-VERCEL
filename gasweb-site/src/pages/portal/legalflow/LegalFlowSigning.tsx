@@ -12,6 +12,7 @@ import {
   FileText,
   Plus,
   X,
+  Loader2,
 } from 'lucide-react';
 
 type SigningStatus = 'draft' | 'sent' | 'viewed' | 'signed';
@@ -65,6 +66,9 @@ export default function LegalFlowSigning() {
   const [showUpload, setShowUpload] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [signerEmails, setSignerEmails] = useState<string[]>(['']);
+  const [sending, setSending] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   const handleAddSigner = () => setSignerEmails([...signerEmails, '']);
   const handleRemoveSigner = (idx: number) =>
@@ -76,17 +80,26 @@ export default function LegalFlowSigning() {
   };
 
   const handleSend = async () => {
-    const { data, error } = await supabase.functions.invoke('zoho-sign', {
-      body: { action: 'send_document', file_name: file.name, signers: signerEmails.filter((e) => e.trim()) },
-    });
-    if (error) {
-      console.error('Zoho Sign error:', error);
-    } else {
-      console.log('Zoho Sign response:', data);
+    if (!file || sending) return;
+    setSending(true);
+    setErrorMsg(null);
+    setSuccessMsg(null);
+    try {
+      const { data, error } = await supabase.functions.invoke('zoho-sign', {
+        body: { action: 'send_document', file_name: file.name, signers: signerEmails.filter((e) => e.trim()) },
+      });
+      if (error) {
+        setErrorMsg('Failed to send document for signing. Please try again or contact support.');
+      } else {
+        setSuccessMsg('Document sent for signing successfully.');
+        setShowUpload(false);
+        setFile(null);
+        setSignerEmails(['']);
+      }
+    } catch {
+      setErrorMsg('Unable to connect to signing service. Please try again later.');
     }
-    setShowUpload(false);
-    setFile(null);
-    setSignerEmails(['']);
+    setSending(false);
   };
 
   return (
@@ -112,6 +125,24 @@ export default function LegalFlowSigning() {
           <Plus className="w-4 h-4" /> New Request
         </button>
       </div>
+
+      {/* Error/Success Banners */}
+      {errorMsg && (
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center justify-between">
+          <p className="text-sm text-red-700">{errorMsg}</p>
+          <button onClick={() => setErrorMsg(null)} className="text-red-400 hover:text-red-600 ml-4">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+      {successMsg && (
+        <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-center justify-between">
+          <p className="text-sm text-green-700">{successMsg}</p>
+          <button onClick={() => setSuccessMsg(null)} className="text-green-400 hover:text-green-600 ml-4">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
 
       {/* Upload / Send panel */}
       {showUpload && (

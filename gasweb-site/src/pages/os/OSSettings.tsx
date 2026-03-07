@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Settings as SettingsIcon, Key, Save, Eye, EyeOff, Plug, Mail, Phone, Share2, CheckCircle, XCircle, Loader2, ChevronDown, ChevronRight } from 'lucide-react';
 import { useChannelIntegrations } from '../../hooks/useChannelIntegrations';
 import { useSocial } from '../../hooks/useSocial';
+import { useOrganization } from '../../contexts/OrganizationContext';
+import { supabase } from '../../lib/supabase';
 
 type SettingsTab = 'general' | 'api-keys' | 'integrations';
 
@@ -19,6 +21,7 @@ const EMAIL_PROVIDERS = [
 ];
 
 export default function OSSettings() {
+  const { currentOrganization, refetchOrganizations } = useOrganization();
   const [activeTab, setActiveTab] = useState<SettingsTab>('general');
   const [apiKeys, setApiKeys] = useState<Record<string, string>>({
     gemini: '',
@@ -35,9 +38,89 @@ export default function OSSettings() {
   const [defaultModel, setDefaultModel] = useState('gemini');
   const [saving, setSaving] = useState(false);
 
+  // General settings state
+  const [orgName, setOrgName] = useState('');
+  const [orgTimezone, setOrgTimezone] = useState('America/New_York');
+  const [orgCurrency, setOrgCurrency] = useState('USD');
+  const [savingGeneral, setSavingGeneral] = useState(false);
+  const [generalSaved, setGeneralSaved] = useState(false);
+
   // Integration state
   const { integrations, saveIntegration, testIntegration, loading: integrationsLoading } = useChannelIntegrations();
   const { accounts: socialAccounts } = useSocial();
+
+  // Load org settings and API keys on mount
+  useEffect(() => {
+    if (currentOrganization) {
+      setOrgName(currentOrganization.name || '');
+      loadOrgSettings();
+      loadApiKeys();
+    }
+  }, [currentOrganization]);
+
+  const loadOrgSettings = async () => {
+    if (!currentOrganization) return;
+    const { data } = await supabase
+      .from('organization_settings')
+      .select('key, value')
+      .eq('organization_id', currentOrganization.id)
+      .in('key', ['timezone', 'currency']);
+    if (data) {
+      data.forEach(s => {
+        if (s.key === 'timezone') setOrgTimezone(s.value || 'America/New_York');
+        if (s.key === 'currency') setOrgCurrency(s.value || 'USD');
+      });
+    }
+  };
+
+  const loadApiKeys = async () => {
+    if (!currentOrganization) return;
+    const { data } = await supabase
+      .from('organization_settings')
+      .select('key, value')
+      .eq('organization_id', currentOrganization.id)
+      .like('key', 'api_key_%');
+    if (data) {
+      const keys: Record<string, string> = { gemini: '', 'gpt-4': '', claude: '', 'gpt-3.5': '' };
+      data.forEach(s => {
+        const modelId = s.key.replace('api_key_', '');
+        keys[modelId] = s.value || '';
+      });
+      setApiKeys(keys);
+    }
+    // Also load default model
+    const { data: modelData } = await supabase
+      .from('organization_settings')
+      .select('value')
+      .eq('organization_id', currentOrganization.id)
+      .eq('key', 'default_ai_model')
+      .single();
+    if (modelData?.value) setDefaultModel(modelData.value);
+  };
+
+  const handleSaveGeneral = async () => {
+    if (!currentOrganization || savingGeneral) return;
+    setSavingGeneral(true);
+    setGeneralSaved(false);
+
+    // Update org name
+    if (orgName.trim() !== currentOrganization.name) {
+      await supabase.from('organizations').update({ name: orgName.trim() }).eq('id', currentOrganization.id);
+      refetchOrganizations();
+    }
+
+    // Upsert timezone and currency
+    for (const [key, value] of [['timezone', orgTimezone], ['currency', orgCurrency]]) {
+      await supabase.from('organization_settings').upsert(
+        { organization_id: currentOrganization.id, key, value, updated_at: new Date().toISOString() },
+        { onConflict: 'organization_id,key' }
+      );
+    }
+
+    setSavingGeneral(false);
+    setGeneralSaved(true);
+    setTimeout(() => setGeneralSaved(false), 3000);
+  };
 
   const [emailProvider, setEmailProvider] = useState('resend');
   const [emailConfig, setEmailConfig] = useState({ api_key: '', from_email: '', from_name: '', smtp_host: '', smtp_port: '', smtp_user: '', smtp_pass: '' });
@@ -69,9 +152,23 @@ export default function OSSettings() {
   });
 
   const handleSaveApiKeys = async () => {
-    if (saving) return;
+    if (saving || !currentOrganization) return;
     setSaving(true);
-    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    // Save each API key
+    for (const [modelId, value] of Object.entries(apiKeys)) {
+      await supabase.from('organization_settings').upsert(
+        { organization_id: currentOrganization.id, key: `api_key_${modelId}`, value, updated_at: new Date().toISOString() },
+        { onConflict: 'organization_id,key' }
+      );
+    }
+
+    // Save default model
+    await supabase.from('organization_settings').upsert(
+      { organization_id: currentOrganization.id, key: 'default_ai_model', value: defaultModel, updated_at: new Date().toISOString() },
+      { onConflict: 'organization_id,key' }
+    );
+
     setSaving(false);
   };
 
@@ -202,13 +299,65 @@ export default function OSSettings() {
       {activeTab === 'general' && (
         <div className="space-y-6">
           <div className="bg-gray-900 rounded-xl shadow-sm border border-gray-700 p-6">
-            <h3 className="text-lg font-semibold text-white mb-4">Organization Preferences</h3>
-            <p className="text-gray-400">General organization settings will be available here.</p>
-          </div>
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h3 className="text-lg font-semibold text-white">Organization Preferences</h3>
+                <p className="text-sm text-gray-400">Configure your organization settings</p>
+              </div>
+              <div className="flex items-center gap-3">
+                {generalSaved && (
+                  <span className="flex items-center gap-1 text-sm text-green-400">
+                    <CheckCircle className="w-4 h-4" /> Saved
+                  </span>
+                )}
+                <button
+                  onClick={handleSaveGeneral}
+                  disabled={savingGeneral}
+                  className="flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg transition disabled:opacity-50"
+                >
+                  {savingGeneral ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                  {savingGeneral ? 'Saving...' : 'Save Changes'}
+                </button>
+              </div>
+            </div>
 
-          <div className="bg-gray-900 rounded-xl shadow-sm border border-gray-700 p-6">
-            <h3 className="text-lg font-semibold text-white mb-4">User Preferences</h3>
-            <p className="text-gray-400">Personal settings and preferences will be available here.</p>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">Organization Name</label>
+                <input
+                  type="text"
+                  value={orgName}
+                  onChange={(e) => setOrgName(e.target.value)}
+                  placeholder="Your organization name"
+                  className={inputClass}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Timezone</label>
+                  <select value={orgTimezone} onChange={(e) => setOrgTimezone(e.target.value)} className={inputClass}>
+                    <option value="America/New_York">Eastern (ET)</option>
+                    <option value="America/Chicago">Central (CT)</option>
+                    <option value="America/Denver">Mountain (MT)</option>
+                    <option value="America/Los_Angeles">Pacific (PT)</option>
+                    <option value="America/Anchorage">Alaska (AKT)</option>
+                    <option value="Pacific/Honolulu">Hawaii (HST)</option>
+                    <option value="UTC">UTC</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Default Currency</label>
+                  <select value={orgCurrency} onChange={(e) => setOrgCurrency(e.target.value)} className={inputClass}>
+                    <option value="USD">USD ($)</option>
+                    <option value="EUR">EUR</option>
+                    <option value="GBP">GBP</option>
+                    <option value="CAD">CAD</option>
+                    <option value="AUD">AUD</option>
+                  </select>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}

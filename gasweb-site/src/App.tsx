@@ -37,6 +37,29 @@ import FinanceFlowReports from './pages/portal/financeflow/FinanceFlowReports';
 import SocialFlowHub from './pages/portal/socialflow/SocialFlowHub';
 import SocialFlowMessaging from './pages/portal/socialflow/SocialFlowMessaging';
 import SocialFlowMarketing from './pages/portal/socialflow/SocialFlowMarketing';
+import HRFlowHub from './pages/portal/hrflow/HRFlowHub';
+import HRFlowEmployees from './pages/portal/hrflow/HRFlowEmployees';
+import HRFlowTimeTracking from './pages/portal/hrflow/HRFlowTimeTracking';
+import HRFlowDocuments from './pages/portal/hrflow/HRFlowDocuments';
+import CourseFlowHub from './pages/portal/courseflow/CourseFlowHub';
+import CourseFlowCourses from './pages/portal/courseflow/CourseFlowCourses';
+import CourseFlowStudents from './pages/portal/courseflow/CourseFlowStudents';
+import CourseFlowAnalytics from './pages/portal/courseflow/CourseFlowAnalytics';
+import FoodTruckHub from './pages/portal/foodtruck/FoodTruckHub';
+import FoodTruckMenu from './pages/portal/foodtruck/FoodTruckMenu';
+import FoodTruckOrders from './pages/portal/foodtruck/FoodTruckOrders';
+import FoodTruckLocations from './pages/portal/foodtruck/FoodTruckLocations';
+import FoodTruckInventory from './pages/portal/foodtruck/FoodTruckInventory';
+import BuildFlowHub from './pages/portal/buildflow/BuildFlowHub';
+import BuildFlowEstimates from './pages/portal/buildflow/BuildFlowEstimates';
+import BuildFlowMaterials from './pages/portal/buildflow/BuildFlowMaterials';
+import BuildFlowContractors from './pages/portal/buildflow/BuildFlowContractors';
+import BuildFlowPermits from './pages/portal/buildflow/BuildFlowPermits';
+import KeysFlowHub from './pages/portal/keysflow/KeysFlowHub';
+import KeysFlowProperties from './pages/portal/keysflow/KeysFlowProperties';
+import KeysFlowTenants from './pages/portal/keysflow/KeysFlowTenants';
+import KeysFlowLeases from './pages/portal/keysflow/KeysFlowLeases';
+import KeysFlowMaintenance from './pages/portal/keysflow/KeysFlowMaintenance';
 import ClientIntake from './pages/portal/intake/ClientIntake';
 import PortalCRM from './pages/portal/PortalCRM';
 import PortalProjects from './pages/portal/PortalProjects';
@@ -121,6 +144,29 @@ function App(): JSX.Element {
             <Route path="socialflow" element={<SocialFlowHub />} />
             <Route path="socialflow/messaging" element={<SocialFlowMessaging />} />
             <Route path="socialflow/marketing" element={<SocialFlowMarketing />} />
+            <Route path="hrflow" element={<HRFlowHub />} />
+            <Route path="hrflow/employees" element={<HRFlowEmployees />} />
+            <Route path="hrflow/time-tracking" element={<HRFlowTimeTracking />} />
+            <Route path="hrflow/documents" element={<HRFlowDocuments />} />
+            <Route path="courseflow" element={<CourseFlowHub />} />
+            <Route path="courseflow/courses" element={<CourseFlowCourses />} />
+            <Route path="courseflow/students" element={<CourseFlowStudents />} />
+            <Route path="courseflow/analytics" element={<CourseFlowAnalytics />} />
+            <Route path="foodtruck" element={<FoodTruckHub />} />
+            <Route path="foodtruck/menu" element={<FoodTruckMenu />} />
+            <Route path="foodtruck/orders" element={<FoodTruckOrders />} />
+            <Route path="foodtruck/locations" element={<FoodTruckLocations />} />
+            <Route path="foodtruck/inventory" element={<FoodTruckInventory />} />
+            <Route path="buildflow" element={<BuildFlowHub />} />
+            <Route path="buildflow/estimates" element={<BuildFlowEstimates />} />
+            <Route path="buildflow/materials" element={<BuildFlowMaterials />} />
+            <Route path="buildflow/contractors" element={<BuildFlowContractors />} />
+            <Route path="buildflow/permits" element={<BuildFlowPermits />} />
+            <Route path="keysflow" element={<KeysFlowHub />} />
+            <Route path="keysflow/properties" element={<KeysFlowProperties />} />
+            <Route path="keysflow/tenants" element={<KeysFlowTenants />} />
+            <Route path="keysflow/leases" element={<KeysFlowLeases />} />
+            <Route path="keysflow/maintenance" element={<KeysFlowMaintenance />} />
             <Route path="courses" element={<PortalCourses />} />
             <Route path="courses/:courseId" element={<PortalCourseDetail />} />
             <Route path="crm" element={<PortalCRM />} />

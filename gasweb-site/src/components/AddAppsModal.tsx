@@ -61,6 +61,7 @@ export const ALL_APPS: AppDef[] = [
     textColor: 'text-rose-600',
     dotColor: 'bg-rose-600',
     url: '#',
+    internalRoute: '/portal/hrflow',
   },
   {
     id: 'courseflow',
@@ -71,6 +72,7 @@ export const ALL_APPS: AppDef[] = [
     textColor: 'text-emerald-600',
     dotColor: 'bg-emerald-600',
     url: '#',
+    internalRoute: '/portal/courseflow',
   },
   {
     id: 'foodtruck',
@@ -81,6 +83,7 @@ export const ALL_APPS: AppDef[] = [
     textColor: 'text-orange-600',
     dotColor: 'bg-orange-600',
     url: '#',
+    internalRoute: '/portal/foodtruck',
   },
   {
     id: 'buildflow',
@@ -91,6 +94,7 @@ export const ALL_APPS: AppDef[] = [
     textColor: 'text-yellow-700',
     dotColor: 'bg-yellow-700',
     url: '#',
+    internalRoute: '/portal/buildflow',
   },
   {
     id: 'keysflow',
@@ -101,6 +105,7 @@ export const ALL_APPS: AppDef[] = [
     textColor: 'text-purple-600',
     dotColor: 'bg-purple-600',
     url: '#',
+    internalRoute: '/portal/keysflow',
   },
 ];
 

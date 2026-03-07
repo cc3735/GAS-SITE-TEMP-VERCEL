@@ -30,6 +30,16 @@ import {
   PenTool,
   Globe,
   BookOpen,
+  HardHat,
+  Home,
+  Wrench,
+  Clock,
+  FileCheck,
+  UtensilsCrossed,
+  ShoppingCart,
+  MapPin,
+  Key,
+  GraduationCap,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
@@ -72,6 +82,44 @@ const socialFlowNavItems = [
   { to: '/portal/socialflow/marketing',  icon: Megaphone,     label: 'Marketing & Social' },
 ];
 
+const hrFlowNavItems = [
+  { to: '/portal/hrflow',                icon: LayoutGrid, label: 'Overview',        end: true },
+  { to: '/portal/hrflow/employees',      icon: Users,      label: 'Employees' },
+  { to: '/portal/hrflow/time-tracking',  icon: Clock,      label: 'Time Tracking' },
+  { to: '/portal/hrflow/documents',      icon: FileCheck,  label: 'Documents' },
+];
+
+const courseFlowNavItems = [
+  { to: '/portal/courseflow',            icon: LayoutGrid,    label: 'Overview',    end: true },
+  { to: '/portal/courseflow/courses',    icon: BookOpen,      label: 'Courses' },
+  { to: '/portal/courseflow/students',   icon: GraduationCap, label: 'Students' },
+  { to: '/portal/courseflow/analytics',  icon: Calculator,    label: 'Analytics' },
+];
+
+const foodTruckNavItems = [
+  { to: '/portal/foodtruck',            icon: LayoutGrid,       label: 'Overview',    end: true },
+  { to: '/portal/foodtruck/menu',       icon: UtensilsCrossed,  label: 'Menu' },
+  { to: '/portal/foodtruck/orders',     icon: ShoppingCart,     label: 'Orders' },
+  { to: '/portal/foodtruck/locations',  icon: MapPin,           label: 'Locations' },
+  { to: '/portal/foodtruck/inventory',  icon: Package,          label: 'Inventory' },
+];
+
+const buildFlowNavItems = [
+  { to: '/portal/buildflow',              icon: LayoutGrid,     label: 'Overview',     end: true },
+  { to: '/portal/buildflow/estimates',    icon: Calculator,     label: 'Estimates' },
+  { to: '/portal/buildflow/materials',    icon: Package,        label: 'Materials' },
+  { to: '/portal/buildflow/contractors',  icon: HardHat,        label: 'Contractors' },
+  { to: '/portal/buildflow/permits',      icon: FileCheck,      label: 'Permits' },
+];
+
+const keysFlowNavItems = [
+  { to: '/portal/keysflow',              icon: LayoutGrid, label: 'Overview',      end: true },
+  { to: '/portal/keysflow/properties',   icon: Home,       label: 'Properties' },
+  { to: '/portal/keysflow/tenants',      icon: Users,      label: 'Tenants' },
+  { to: '/portal/keysflow/leases',       icon: FileText,   label: 'Leases' },
+  { to: '/portal/keysflow/maintenance',  icon: Wrench,     label: 'Maintenance' },
+];
+
 interface SidebarContentProps {
   initials: string;
   user: { email?: string; user_metadata?: Record<string, unknown> };
@@ -84,6 +132,16 @@ interface SidebarContentProps {
   setIsFinanceFlowOpen: (open: boolean) => void;
   isSocialFlowOpen: boolean;
   setIsSocialFlowOpen: (open: boolean) => void;
+  isHRFlowOpen: boolean;
+  setIsHRFlowOpen: (open: boolean) => void;
+  isCourseFlowOpen: boolean;
+  setIsCourseFlowOpen: (open: boolean) => void;
+  isFoodTruckOpen: boolean;
+  setIsFoodTruckOpen: (open: boolean) => void;
+  isBuildFlowOpen: boolean;
+  setIsBuildFlowOpen: (open: boolean) => void;
+  isKeysFlowOpen: boolean;
+  setIsKeysFlowOpen: (open: boolean) => void;
   isGasStaff: boolean;
   handleSignOut: () => void;
 }
@@ -94,6 +152,11 @@ function SidebarContent({
   isLegalFlowOpen, setIsLegalFlowOpen,
   isFinanceFlowOpen, setIsFinanceFlowOpen,
   isSocialFlowOpen, setIsSocialFlowOpen,
+  isHRFlowOpen, setIsHRFlowOpen,
+  isCourseFlowOpen, setIsCourseFlowOpen,
+  isFoodTruckOpen, setIsFoodTruckOpen,
+  isBuildFlowOpen, setIsBuildFlowOpen,
+  isKeysFlowOpen, setIsKeysFlowOpen,
   isGasStaff,
   handleSignOut,
 }: SidebarContentProps) {
@@ -143,6 +206,61 @@ function SidebarContent({
             isOpen={isSocialFlowOpen}
             onToggle={() => setIsSocialFlowOpen(!isSocialFlowOpen)}
             items={socialFlowNavItems}
+          />
+        )}
+
+        {/* HRFlow group — only if subscribed */}
+        {subscribedApps.has('hrflow') && (
+          <CollapsibleGroup
+            icon={Users}
+            label="HRFlow"
+            isOpen={isHRFlowOpen}
+            onToggle={() => setIsHRFlowOpen(!isHRFlowOpen)}
+            items={hrFlowNavItems}
+          />
+        )}
+
+        {/* CourseFlow group — only if subscribed */}
+        {subscribedApps.has('courseflow') && (
+          <CollapsibleGroup
+            icon={GraduationCap}
+            label="CourseFlow"
+            isOpen={isCourseFlowOpen}
+            onToggle={() => setIsCourseFlowOpen(!isCourseFlowOpen)}
+            items={courseFlowNavItems}
+          />
+        )}
+
+        {/* FoodTruck group — only if subscribed */}
+        {subscribedApps.has('foodtruck') && (
+          <CollapsibleGroup
+            icon={UtensilsCrossed}
+            label="FoodTruck"
+            isOpen={isFoodTruckOpen}
+            onToggle={() => setIsFoodTruckOpen(!isFoodTruckOpen)}
+            items={foodTruckNavItems}
+          />
+        )}
+
+        {/* BuildFlow group — only if subscribed */}
+        {subscribedApps.has('buildflow') && (
+          <CollapsibleGroup
+            icon={HardHat}
+            label="BuildFlow"
+            isOpen={isBuildFlowOpen}
+            onToggle={() => setIsBuildFlowOpen(!isBuildFlowOpen)}
+            items={buildFlowNavItems}
+          />
+        )}
+
+        {/* KeysFlow group — only if subscribed */}
+        {subscribedApps.has('keysflow') && (
+          <CollapsibleGroup
+            icon={Key}
+            label="KeysFlow"
+            isOpen={isKeysFlowOpen}
+            onToggle={() => setIsKeysFlowOpen(!isKeysFlowOpen)}
+            items={keysFlowNavItems}
           />
         )}
 
@@ -258,6 +376,21 @@ export default function Portal() {
   const [isSocialFlowOpen, setIsSocialFlowOpen] = useState(
     location.pathname.startsWith('/portal/socialflow')
   );
+  const [isHRFlowOpen, setIsHRFlowOpen] = useState(
+    location.pathname.startsWith('/portal/hrflow')
+  );
+  const [isCourseFlowOpen, setIsCourseFlowOpen] = useState(
+    location.pathname.startsWith('/portal/courseflow')
+  );
+  const [isFoodTruckOpen, setIsFoodTruckOpen] = useState(
+    location.pathname.startsWith('/portal/foodtruck')
+  );
+  const [isBuildFlowOpen, setIsBuildFlowOpen] = useState(
+    location.pathname.startsWith('/portal/buildflow')
+  );
+  const [isKeysFlowOpen, setIsKeysFlowOpen] = useState(
+    location.pathname.startsWith('/portal/keysflow')
+  );
   const [subscribedApps, setSubscribedApps] = useState<Set<string>>(new Set());
 
   const refreshSubscriptions = useCallback(() => {
@@ -303,6 +436,16 @@ export default function Portal() {
     setIsFinanceFlowOpen,
     isSocialFlowOpen,
     setIsSocialFlowOpen,
+    isHRFlowOpen,
+    setIsHRFlowOpen,
+    isCourseFlowOpen,
+    setIsCourseFlowOpen,
+    isFoodTruckOpen,
+    setIsFoodTruckOpen,
+    isBuildFlowOpen,
+    setIsBuildFlowOpen,
+    isKeysFlowOpen,
+    setIsKeysFlowOpen,
     isGasStaff,
     handleSignOut,
   };
