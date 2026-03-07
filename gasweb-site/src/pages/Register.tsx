@@ -7,6 +7,8 @@ import { supabase } from '../lib/supabase';
 export default function Register() {
   const { signUp, signInWithGoogle } = useAuth();
   const navigate = useNavigate();
+  const redirect = new URLSearchParams(window.location.search).get('redirect');
+  const redirectTo = redirect && redirect.startsWith('/') ? redirect : '/portal';
 
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -33,7 +35,7 @@ export default function Register() {
       setNeedsVerification(true);
       setIsSubmitting(false);
     } else {
-      navigate('/portal');
+      navigate(redirectTo);
     }
   };
 
@@ -213,7 +215,7 @@ export default function Register() {
 
           <p className="mt-6 text-center text-sm text-slate-600">
             Already have an account?{' '}
-            <Link to="/login" className="text-primary-600 font-medium hover:text-primary-700">
+            <Link to={`/login${redirect ? `?redirect=${encodeURIComponent(redirect)}` : ''}`} className="text-primary-600 font-medium hover:text-primary-700">
               Sign in
             </Link>
           </p>

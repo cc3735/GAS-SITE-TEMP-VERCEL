@@ -1,0 +1,414 @@
+import { useState, useEffect, useMemo } from 'react';
+import {
+  ChevronRight, ChevronDown, CheckCircle, Circle, BookOpen,
+  ArrowLeft, ArrowRight, Clock, Target, Lightbulb,
+} from 'lucide-react';
+import type { FullCourse } from '../../data/courseContent';
+
+interface Props {
+  course: FullCourse;
+  initialLessonId?: string;
+}
+
+function getProgressKey(courseId: string) {
+  return `gas_course_progress_${courseId}`;
+}
+
+function loadProgress(courseId: string): Set<string> {
+  try {
+    const raw = localStorage.getItem(getProgressKey(courseId));
+    return raw ? new Set(JSON.parse(raw)) : new Set();
+  } catch {
+    return new Set();
+  }
+}
+
+function saveProgress(courseId: string, completed: Set<string>) {
+  localStorage.setItem(getProgressKey(courseId), JSON.stringify([...completed]));
+}
+
+export default function LessonViewer({ course, initialLessonId }: Props) {
+  const [completed, setCompleted] = useState<Set<string>>(() => loadProgress(course.id));
+  const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set());
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  // Flat lesson list for prev/next navigation
+  const allLessons = useMemo(
+    () => course.modules.flatMap((m) => m.lessons.map((l) => ({ ...l, moduleId: m.id, moduleTitle: m.title }))),
+    [course]
+  );
+
+  const [currentIdx, setCurrentIdx] = useState(() => {
+    if (initialLessonId) {
+      const idx = allLessons.findIndex((l) => l.id === initialLessonId);
+      if (idx >= 0) return idx;
+    }
+    // Find first incomplete lesson
+    const firstIncomplete = allLessons.findIndex((l) => !completed.has(l.id));
+    return firstIncomplete >= 0 ? firstIncomplete : 0;
+  });
+
+  const lesson = allLessons[currentIdx];
+
+  // Auto-expand the module of the current lesson
+  useEffect(() => {
+    if (lesson) {
+      setExpandedModules((prev) => new Set([...prev, lesson.moduleId]));
+    }
+  }, [lesson?.moduleId]);
+
+  const toggleModule = (moduleId: string) => {
+    setExpandedModules((prev) => {
+      const next = new Set(prev);
+      if (next.has(moduleId)) next.delete(moduleId);
+      else next.add(moduleId);
+      return next;
+    });
+  };
+
+  const markComplete = () => {
+    const next = new Set(completed);
+    next.add(lesson.id);
+    setCompleted(next);
+    saveProgress(course.id, next);
+    // Auto-advance to next lesson
+    if (currentIdx < allLessons.length - 1) {
+      setCurrentIdx(currentIdx + 1);
+    }
+  };
+
+  const markIncomplete = () => {
+    const next = new Set(completed);
+    next.delete(lesson.id);
+    setCompleted(next);
+    saveProgress(course.id, next);
+  };
+
+  const totalLessons = allLessons.length;
+  const completedCount = allLessons.filter((l) => completed.has(l.id)).length;
+  const progressPercent = totalLessons > 0 ? Math.round((completedCount / totalLessons) * 100) : 0;
+
+  if (!lesson) return null;
+
+  return (
+    <div className="flex gap-0 -mx-6 md:-mx-8 -mb-6 md:-mb-8" style={{ minHeight: 'calc(100vh - 200px)' }}>
+      {/* Sidebar */}
+      {sidebarOpen && (
+        <aside className="w-72 flex-shrink-0 border-r border-slate-200 bg-white overflow-y-auto">
+          {/* Progress header */}
+          <div className="p-4 border-b border-slate-100">
+            <div className="flex items-center justify-between text-sm mb-2">
+              <span className="font-medium text-slate-700">Progress</span>
+              <span className="text-slate-500">{completedCount}/{totalLessons}</span>
+            </div>
+            <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-primary-600 rounded-full transition-all duration-300"
+                style={{ width: `${progressPercent}%` }}
+              />
+            </div>
+          </div>
+
+          {/* Module tree */}
+          <nav className="p-2">
+            {course.modules.map((mod, mi) => {
+              const modLessons = mod.lessons;
+              const modCompleted = modLessons.filter((l) => completed.has(l.id)).length;
+              const isExpanded = expandedModules.has(mod.id);
+
+              return (
+                <div key={mod.id} className="mb-1">
+                  <button
+                    onClick={() => toggleModule(mod.id)}
+                    className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+                  >
+                    {isExpanded ? <ChevronDown className="w-3.5 h-3.5 flex-shrink-0" /> : <ChevronRight className="w-3.5 h-3.5 flex-shrink-0" />}
+                    <span className="flex-1 text-left truncate">Module {mi + 1}: {mod.title}</span>
+                    <span className="text-xs text-slate-400">{modCompleted}/{modLessons.length}</span>
+                  </button>
+                  {isExpanded && (
+                    <div className="ml-4 pl-3 border-l border-slate-200">
+                      {modLessons.map((l) => {
+                        const globalIdx = allLessons.findIndex((al) => al.id === l.id);
+                        const isCurrent = globalIdx === currentIdx;
+                        const isDone = completed.has(l.id);
+                        return (
+                          <button
+                            key={l.id}
+                            onClick={() => setCurrentIdx(globalIdx)}
+                            className={`w-full flex items-center gap-2 px-3 py-1.5 rounded-md text-sm transition-colors ${
+                              isCurrent
+                                ? 'bg-primary-50 text-primary-700 font-medium'
+                                : 'text-slate-600 hover:bg-slate-50'
+                            }`}
+                          >
+                            {isDone ? (
+                              <CheckCircle className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
+                            ) : (
+                              <Circle className="w-3.5 h-3.5 text-slate-300 flex-shrink-0" />
+                            )}
+                            <span className="truncate text-left">{l.title}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </nav>
+        </aside>
+      )}
+
+      {/* Main content */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Top bar */}
+        <div className="flex items-center gap-3 px-6 py-3 border-b border-slate-200 bg-white">
+          <button
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 transition-colors"
+            title={sidebarOpen ? 'Hide sidebar' : 'Show sidebar'}
+          >
+            <BookOpen className="w-4 h-4" />
+          </button>
+          <div className="text-sm text-slate-500 truncate">
+            {lesson.moduleTitle} &gt; {lesson.title}
+          </div>
+          <div className="ml-auto flex items-center gap-1.5 text-xs text-slate-400">
+            <Clock className="w-3.5 h-3.5" />
+            {lesson.estimatedMinutes} min
+          </div>
+        </div>
+
+        {/* Lesson content */}
+        <div className="flex-1 overflow-y-auto px-6 md:px-10 py-8 bg-slate-50">
+          <div className="max-w-3xl mx-auto">
+            {/* Title */}
+            <h1 className="text-2xl font-bold text-slate-900 mb-4">{lesson.title}</h1>
+
+            {/* Objectives */}
+            <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 mb-6">
+              <div className="flex items-center gap-2 mb-2">
+                <Target className="w-4 h-4 text-blue-600" />
+                <h3 className="text-sm font-semibold text-blue-800">Learning Objectives</h3>
+              </div>
+              <ul className="space-y-1">
+                {lesson.objectives.map((obj, i) => (
+                  <li key={i} className="text-sm text-blue-700 flex items-start gap-2">
+                    <span className="text-blue-400 mt-0.5">-</span>
+                    {obj}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Main content — render markdown-like text */}
+            <div className="prose prose-slate max-w-none mb-8">
+              <MarkdownContent text={lesson.content} />
+            </div>
+
+            {/* Key Takeaways */}
+            <div className="bg-amber-50 border border-amber-100 rounded-xl p-4 mb-8">
+              <div className="flex items-center gap-2 mb-2">
+                <Lightbulb className="w-4 h-4 text-amber-600" />
+                <h3 className="text-sm font-semibold text-amber-800">Key Takeaways</h3>
+              </div>
+              <ul className="space-y-1">
+                {lesson.keyTakeaways.map((t, i) => (
+                  <li key={i} className="text-sm text-amber-700 flex items-start gap-2">
+                    <CheckCircle className="w-3.5 h-3.5 text-amber-500 mt-0.5 flex-shrink-0" />
+                    {t}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom bar */}
+        <div className="flex items-center justify-between px-6 py-3 border-t border-slate-200 bg-white">
+          <button
+            onClick={() => setCurrentIdx(Math.max(0, currentIdx - 1))}
+            disabled={currentIdx === 0}
+            className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Previous
+          </button>
+
+          <div className="flex items-center gap-3">
+            {completed.has(lesson.id) ? (
+              <button
+                onClick={markIncomplete}
+                className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-green-700 bg-green-50 border border-green-200 rounded-lg hover:bg-green-100 transition-colors"
+              >
+                <CheckCircle className="w-4 h-4" />
+                Completed
+              </button>
+            ) : (
+              <button
+                onClick={markComplete}
+                className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors"
+              >
+                Mark as Complete
+              </button>
+            )}
+          </div>
+
+          <button
+            onClick={() => setCurrentIdx(Math.min(allLessons.length - 1, currentIdx + 1))}
+            disabled={currentIdx === allLessons.length - 1}
+            className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            Next
+            <ArrowRight className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Simple Markdown Renderer ──────────────────────────────────────────
+
+function MarkdownContent({ text }: { text: string }) {
+  const lines = text.split('\n');
+  const elements: React.ReactNode[] = [];
+  let i = 0;
+
+  while (i < lines.length) {
+    const line = lines[i];
+
+    // Code block
+    if (line.trimStart().startsWith('```')) {
+      const codeLines: string[] = [];
+      i++;
+      while (i < lines.length && !lines[i].trimStart().startsWith('```')) {
+        codeLines.push(lines[i]);
+        i++;
+      }
+      i++; // skip closing ```
+      elements.push(
+        <pre key={elements.length} className="bg-slate-800 text-slate-100 rounded-lg p-4 overflow-x-auto text-sm my-4">
+          <code>{codeLines.join('\n')}</code>
+        </pre>
+      );
+      continue;
+    }
+
+    // Heading
+    if (line.startsWith('### ')) {
+      elements.push(<h3 key={elements.length} className="text-lg font-semibold text-slate-900 mt-6 mb-3">{renderInline(line.slice(4))}</h3>);
+      i++;
+      continue;
+    }
+    if (line.startsWith('## ')) {
+      elements.push(<h2 key={elements.length} className="text-xl font-bold text-slate-900 mt-8 mb-4">{renderInline(line.slice(3))}</h2>);
+      i++;
+      continue;
+    }
+
+    // Blockquote
+    if (line.startsWith('> ')) {
+      const quoteLines: string[] = [];
+      while (i < lines.length && lines[i].startsWith('> ')) {
+        quoteLines.push(lines[i].slice(2));
+        i++;
+      }
+      elements.push(
+        <blockquote key={elements.length} className="border-l-4 border-primary-300 bg-primary-50 pl-4 pr-3 py-3 my-4 text-sm text-primary-800 rounded-r-lg">
+          {quoteLines.map((ql, qi) => <p key={qi}>{renderInline(ql)}</p>)}
+        </blockquote>
+      );
+      continue;
+    }
+
+    // Unordered list
+    if (line.trimStart().startsWith('- ') || line.trimStart().startsWith('* ')) {
+      const items: string[] = [];
+      while (i < lines.length && (lines[i].trimStart().startsWith('- ') || lines[i].trimStart().startsWith('* '))) {
+        items.push(lines[i].trimStart().slice(2));
+        i++;
+      }
+      elements.push(
+        <ul key={elements.length} className="list-disc list-inside space-y-1.5 my-3 text-slate-700">
+          {items.map((item, ii) => <li key={ii}>{renderInline(item)}</li>)}
+        </ul>
+      );
+      continue;
+    }
+
+    // Ordered list
+    if (/^\d+\.\s/.test(line.trimStart())) {
+      const items: string[] = [];
+      while (i < lines.length && /^\d+\.\s/.test(lines[i].trimStart())) {
+        items.push(lines[i].trimStart().replace(/^\d+\.\s/, ''));
+        i++;
+      }
+      elements.push(
+        <ol key={elements.length} className="list-decimal list-inside space-y-1.5 my-3 text-slate-700">
+          {items.map((item, ii) => <li key={ii}>{renderInline(item)}</li>)}
+        </ol>
+      );
+      continue;
+    }
+
+    // Empty line
+    if (line.trim() === '') {
+      i++;
+      continue;
+    }
+
+    // Paragraph
+    elements.push(<p key={elements.length} className="text-slate-700 leading-relaxed my-3">{renderInline(line)}</p>);
+    i++;
+  }
+
+  return <>{elements}</>;
+}
+
+function renderInline(text: string): React.ReactNode {
+  // Split on inline patterns: **bold**, *italic*, `code`, [link](url)
+  const parts: React.ReactNode[] = [];
+  let remaining = text;
+  let key = 0;
+
+  while (remaining.length > 0) {
+    // Bold
+    const boldMatch = remaining.match(/\*\*(.+?)\*\*/);
+    // Inline code
+    const codeMatch = remaining.match(/`([^`]+)`/);
+    // Italic
+    const italicMatch = remaining.match(/\*([^*]+)\*/);
+
+    // Find earliest match
+    const matches = [
+      boldMatch ? { type: 'bold', match: boldMatch, idx: boldMatch.index! } : null,
+      codeMatch ? { type: 'code', match: codeMatch, idx: codeMatch.index! } : null,
+      italicMatch && (!boldMatch || italicMatch.index! < boldMatch.index!) ? { type: 'italic', match: italicMatch, idx: italicMatch.index! } : null,
+    ].filter(Boolean).sort((a, b) => a!.idx - b!.idx);
+
+    if (matches.length === 0) {
+      parts.push(remaining);
+      break;
+    }
+
+    const first = matches[0]!;
+    if (first.idx > 0) {
+      parts.push(remaining.slice(0, first.idx));
+    }
+
+    if (first.type === 'bold') {
+      parts.push(<strong key={key++} className="font-semibold text-slate-900">{first.match![1]}</strong>);
+      remaining = remaining.slice(first.idx + first.match![0].length);
+    } else if (first.type === 'code') {
+      parts.push(<code key={key++} className="px-1.5 py-0.5 bg-slate-100 text-slate-800 rounded text-sm font-mono">{first.match![1]}</code>);
+      remaining = remaining.slice(first.idx + first.match![0].length);
+    } else {
+      parts.push(<em key={key++} className="italic">{first.match![1]}</em>);
+      remaining = remaining.slice(first.idx + first.match![0].length);
+    }
+  }
+
+  return <>{parts}</>;
+}

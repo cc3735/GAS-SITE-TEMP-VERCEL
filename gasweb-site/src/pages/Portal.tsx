@@ -29,6 +29,7 @@ import {
   Monitor,
   PenTool,
   Globe,
+  BookOpen,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
@@ -36,6 +37,7 @@ import PortalChatBot from '../components/portal/PortalChatBot';
 
 const appNavItems = [
   { to: '/portal/apps', icon: LayoutGrid, label: 'My Apps' },
+  { to: '/portal/courses', icon: BookOpen, label: 'Education Hub' },
   { to: '/portal/crm', icon: Users, label: 'CRM' },
   { to: '/portal/projects', icon: FolderKanban, label: 'Projects' },
 ];

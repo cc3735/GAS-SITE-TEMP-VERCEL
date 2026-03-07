@@ -14,6 +14,10 @@ import {
   X,
   Loader2,
   BarChart3,
+  GraduationCap,
+  DollarSign,
+  Award,
+  Crown,
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useOrganization } from '../../contexts/OrganizationContext';
@@ -61,6 +65,10 @@ export default function OSDashboard() {
   const [appCounts, setAppCounts] = useState<AppCount[]>([]);
   const [recentClients, setRecentClients] = useState<RecentClient[]>([]);
   const [openTickets, setOpenTickets] = useState<number | null>(null);
+  const [totalStudents, setTotalStudents] = useState<number | null>(null);
+  const [paidStudents, setPaidStudents] = useState<number | null>(null);
+  const [coursesCompleted, setCoursesCompleted] = useState<number | null>(null);
+  const [proSubscribers, setProSubscribers] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   // Quick action modals
@@ -84,7 +92,7 @@ export default function OSDashboard() {
 
   useEffect(() => {
     async function load() {
-      const [profilesRes, subsRes, recentRes, ticketRes] = await Promise.all([
+      const [profilesRes, subsRes, recentRes, ticketRes, studentsRes, paidRes, completedRes, proRes] = await Promise.all([
         supabase.from('user_profiles').select('*', { count: 'exact', head: true }),
         supabase.from('user_app_subscriptions').select('app_id').eq('status', 'active'),
         supabase.from('user_profiles')
@@ -92,6 +100,10 @@ export default function OSDashboard() {
           .order('created_at', { ascending: false })
           .limit(10),
         supabase.from('support_tickets').select('*', { count: 'exact', head: true }).eq('status', 'open'),
+        supabase.from('courseflow_enrollments').select('*', { count: 'exact', head: true }),
+        supabase.from('course_purchases').select('*', { count: 'exact', head: true }).eq('payment_status', 'completed'),
+        supabase.from('courseflow_enrollments').select('*', { count: 'exact', head: true }).eq('is_completed', true),
+        supabase.from('course_purchases').select('*', { count: 'exact', head: true }).eq('is_subscription', true).eq('subscription_status', 'active'),
       ]);
 
       setTotalClients(profilesRes.count ?? 0);
@@ -108,6 +120,10 @@ export default function OSDashboard() {
 
       setRecentClients((recentRes.data ?? []) as RecentClient[]);
       setOpenTickets(ticketRes.count ?? 0);
+      setTotalStudents(studentsRes.count ?? 0);
+      setPaidStudents(paidRes.count ?? 0);
+      setCoursesCompleted(completedRes.count ?? 0);
+      setProSubscribers(proRes.count ?? 0);
       setIsLoading(false);
     }
     load();
@@ -309,6 +325,62 @@ export default function OSDashboard() {
             <Building2 className="w-7 h-7 text-gray-500 group-hover:text-primary-400 mb-2" />
             <span className="text-sm font-medium text-gray-400 group-hover:text-primary-400">Add Company</span>
           </button>
+        </div>
+      </div>
+
+      {/* Education Hub Stats */}
+      <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+        <div className="flex items-center justify-between mb-5">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-emerald-900/20 rounded-lg flex items-center justify-center">
+              <GraduationCap className="w-5 h-5 text-emerald-400" />
+            </div>
+            <div>
+              <h2 className="font-semibold text-white">Education Hub</h2>
+              <p className="text-sm text-gray-400">Course enrollment & revenue metrics</p>
+            </div>
+          </div>
+          <Link to="/os/apps" className="text-xs text-primary-400 hover:text-primary-300 flex items-center gap-1">
+            Manage <ArrowRight className="w-3 h-3" />
+          </Link>
+        </div>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-4">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-xs text-gray-500 uppercase tracking-wide">Total Students</p>
+              <GraduationCap className="w-4 h-4 text-emerald-400" />
+            </div>
+            <p className="text-2xl font-bold text-white">
+              {isLoading ? <span className="text-gray-600">—</span> : totalStudents ?? 0}
+            </p>
+          </div>
+          <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-4">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-xs text-gray-500 uppercase tracking-wide">Paid Students</p>
+              <DollarSign className="w-4 h-4 text-green-400" />
+            </div>
+            <p className="text-2xl font-bold text-white">
+              {isLoading ? <span className="text-gray-600">—</span> : paidStudents ?? 0}
+            </p>
+          </div>
+          <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-4">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-xs text-gray-500 uppercase tracking-wide">Courses Completed</p>
+              <Award className="w-4 h-4 text-blue-400" />
+            </div>
+            <p className="text-2xl font-bold text-white">
+              {isLoading ? <span className="text-gray-600">—</span> : coursesCompleted ?? 0}
+            </p>
+          </div>
+          <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-4">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-xs text-gray-500 uppercase tracking-wide">Pro Subscribers</p>
+              <Crown className="w-4 h-4 text-yellow-400" />
+            </div>
+            <p className="text-2xl font-bold text-white">
+              {isLoading ? <span className="text-gray-600">—</span> : proSubscribers ?? 0}
+            </p>
+          </div>
         </div>
       </div>
 

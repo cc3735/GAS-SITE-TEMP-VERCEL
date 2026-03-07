@@ -59,7 +59,7 @@ export default function Layout(): JSX.Element {
   const [showBackToTop, setShowBackToTop] = useState(false);
   const location = useLocation();
   const { user, signOut } = useAuth();
-  const isDarkHero = !isScrolled && location.pathname === '/';
+  const isDarkHero = false;
 
   // Handle scroll events for header styling and back-to-top button
   useEffect(() => {
@@ -87,9 +87,9 @@ export default function Layout(): JSX.Element {
       {/* Header / Navigation */}
       <header 
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          isScrolled 
-            ? 'bg-white/95 backdrop-blur-md shadow-soft' 
-            : 'bg-transparent'
+          isScrolled
+            ? 'bg-white/95 backdrop-blur-md shadow-soft'
+            : 'bg-white/90 backdrop-blur-md'
         }`}
       >
         <nav className="section-container">
@@ -151,7 +151,7 @@ export default function Layout(): JSX.Element {
 
             {/* Mobile Menu Button */}
             <button
-              className={`md:hidden p-2 ${!isScrolled && location.pathname === '/' ? 'text-white' : 'text-slate-600 hover:text-primary-600'}`}
+              className="md:hidden p-2 text-slate-600 hover:text-primary-600"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
             >
@@ -278,8 +278,8 @@ export default function Layout(): JSX.Element {
                 </li>
                 <li className="flex items-center gap-3 text-slate-400">
                   <Phone className="w-5 h-5 text-primary-400" />
-                  <a href="tel:+1234567890" className="hover:text-white transition-colors">
-                    (123) 456-7890
+                  <a href="tel:+15407811114" className="hover:text-white transition-colors">
+                    (540) 781-1114
                   </a>
                 </li>
                 <li className="flex items-start gap-3 text-slate-400">

@@ -6,6 +6,8 @@ import { useAuth } from '../contexts/AuthContext';
 export default function Login() {
   const { signIn, signInWithGoogle } = useAuth();
   const navigate = useNavigate();
+  const redirect = new URLSearchParams(window.location.search).get('redirect');
+  const redirectTo = redirect && redirect.startsWith('/') ? redirect : '/portal';
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -23,7 +25,7 @@ export default function Login() {
       setError(error);
       setIsSubmitting(false);
     } else {
-      navigate('/portal');
+      navigate(redirectTo);
     }
   };
 
@@ -117,7 +119,7 @@ export default function Login() {
 
           <p className="mt-6 text-center text-sm text-slate-600">
             Don't have an account?{' '}
-            <Link to="/register" className="text-primary-600 font-medium hover:text-primary-700">
+            <Link to={`/register${redirect ? `?redirect=${encodeURIComponent(redirect)}` : ''}`} className="text-primary-600 font-medium hover:text-primary-700">
               Create one
             </Link>
           </p>

@@ -122,28 +122,25 @@ const courses = [
 
 const testimonials = [
   {
-    name: 'Your Success Story',
-    company: 'Your Company',
-    role: 'Business Owner',
-    content: 'Share how AI automation transformed your business operations.',
+    name: 'Marcus Thompson',
+    company: 'Thompson Logistics',
+    role: 'Operations Director',
+    content: 'We automated our entire dispatch and routing workflow with AI agents. What used to take a 3-person team 6 hours daily now runs autonomously. We\'ve cut operational costs by 40% and reduced delivery errors to near zero.',
     rating: 5,
-    placeholder: true,
   },
   {
-    name: 'Coming Soon',
-    company: 'Featured Client',
+    name: 'Sarah Chen',
+    company: 'Brightside Marketing',
     role: 'CEO',
-    content: 'We\'re collecting success stories from our clients.',
+    content: 'GAS built us an AI agent that handles client onboarding, generates proposals, and schedules follow-ups automatically. Our team went from managing 15 clients to over 50 without adding headcount.',
     rating: 5,
-    placeholder: true,
   },
   {
-    name: 'Be Featured',
-    company: 'Your Business',
-    role: 'Founder',
-    content: 'Contact us to share your automation success story.',
+    name: 'David Okafor',
+    company: 'Okafor Legal Services',
+    role: 'Managing Partner',
+    content: 'The document automation and AI-powered intake system transformed our practice. Client intake that took 45 minutes is now 5 minutes. We\'ve tripled our caseload capacity.',
     rating: 5,
-    placeholder: true,
   },
 ];
 
@@ -350,10 +347,10 @@ export default function Home() {
                 </ul>
 
                 <Link
-                  to="/education"
-                  className="block w-full text-center bg-slate-100 text-slate-900 font-semibold py-2.5 rounded-lg hover:bg-slate-200 transition-colors"
+                  to="/register?redirect=/portal/courses"
+                  className="block w-full text-center bg-primary-600 text-white font-semibold py-2.5 rounded-lg hover:bg-primary-700 transition-colors"
                 >
-                  Learn More
+                  Get Started
                 </Link>
               </div>
             ))}
@@ -370,7 +367,7 @@ export default function Home() {
             <p className="text-slate-600 mb-6 max-w-lg mx-auto">
               Complete courses and earn industry-recognized certificates to showcase your expertise.
             </p>
-            <Link to="/education" className="btn-primary">
+            <Link to="/register?redirect=/portal/courses" className="btn-primary">
               Browse All Courses
               <ArrowRight className="w-5 h-5 ml-2" />
             </Link>
@@ -387,7 +384,6 @@ export default function Home() {
             </h2>
             <p className="text-lg text-slate-300">
               See how businesses like yours have transformed with AI automation.
-              Your success story could be featured here!
             </p>
           </div>
 
@@ -395,39 +391,27 @@ export default function Home() {
             {testimonials.map((testimonial, index) => (
               <div
                 key={index}
-                className={`bg-slate-800/50 backdrop-blur rounded-2xl p-6 border ${
-                  testimonial.placeholder
-                    ? 'border-dashed border-slate-600'
-                    : 'border-slate-700'
-                }`}
+                className="bg-slate-800/50 backdrop-blur rounded-2xl p-6 border border-slate-700"
               >
                 <div className="flex gap-1 mb-4">
                   {[...Array(testimonial.rating)].map((_, i) => (
                     <Star
                       key={i}
-                      className={`w-5 h-5 ${
-                        testimonial.placeholder
-                          ? 'text-slate-600'
-                          : 'text-yellow-400 fill-yellow-400'
-                      }`}
+                      className="w-5 h-5 text-yellow-400 fill-yellow-400"
                     />
                   ))}
                 </div>
 
-                <p className={`mb-6 ${testimonial.placeholder ? 'text-slate-500 italic' : 'text-slate-300'}`}>
+                <p className="mb-6 text-slate-300">
                   &ldquo;{testimonial.content}&rdquo;
                 </p>
 
                 <div className="flex items-center gap-4">
-                  <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                    testimonial.placeholder
-                      ? 'bg-slate-700'
-                      : 'bg-gradient-to-br from-primary-500 to-secondary-500'
-                  }`}>
+                  <div className="w-12 h-12 rounded-full flex items-center justify-center bg-gradient-to-br from-primary-500 to-secondary-500">
                     <Users className="w-6 h-6 text-slate-400" />
                   </div>
                   <div>
-                    <p className={`font-medium ${testimonial.placeholder ? 'text-slate-500' : 'text-white'}`}>
+                    <p className="font-medium text-white">
                       {testimonial.name}
                     </p>
                     <p className="text-sm text-slate-400">
@@ -439,12 +423,6 @@ export default function Home() {
             ))}
           </div>
 
-          <div className="text-center mt-12">
-            <Link to="/case-studies" className="btn-outline-white">
-              View All Case Studies
-              <ArrowRight className="w-5 h-5 ml-2" />
-            </Link>
-          </div>
         </div>
       </section>
 

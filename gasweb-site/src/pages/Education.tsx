@@ -8,7 +8,7 @@
  */
 
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   ArrowRight,
   Play,
@@ -28,6 +28,7 @@ import {
   CheckCircle2,
   Sparkles,
 } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 
 /**
  * Course type definition
@@ -204,9 +205,26 @@ function PriceBadge({ priceType, price }: { priceType: string; price?: number })
  */
 function CourseCard({ course, viewMode }: { course: Course; viewMode: 'grid' | 'list' }) {
   const isGrid = viewMode === 'grid';
-  
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (user) {
+      navigate('/portal/courses');
+    } else {
+      navigate('/login?redirect=/portal/courses');
+    }
+  };
+
   return (
-    <div className={`card group ${isGrid ? '' : 'flex gap-6'}`}>
+    <div
+      role="link"
+      tabIndex={0}
+      onClick={handleClick}
+      onKeyDown={(e) => { if (e.key === 'Enter') handleClick(e as any); }}
+      className={`card group cursor-pointer block ${isGrid ? '' : 'flex gap-6'}`}
+    >
       {/* Image */}
       <div className={`relative overflow-hidden ${isGrid ? 'aspect-video' : 'w-64 flex-shrink-0'}`}>
         <div className="absolute inset-0 bg-gradient-to-br from-primary-400 to-secondary-400 flex items-center justify-center">
@@ -221,11 +239,11 @@ function CourseCard({ course, viewMode }: { course: Course; viewMode: 'grid' | '
           </div>
         )}
         {course.preview && (
-          <button className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity">
             <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-lg">
               <Play className="w-6 h-6 text-primary-600 ml-1" />
             </div>
-          </button>
+          </div>
         )}
       </div>
       
@@ -293,10 +311,10 @@ function CourseCard({ course, viewMode }: { course: Course; viewMode: 'grid' | '
             <PriceBadge priceType={course.priceType} price={course.price} />
           </div>
           
-          <button className="text-primary-600 font-medium text-sm flex items-center gap-1 hover:gap-2 transition-all">
+          <span className="text-primary-600 font-medium text-sm flex items-center gap-1 group-hover:gap-2 transition-all">
             {course.priceType === 'free' ? 'Start Learning' : 'Enroll Now'}
             <ChevronRight className="w-4 h-4" />
-          </button>
+          </span>
         </div>
       </div>
     </div>
@@ -305,7 +323,7 @@ function CourseCard({ course, viewMode }: { course: Course; viewMode: 'grid' | '
 
 /**
  * Education Page Component
- * 
+ *
  * @returns {JSX.Element} The education page
  */
 export default function Education(): JSX.Element {

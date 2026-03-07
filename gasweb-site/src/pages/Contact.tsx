@@ -539,8 +539,8 @@ export default function Contact(): JSX.Element {
                     </div>
                     <div>
                       <p className="font-medium text-slate-900">Phone</p>
-                      <a href="tel:+1234567890" className="text-slate-600 hover:text-primary-600 transition-colors">
-                        (123) 456-7890
+                      <a href="tel:+15407811114" className="text-slate-600 hover:text-primary-600 transition-colors">
+                        (540) 781-1114
                       </a>
                     </div>
                   </div>

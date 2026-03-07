@@ -40,6 +40,8 @@ import SocialFlowMarketing from './pages/portal/socialflow/SocialFlowMarketing';
 import ClientIntake from './pages/portal/intake/ClientIntake';
 import PortalCRM from './pages/portal/PortalCRM';
 import PortalProjects from './pages/portal/PortalProjects';
+import PortalCourses from './pages/portal/PortalCourses';
+import PortalCourseDetail from './pages/portal/PortalCourseDetail';
 import Profile from './pages/portal/settings/Profile';
 import Billing from './pages/portal/settings/Billing';
 import Notifications from './pages/portal/settings/Notifications';
@@ -67,8 +69,9 @@ import OSVoice from './pages/os/OSVoice';
 // Redirect already-authenticated users away from auth pages
 function AuthRoute({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth();
+  const redirect = new URLSearchParams(window.location.search).get('redirect');
   if (isLoading) return null;
-  if (user) return <Navigate to="/portal" replace />;
+  if (user) return <Navigate to={redirect && redirect.startsWith('/') ? redirect : '/portal'} replace />;
   return <>{children}</>;
 }
 
@@ -118,6 +121,8 @@ function App(): JSX.Element {
             <Route path="socialflow" element={<SocialFlowHub />} />
             <Route path="socialflow/messaging" element={<SocialFlowMessaging />} />
             <Route path="socialflow/marketing" element={<SocialFlowMarketing />} />
+            <Route path="courses" element={<PortalCourses />} />
+            <Route path="courses/:courseId" element={<PortalCourseDetail />} />
             <Route path="crm" element={<PortalCRM />} />
             <Route path="projects" element={<PortalProjects />} />
           </Route>
