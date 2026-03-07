@@ -18,6 +18,7 @@ import {
   DollarSign,
   Award,
   Crown,
+  Phone,
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useOrganization } from '../../contexts/OrganizationContext';
@@ -69,6 +70,7 @@ export default function OSDashboard() {
   const [paidStudents, setPaidStudents] = useState<number | null>(null);
   const [coursesCompleted, setCoursesCompleted] = useState<number | null>(null);
   const [proSubscribers, setProSubscribers] = useState<number | null>(null);
+  const [newVoicemails, setNewVoicemails] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   // Quick action modals
@@ -92,7 +94,7 @@ export default function OSDashboard() {
 
   useEffect(() => {
     async function load() {
-      const [profilesRes, subsRes, recentRes, ticketRes, studentsRes, paidRes, completedRes, proRes] = await Promise.all([
+      const [profilesRes, subsRes, recentRes, ticketRes, studentsRes, paidRes, completedRes, proRes, voicemailRes] = await Promise.all([
         supabase.from('user_profiles').select('*', { count: 'exact', head: true }),
         supabase.from('user_app_subscriptions').select('app_id').eq('status', 'active'),
         supabase.from('user_profiles')
@@ -104,6 +106,7 @@ export default function OSDashboard() {
         supabase.from('course_purchases').select('*', { count: 'exact', head: true }).eq('payment_status', 'completed'),
         supabase.from('courseflow_enrollments').select('*', { count: 'exact', head: true }).eq('is_completed', true),
         supabase.from('course_purchases').select('*', { count: 'exact', head: true }).eq('is_subscription', true).eq('subscription_status', 'active'),
+        supabase.from('voicemails').select('*', { count: 'exact', head: true }).eq('status', 'new'),
       ]);
 
       setTotalClients(profilesRes.count ?? 0);
@@ -124,6 +127,7 @@ export default function OSDashboard() {
       setPaidStudents(paidRes.count ?? 0);
       setCoursesCompleted(completedRes.count ?? 0);
       setProSubscribers(proRes.count ?? 0);
+      setNewVoicemails(voicemailRes.count ?? 0);
       setIsLoading(false);
     }
     load();
@@ -266,6 +270,7 @@ export default function OSDashboard() {
     { label: 'Active Subscriptions', value: activeSubscriptions, icon: CheckCircle2, color: 'text-green-400', to: '/os/subscriptions' },
     { label: 'Open Projects', value: projects.filter(p => p.status === 'planning' || p.status === 'active').length, icon: FolderKanban, color: 'text-purple-400', to: '/os/projects' },
     { label: 'Open Tickets', value: openTickets, icon: LifeBuoy, color: 'text-yellow-400', to: '/os/support-tickets' },
+    { label: 'New Voicemails', value: newVoicemails, icon: Phone, color: 'text-orange-400', to: '/os/voice' },
   ];
 
   return (
@@ -279,7 +284,7 @@ export default function OSDashboard() {
       </div>
 
       {/* GAS Admin Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         {gasStats.map(({ label, value, icon: Icon, color, to }) => (
           <Link key={label} to={to} className="bg-gray-900 border border-gray-800 rounded-xl p-5 hover:border-gray-700 hover:bg-gray-800/50 transition-colors cursor-pointer block">
             <div className="flex items-center justify-between mb-3">

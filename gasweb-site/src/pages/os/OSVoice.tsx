@@ -426,7 +426,9 @@ function VoicemailsTable({
         {voicemails.map((vm) => {
           const isExpanded = expandedId === vm.id;
           const location = [vm.caller_city, vm.caller_state].filter(Boolean).join(', ');
-          const audioUrl = vm.recording_url ? `${vm.recording_url}.mp3` : null;
+          const audioUrl = vm.recording_url
+            ? `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/voicemail-audio?url=${encodeURIComponent(vm.recording_url)}`
+            : null;
 
           return (
             <>
